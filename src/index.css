@@ -4,6 +4,7 @@
 **/
 
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
 /*--------------------------------------------------------------
 # Set main reusable colors and fonts using CSS variables
@@ -11,10 +12,10 @@
 --------------------------------------------------------------*/
 /* Fonts */
 :root {
-  --font-default: "Cairo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-default: "Cairo", "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
-  --font-primary: "Cairo", sans-serif;
-  --font-secondary: "Cairo", sans-serif;
+  --font-primary: "Cairo", "Montserrat", sans-serif;
+  --font-secondary: "Cairo", "Montserrat", sans-serif;
 }
 
 
@@ -26,73 +27,41 @@
 
 /* Colors */
 :root {
-  --color-default: #333333;
-  --color-primary: #003B6D;
-  --color-secondary: #0096D6;
-  --primary: #003B6D;
-  --primary-dark: #002a4d;
-  --primary-light: #e2f1ff;
-  --accent: #F4A900;
-  --accent-dark: #d69400;
-  --accent-light: #fef6da;
-  --success: #13d527;
-  --success-dark: #00ae11;
-  --success-light: #eafbe7;
-  --secondary: #0096D6;
-  --secondary-dark: #007bb0;
-  --secondary-light: #e0f4ff;
-  --info: #0096D6;
-  --info-dark: #0f8ca8;
-  --info-light: #e0f5fa;
-  --caution: #dbbb25;
-  --caution-dark: #d58f15;
-  --caution-light: #fbf9e4;
-  --error: #e6185e;
-  --error-dark: #bf1257;
-  --error-light: #fce4eb;
+  /* Brand Colors */
+  --primary-color: #003366;       /* Deep Navy - for Navbar, Footer, Headings */
+  --secondary-color: #0096D6;     /* Logo Cyan - for Icons, Subheadings */
+  --accent-color: #F4A900;        /* Golden/Amber - STRICTLY for CTAs (Buttons) only */
 
-  /* User requested variables mapping */
-  --primary-color: #003B6D;
-  --secondary-color: #0096D6;
-  --accent-color: #F4A900;
-  --text-color: #333333;
-  --bg-light: #F8F9FA;
+  /* Neutrals */
+  --text-dark: #1A1A1A;           /* High contrast text */
+  --text-gray: #666666;           /* Paragraph text */
+  --bg-light: #F4F7F6;            /* Very light gray/blue tint for section backgrounds */
+  --white: #FFFFFF;
+
+  /* UI Elements */
+  --border-radius: 12px;          /* Modern, friendly feel */
+  --card-shadow: 0 10px 30px -10px rgba(0, 51, 102, 0.15); /* Soft, deep shadow */
+  --transition: all 0.3s ease-in-out;
+
+  /* Legacy variable mapping for compatibility - updated to match new palette */
+  --color-default: var(--text-gray);
+  --color-primary: var(--primary-color);
+  --color-secondary: var(--secondary-color);
+  --primary: var(--primary-color);
+  --primary-dark: #002244;
+  --primary-light: #e2f1ff;
+  --accent: var(--accent-color);
+  --secondary: var(--secondary-color);
+  --color-white: var(--white);
 
   --black: #1d1d1d;
   --dark-1: #2d2d2d;
   --dark-2: #4d4d4d;
-  --dark-3: #6d6d6d;
-  --gray-1: #8d8d8d;
-  --gray-2: #adadad;
-  --gray-3: #cdcdcd;
-  --gray-4: #e0e0e0;
-  --light-1: #efefef;
-  --light-2: #F8F9FA;
-  --light-3: #fafafa;
-  --white: #ffffff;
-   --color-white: #ffffff;
-  --gradient-1: linear-gradient(180deg, #003B6D 0%, #002a4d 100%);
-  --gradient-2: linear-gradient(180deg, #003B6D 13.02%, #F4A900 85.42%);
-  --gradient-3: linear-gradient(180deg, #003B6D 0%, #0096D6 100%);
-  --gradient-4: linear-gradient(180deg, #003B6D 0%, #13d527 100%);
-  --gradient-5: linear-gradient(180deg, #003B6D 0%, #0096D6 100%);
-  --gradient-6: linear-gradient(180deg, #003B6D 0%, #F4A900 100%);
-  --gradient-7: linear-gradient(180deg, #003B6D 0%, #e6185e 100%);
-  --gradient-8: linear-gradient(180deg, #002a4d 0%, #007bb0 100%);
-  --gradient-9: linear-gradient(180deg, #F4A900 13.02%, #003B6D 85.42%);
-  --shadow-1: 0px 0px 1px rgba(40, 41, 61, 0.08),
-    0px 0.5px 2px rgba(96, 97, 112, 0.16);
-  --shadow-2: 0px 0px 1px rgba(40, 41, 61, 0.04),
-    0px 2px 4px rgba(96, 97, 112, 0.16);
-  --shadow-3: 0px 0px 2px rgba(40, 41, 61, 0.04),
-    0px 4px 8px rgba(96, 97, 112, 0.16);
-  --shadow-4: 0px 2px 4px rgba(40, 41, 61, 0.04),
-    0px 8px 16px rgba(96, 97, 112, 0.16);
-  --shadow-5: 0px 2px 8px rgba(40, 41, 61, 0.04),
-    0px 16px 24px rgba(96, 97, 112, 0.16);
-  --shadow-6: 0px 2px 8px rgba(40, 41, 61, 0.08),
-    0px 20px 32px rgba(96, 97, 112, 0.24);
-	
+  --dark-3: var(--text-gray);
+
+  /* Gradients */
+  --gradient-1: linear-gradient(180deg, var(--primary-color) 0%, #002244 100%);
+  --shadow-2: var(--card-shadow);
 }
 
 /*--------------------------------------------------------------
@@ -100,18 +69,8 @@
 --------------------------------------------------------------*/
 body {
   font-family: var(--font-default);
-  color: var(--color-default);
-}
-
-a {
-  color: var(--color-primary);
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-a:hover {
-  color: #82cbed;
-  text-decoration: none;
+  color: var(--text-dark);
+  background-color: var(--white);
 }
 
 h1,
@@ -121,10 +80,13 @@ h4,
 h5,
 h6 {
   font-family: var(--font-primary);
-  color: var(--black)
+  color: var(--primary-color);
+  font-weight: 700;
 }
 
-p{color: var(--dark-3)}
+p {
+    color: var(--text-gray);
+}
 
 .pointer {cursor:pointer}
 

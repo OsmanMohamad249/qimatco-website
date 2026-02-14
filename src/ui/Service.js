@@ -113,7 +113,7 @@ const Service = () => {
               </div>
                <div className="col-lg-7 col-md-6 service-item " data-aos="fade-up" data-aos-delay="500">
                 <div className="icon flex-shrink-0">
-                  <i className="bi bi-handshake-fill" style={{ color: "#0096D6" }}></i>
+                  <i className="bi bi-globe-americas" style={{ color: "#0096D6" }}></i>
                 </div>
                 <div>
                   <h4 className="title"> {t('service_import_title')} </h4>

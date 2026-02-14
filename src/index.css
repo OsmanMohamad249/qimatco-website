@@ -2919,3 +2919,100 @@ padding:10px;
   color:  var(--dark-3);
 }
 
+/*--------------------------------------------------------------
+# Floating WhatsApp Button
+--------------------------------------------------------------*/
+.floating-whatsapp {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background-color: #25D366;
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 30px;
+  box-shadow: 2px 2px 3px #999;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  animation: pulse 2s infinite;
+}
+
+.floating-whatsapp:hover {
+  background-color: #128C7E;
+  color: #fff;
+}
+
+.floating-whatsapp i {
+  color: white;
+  margin-top: 2px; /* Visual adjustment */
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+/*--------------------------------------------------------------
+# Navbar Tracking Widget
+--------------------------------------------------------------*/
+.tracking-widget {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.tracking-widget form {
+  display: flex;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  padding: 5px 10px;
+}
+
+.tracking-widget input {
+  border: none;
+  padding: 5px;
+  outline: none;
+  font-size: 14px;
+  color: #333;
+  width: 150px;
+}
+
+.tracking-widget button {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 5px;
+}
+
+.tracking-widget button:hover {
+  color: var(--color-secondary);
+}
+
+@media (max-width: 991px) {
+    .tracking-widget {
+        margin: 10px 0;
+        justify-content: center;
+    }
+
+    .tracking-widget input {
+       width: 100%;
+    }
+}

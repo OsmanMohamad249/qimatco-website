@@ -39,7 +39,9 @@ const InnerHeader = () => {
 
   // mobile view menu
   const mobilemenu = (event) => {
-    event.preventDefault();
+    if(!event.target.matches('a') && !event.target.closest('a')) {
+      event.preventDefault();
+    }
     const mobileNavShow = document.querySelector(".mobile-nav-show");
     const mobileNavHide = document.querySelector(".mobile-nav-hide");
     mobileNavShow.classList.toggle("d-none");
@@ -77,6 +79,15 @@ const InnerHeader = () => {
             </li>
             <li>
             <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> {t('nav_contact')}</Link>
+            </li>
+            <li className="tracking-widget">
+               <form onSubmit={(e) => {
+                  e.preventDefault();
+                  alert(t('nav_track_alert'));
+                }}>
+                 <input type="text" placeholder={t('nav_track_placeholder')} />
+                 <button type="submit"><i className="bi bi-search"></i></button>
+               </form>
             </li>
             <li>
               <button

@@ -132,7 +132,7 @@ const ServiceList = () => {
               <div className="single-service">
                 <div className="icon flex-shrink-0">
                   <i
-                    className="bi bi-handshake-fill"
+                    className="bi bi-globe-americas"
                     style={{ color: "#0096D6" }}
                   ></i>
                 </div>

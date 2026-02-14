@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "../node_modules/bootstrap/dist/css/bootstrap.css";
 import Preloader from "./layout/Preloader";
+import FloatingWhatsApp from "./components/FloatingWhatsApp";
 const Home = lazy(() => import("./ui/Home"));
 const Career = lazy(() => import("./ui/Career"));
 const Contact = lazy(() => import("./ui/Contact"));
@@ -23,7 +24,8 @@ function App() {
             <Route path="*" element={<NoPage />} />       
           </Routes>
         </Suspense>
-      </Router> 
+        <FloatingWhatsApp />
+      </Router>
     </>
   );
 }

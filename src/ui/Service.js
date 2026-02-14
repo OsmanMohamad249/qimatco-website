@@ -71,7 +71,7 @@ const Service = () => {
               </div>
               <div className="col-lg-7 col-md-6 service-item" data-aos="fade-up" data-aos-delay="300">
                  <div className="icon flex-shrink-0">
-                  <i className="bi bi-truck-front-fill" style={{ color: "#F4A900" }}></i>
+                  <i className="bi bi-truck-front-fill" style={{ color: "var(--accent-color)" }}></i>
                 </div>
                 <div>
                   <h4 className="title"> {t('service_land_title')} </h4>
@@ -89,7 +89,7 @@ const Service = () => {
             <div className="row gy-5 align-items-center ">
                <div className="col-lg-7 col-md-6 service-item " data-aos="fade-up" data-aos-delay="400">
                 <div className="icon flex-shrink-0">
-                  <i className="bi bi-file-earmark-check-fill" style={{ color: "#003B6D" }}></i>
+                  <i className="bi bi-file-earmark-check-fill" style={{ color: "var(--primary-color)" }}></i>
                 </div>
                 <div>
                   <h4 className="title"> {t('service_customs_title')} </h4>
@@ -113,7 +113,7 @@ const Service = () => {
               </div>
                <div className="col-lg-7 col-md-6 service-item " data-aos="fade-up" data-aos-delay="500">
                 <div className="icon flex-shrink-0">
-                  <i className="bi bi-globe-americas" style={{ color: "#0096D6" }}></i>
+                  <i className="bi bi-globe-americas" style={{ color: "var(--secondary-color)" }}></i>
                 </div>
                 <div>
                   <h4 className="title"> {t('service_import_title')} </h4>

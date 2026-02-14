@@ -49,7 +49,7 @@ const ServiceList = () => {
                 <div className="icon flex-shrink-0">
                   <i
                     className="bi bi-airplane-fill"
-                    style={{ color: "#0096D6" }}
+                    style={{ color: "var(--secondary-color)" }}
                   ></i>
                 </div>
                 <div>
@@ -77,7 +77,7 @@ const ServiceList = () => {
                 <div className="icon flex-shrink-0">
                   <i
                     className="bi bi-file-earmark-check-fill"
-                    style={{ color: "#003B6D" }}
+                    style={{ color: "var(--primary-color)" }}
                   ></i>
                 </div>
                 <div>
@@ -105,7 +105,7 @@ const ServiceList = () => {
                 <div className="icon flex-shrink-0">
                   <i
                     className="bi bi-truck-front-fill"
-                    style={{ color: "#F4A900" }}
+                    style={{ color: "var(--accent-color)" }}
                   ></i>
                 </div>
                 <div>
@@ -133,7 +133,7 @@ const ServiceList = () => {
                 <div className="icon flex-shrink-0">
                   <i
                     className="bi bi-globe-americas"
-                    style={{ color: "#0096D6" }}
+                    style={{ color: "var(--secondary-color)" }}
                   ></i>
                 </div>
                 <div>

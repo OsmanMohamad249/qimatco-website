@@ -22,10 +22,16 @@ const Navbar = () => {
               <Link to ="/"  className={splitLocation[1] === "" ? "active" : ""}> الرئيسية</Link>
             </li>
             <li>
-            <Link to ="/about"  className={splitLocation[1] === "about" ? "active" : ""}> من نحن</Link>
+              <Link to ="/about"  className={splitLocation[1] === "about" ? "active" : ""}> من نحن</Link>
             </li>
-            <li>
-            <Link to ="/services"  className={splitLocation[1] === "services" ? "active" : ""}> خدماتنا</Link>
+            <li className="dropdown">
+              <a href="#" className={splitLocation[1] === "services" ? "active" : ""}>
+                <span>خدماتنا</span> <i className="bi bi-chevron-down"></i>
+              </a>
+              <ul>
+                <li><Link to="/services">خدمات لوجستية</Link></li>
+                <li><a href="/#trading">تجارة دولية</a></li>
+              </ul>
             </li>
             <li>
             <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> تواصل معنا</Link>

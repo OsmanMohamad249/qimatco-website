@@ -5,6 +5,7 @@ import Carousel from "../components/Carousel";
 import ClientList from "../components/ClientList";
 import Facts from "../components/Facts";
 import ServiceList from "../components/ServiceList";
+import Trading from "./Trading";
 
 const Home = () => {
   return (
@@ -13,6 +14,7 @@ const Home = () => {
       <Carousel />
       <main id="main">
         <ServiceList/>
+        <Trading/>
         <ClientList/>
         <Facts/>
       </main>

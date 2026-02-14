@@ -7,14 +7,17 @@ export const translations = {
     nav_contact: "تواصل معنا",
     nav_quote: "اطلب عرض سعر",
     nav_careers: "الوظائف",
+    nav_logistics: "خدمات لوجستية",
+    nav_trading: "تجارة دولية",
     nav_track_placeholder: "أدخل رقم التتبع",
     nav_track_alert: "نظام التتبع تحت الصيانة حاليا. يرجى الاتصال بخدمة العملاء.",
 
     // Hero / Carousel
-    hero_title: "نصدر خيرات السودان.. ونستورد لك من كل عواصم العالم",
-    hero_subtitle: "شريكك الاستراتيجي في استيراد المنسوجات والملابس من أقوى الأسواق العالمية (الصين، تركيا، الهند، ومصر) وتصدير المحاصيل السودانية لكل الدنيا.",
+    hero_title: "رواد التجارة الدولية.. وخبراء الحلول اللوجستية",
+    hero_subtitle: "نقدم لك حلولاً متكاملة: نورد لك أجود المنتجات السودانية والعالمية (تجارة)، وننقل بضائعك من وإلى أي مكان في العالم (خدمات).",
     hero_cta_quote: "اطلب عرض سعر",
-    hero_cta_services: "خدماتنا",
+    hero_cta_logistics: "خدمات لوجستية",
+    hero_cta_trading: "تجارة دولية",
 
     // About
     about_title: "لماذا تختار قمة الابتكار؟",
@@ -29,9 +32,16 @@ export const translations = {
     about_values_title: "قيمنا",
     about_values_desc: "النزاهة، الالتزام بالمواعيد، الابتكار في الحلول، والتركيز الدائم على رضا العميل.",
 
+    // Trading Section
+    trading_title: "قطاع التجارة الدولية",
+    trading_export_title: "تصدير المنتجات السودانية",
+    trading_export_text: "بصفتنا موردين معتمدين، نوفر وتصدر أجود المحاصيل السودانية (الصمغ العربي، السمسم، الكركديه) للأسواق العالمية بأسعار تنافسية.",
+    trading_import_title: "تجارة المنسوجات والأقمشة",
+    trading_import_text: "نستورد ونوزع أحدث صيحات الموضة والأقمشة من (الصين، تركيا، الهند، ومصر). نوفر كميات تجارية لتجار الجملة والمصانع.",
+
     // Services
-    services_title_main: "حلولنا المتكاملة",
-    services_subtitle_main: "حلول متكاملة في الاستيراد والتصدير، التخليص الجمركي، والخدمات اللوجستية من الباب للباب.",
+    services_title_main: "قطاع الخدمات اللوجستية",
+    services_subtitle_main: "هل لديك بضائع تود نقلها؟ نحن نتولى الشحن والتخليص نيابة عنك.",
     service_sea_title: "الشحن البحري",
     service_sea_desc: "شحن الحاويات الكاملة (FCL) والمجزءة (LCL) من كافة موانئ العالم.",
     service_air_title: "الشحن الجوي",
@@ -76,6 +86,9 @@ export const translations = {
     // contact_success: "تم الإرسال بنجاح ✓",
 
     // Form fields
+    contact_intent: "نوع الطلب",
+    contact_intent_logistics: "أريد شحن بضائع (خدمة)",
+    contact_intent_trading: "أريد شراء منتجات (تجارة)",
     contact_name: "الاسم",
     contact_email: "البريد الإلكتروني",
     contact_phone: "رقم الهاتف",
@@ -113,8 +126,8 @@ export const translations = {
     nav_track_alert: "Tracking system is currently under maintenance. Please contact customer support.",
 
     // Hero / Carousel
-    hero_title: "Exporting Sudan's Bounty & Sourcing from the Globe",
-    hero_subtitle: "Specialized in importing textiles & fashion from key global hubs (China, Turkey, India, Egypt) and exporting Sudanese local products.",
+    hero_title: "Global Trade Leaders & Logistics Experts",
+    hero_subtitle: "Your integrated partner: We supply premium Sudanese & global products (Trading), and manage your shipments worldwide (Logistics).",
     hero_cta_quote: "Get a Quote",
     hero_cta_services: "Our Services",
 
@@ -131,9 +144,16 @@ export const translations = {
     about_values_title: "Our Values",
     about_values_desc: "Integrity, punctuality, innovation in solutions, and a constant focus on customer satisfaction.",
 
+    // Trading Section
+    trading_title: "International Trade Division",
+    trading_export_title: "Sudanese Exports Supply",
+    trading_export_text: "As authorized suppliers, we provide and export premium Sudanese crops (Gum Arabic, Sesame, Hibiscus) to global markets at competitive prices.",
+    trading_import_title: "Textile & Fabric Trading",
+    trading_import_text: "We import and distribute the latest fashion and fabrics from (China, Turkey, India, and Egypt). We supply commercial quantities for wholesalers and factories.",
+
     // Services
-    services_title_main: "Our Integrated Solutions",
-    services_subtitle_main: "Integrated solutions in import & export, customs clearance, and logistics from door to door.",
+    services_title_main: "Logistics Services Division",
+    services_subtitle_main: "Do you have goods to move? We handle the shipping and customs for you.",
     service_sea_title: "Sea Freight",
     service_sea_desc: "Full Container Load (FCL) and Less than Container Load (LCL) shipping from all world ports.",
     service_air_title: "Air Freight",
@@ -178,6 +198,9 @@ export const translations = {
     contact_success: "Sent Successfully ✓",
 
     // Form fields
+    contact_intent: "Request Type",
+    contact_intent_logistics: "I need shipping services (Logistics)",
+    contact_intent_trading: "I want to buy products (Trading)",
     contact_name: "Name",
     contact_email: "Email",
     contact_phone: "Phone Number",

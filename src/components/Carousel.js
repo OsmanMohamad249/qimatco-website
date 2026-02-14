@@ -31,14 +31,18 @@ const Carousel = () => {
                   {t('hero_subtitle')}
                 </p>
               </blockquote>
-              <div className="d-flex align-items-center">
+              <div className="d-flex align-items-center flex-wrap gap-3">
                 <Link to="/contact" className="btn-get-started">
                   {t('hero_cta_quote')}
                 </Link>
-                <Link to="/services" className="btn-watch-video d-flex align-items-center pointer" style={{marginLeft: '25px'}}>
-                  <i className="bi bi-arrow-right-circle"></i>
-                  <span>{t('hero_cta_services')}</span>
+                <Link to="/services" className="btn-watch-video d-flex align-items-center pointer">
+                  <i className="bi bi-truck"></i>
+                  <span>{t('hero_cta_logistics')}</span>
                 </Link>
+                 <a href="/#trading" className="btn-watch-video d-flex align-items-center pointer">
+                  <i className="bi bi-globe"></i>
+                  <span>{t('hero_cta_trading')}</span>
+                </a>
               </div>
             </div>
             <div className="col-lg-5 col-md-12 col-12">

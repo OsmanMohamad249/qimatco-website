@@ -74,6 +74,24 @@ const Contact = () => {
                                     <form ref={formRef} onSubmit={handleSubmit}>
                                         <h3 className="mb-4">{t('nav_quote')}</h3>
 
+                                        <div className="form-group mb-3">
+                                            <label className="mb-2 fw-bold">{t('contact_intent')}:</label>
+                                            <div className="d-flex gap-4">
+                                                <div className="form-check">
+                                                    <input className="form-check-input" type="radio" name="intent" id="intent_logistics" value="logistics" defaultChecked />
+                                                    <label className="form-check-label" htmlFor="intent_logistics">
+                                                        {t('contact_intent_logistics')}
+                                                    </label>
+                                                </div>
+                                                <div className="form-check">
+                                                    <input className="form-check-input" type="radio" name="intent" id="intent_trading" value="trading" />
+                                                    <label className="form-check-label" htmlFor="intent_trading">
+                                                        {t('contact_intent_trading')}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div className="row">
                                             <div className="col-md-6 form-group">
                                                 <input type="text" name="name" className="form-control" id="name" placeholder={t('contact_name')} required />

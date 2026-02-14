@@ -129,7 +129,8 @@ export const translations = {
     hero_title: "Global Trade Leaders & Logistics Experts",
     hero_subtitle: "Your integrated partner: We supply premium Sudanese & global products (Trading), and manage your shipments worldwide (Logistics).",
     hero_cta_quote: "Get a Quote",
-    hero_cta_services: "Our Services",
+    hero_cta_logistics: "Logistics Services",
+    hero_cta_trading: "Global Trading",
 
     // About
     about_title: "Why Choose Qimmah Al Ebtekar?",

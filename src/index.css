@@ -378,6 +378,7 @@ section {
     display: flex;
     list-style: none;
     align-items: center;
+    gap: 20px; /* Better spacing between items */
   }
 
   .navbar li {
@@ -389,13 +390,14 @@ section {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 0 15px 30px;
-    font-family: var(--font-default);
-    font-size: 1em;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.6);
+    padding: 10px 0;
+    font-family: var(--font-primary);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85); /* Improved contrast */
     white-space: nowrap;
     transition: 0.3s;
+    text-transform: capitalize;
   }
 
   .navbar a i,
@@ -409,7 +411,50 @@ section {
   .navbar .active,
   .navbar .active:focus,
   .navbar li:hover>a {
-    color: #fff;
+    color: var(--accent-color); /* Highlight active/hover with accent */
+  }
+
+  /* Tracking Widget Styles */
+  .navbar .tracking-widget form {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 5px 10px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: 0.3s;
+  }
+
+  .navbar .tracking-widget form:hover,
+  .navbar .tracking-widget form:focus-within {
+     background: rgba(255, 255, 255, 0.25);
+     border-color: var(--accent-color);
+  }
+
+  .navbar .tracking-widget input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--white);
+    padding: 5px;
+    width: 140px;
+    font-size: 14px;
+  }
+
+  .navbar .tracking-widget input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+  }
+
+  .navbar .tracking-widget button {
+    background: transparent;
+    border: none;
+    color: var(--white);
+    cursor: pointer;
+    padding: 0 5px;
+  }
+
+  .navbar .tracking-widget button:hover {
+      color: var(--accent-color);
   }
 
   .navbar .dropdown ul {

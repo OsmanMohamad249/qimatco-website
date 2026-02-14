@@ -147,6 +147,17 @@ const Service = () => {
           </div>
         </section>
 
+        {/* CBM Calculator Section */}
+        <section id="shipping-tools" className="shipping-tools light-bg">
+          <div className="container" data-aos="fade-up">
+            <div className="row justify-content-center">
+              <div className="col-lg-8">
+                <CBMCalculator />
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
       <Footer />
     </>

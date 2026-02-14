@@ -65,6 +65,10 @@ const Trading = () => {
 
                 </div>
 
+                <div className="mt-5">
+                    <ProductGallery />
+                </div>
+
             </div>
         </section>
     );

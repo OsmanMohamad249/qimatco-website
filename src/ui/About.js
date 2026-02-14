@@ -20,8 +20,12 @@ const About = () => {
   
   return (
     <>
-   <InnerHeader />
-   <InnerHeaderBanner name={t('nav_about')} img = {abtHeader}/>
+      <Helmet>
+        <title>About Us | Qimmah Al Ebtekar</title>
+        <meta name="description" content="Learn about Qimmah Al Ebtekar - Your trusted partner in logistics, shipping, and international trade." />
+      </Helmet>
+      <InnerHeader />
+      <InnerHeaderBanner name={t('nav_about')} img = {abtHeader}/>
 
      <main id="main">   
       <section id="about" className="about">

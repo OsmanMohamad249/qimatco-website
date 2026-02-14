@@ -1,9 +1,11 @@
 import React from "react";
+import { Helmet } from "react-helmet";
 import InnerHeaderBanner from "../components/InnerHeaderBanner";
 import InnerHeader from "../components/InnerHeader";
 import Footer from "../components/Footer";
 import serviceHeader from '../img/services-header.jpg'
 import { useLanguage } from "../context/LanguageContext";
+import CBMCalculator from "../components/CBMCalculator";
 
 const education = "https://loremflickr.com/800/600/container,ship/all";
 const entertainment = "https://loremflickr.com/800/600/warehouse/all";
@@ -14,6 +16,10 @@ const Service = () => {
   const { t } = useLanguage();
   return (
     <>
+      <Helmet>
+        <title>Logistics Services | Qimmah Al Ebtekar</title>
+        <meta name="description" content="Professional logistics services: Sea Freight, Air Freight, Land Transport, and Customs Clearance by Qimmah Al Ebtekar." />
+      </Helmet>
       <InnerHeader />
       <InnerHeaderBanner name={t('nav_services')} img = {serviceHeader}/>
 

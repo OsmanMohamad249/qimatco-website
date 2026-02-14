@@ -1,12 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { Helmet } from "react-helmet";
 import { useLanguage } from "../context/LanguageContext";
 import { Link } from "react-router-dom";
+import ProductGallery from "../components/ProductGallery";
+import AOS from "aos";
+import '../../node_modules/aos/dist/aos.css';
 
 const Trading = () => {
     const { t } = useLanguage();
 
+    useEffect(() => {
+        AOS.init();
+        AOS.refresh();
+    }, []);
+
     return (
         <section id="trading" className="trading section-bg">
+            <Helmet>
+                <title>Import & Export Trading | Qimmah Al Ebtekar</title>
+                <meta name="description" content="We export premium Sudanese products (Gum Arabic, Sesame) and import high-quality textiles and fashion from global markets." />
+            </Helmet>
             <div className="container" data-aos="fade-up">
 
                 <div className="section-header">
@@ -50,9 +63,9 @@ const Trading = () => {
                                         <h4 className="card-title">{t('trading_import_title')}</h4>
                                         <p>{t('trading_import_text')}</p>
                                         <div className="d-flex flex-wrap gap-2 mt-3">
-                                            <span className="badge bg-primary">#Fashion</span>
-                                            <span className="badge bg-primary">#Textiles</span>
-                                            <span className="badge bg-primary">#Wholesale</span>
+                                            <span className="badge bg-info text-dark">#Textiles</span>
+                                            <span className="badge bg-info text-dark">#Fashion</span>
+                                            <span className="badge bg-info text-dark">#Fabrics</span>
                                         </div>
                                         <Link to="/contact" className="readmore stretched-link mt-3 d-inline-block">
                                             <i className="bi bi-arrow-right"></i>

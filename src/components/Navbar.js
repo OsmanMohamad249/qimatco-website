@@ -19,19 +19,16 @@ const Navbar = () => {
         	<nav id="navbar" className="navbar">
           <ul>
             <li >
-              <Link to ="/"  className={splitLocation[1] === "" ? "active" : ""}> Home</Link>
+              <Link to ="/"  className={splitLocation[1] === "" ? "active" : ""}> الرئيسية</Link>
             </li>
             <li>
-            <Link to ="/about"  className={splitLocation[1] === "about" ? "active" : ""}> About Us</Link>
+            <Link to ="/about"  className={splitLocation[1] === "about" ? "active" : ""}> من نحن</Link>
             </li>
             <li>
-            <Link to ="/services"  className={splitLocation[1] === "services" ? "active" : ""}> Services</Link>
+            <Link to ="/services"  className={splitLocation[1] === "services" ? "active" : ""}> خدماتنا</Link>
             </li>
             <li>
-            <Link to ="/careers"  className={splitLocation[1] === "careers" ? "active" : ""}> Careers</Link>
-            </li>
-            <li>
-            <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> Contact Us</Link>
+            <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> تواصل معنا</Link>
             </li>
           </ul>
         </nav>

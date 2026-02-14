@@ -31,7 +31,7 @@ const ClientList = () => {
       <section id="clients" className="clients">
         <div className="container" data-aos="zoom-out">
           <div className="section-header">
-            <h2>Our Clients</h2>
+            <h2>عملاؤنا</h2>
           </div>
           <div className="clients-slider swiper">
             <Swiper

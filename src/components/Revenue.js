@@ -1,7 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-
-import dashboard from '../img/revenue-dashboard.png'
+const dashboard = "https://loremflickr.com/600/400/chart,logistics/all";
 
 const Revenue = () => {
   return (

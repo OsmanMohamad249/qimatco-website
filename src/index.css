@@ -3,6 +3,7 @@
 * Author: Murugan
 **/
 
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
 
 /*--------------------------------------------------------------
 # Set main reusable colors and fonts using CSS variables
@@ -10,10 +11,10 @@
 --------------------------------------------------------------*/
 /* Fonts */
 :root {
-  --font-default: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  
-  --font-primary: "Montserrat", sans-serif;
-  --font-secondary: "Raleway", sans-serif;
+  --font-default: "Cairo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --font-primary: "Cairo", sans-serif;
+  --font-secondary: "Cairo", sans-serif;
 }
 
 
@@ -25,22 +26,22 @@
 
 /* Colors */
 :root {
---color-default: #2b180d;
-  --color-primary: #155bd5;
-  --color-secondary: #1b2f45;
-  --primary: #155bd5;
-  --primary-dark: #1c3ab6;
+  --color-default: #333333;
+  --color-primary: #003B6D;
+  --color-secondary: #0096D6;
+  --primary: #003B6D;
+  --primary-dark: #002a4d;
   --primary-light: #e2f1ff;
-  --accent: #00d4d7;
-  --accent-dark: #00bac1;
-  --accent-light: #dff9f8;
+  --accent: #F4A900;
+  --accent-dark: #d69400;
+  --accent-light: #fef6da;
   --success: #13d527;
   --success-dark: #00ae11;
   --success-light: #eafbe7;
-  --secondary: #8f15d5;
-  --secondary-dark: #6013c7;
-  --secondary-light: #f4e5fa;
-  --info: #15b2d5;
+  --secondary: #0096D6;
+  --secondary-dark: #007bb0;
+  --secondary-light: #e0f4ff;
+  --info: #0096D6;
   --info-dark: #0f8ca8;
   --info-light: #e0f5fa;
   --caution: #dbbb25;
@@ -49,6 +50,14 @@
   --error: #e6185e;
   --error-dark: #bf1257;
   --error-light: #fce4eb;
+
+  /* User requested variables mapping */
+  --primary-color: #003B6D;
+  --secondary-color: #0096D6;
+  --accent-color: #F4A900;
+  --text-color: #333333;
+  --bg-light: #F8F9FA;
+
   --black: #1d1d1d;
   --dark-1: #2d2d2d;
   --dark-2: #4d4d4d;
@@ -58,19 +67,19 @@
   --gray-3: #cdcdcd;
   --gray-4: #e0e0e0;
   --light-1: #efefef;
-  --light-2: #f5f5f5;
+  --light-2: #F8F9FA;
   --light-3: #fafafa;
   --white: #ffffff;
    --color-white: #ffffff;
-  --gradient-1: linear-gradient(180deg, #155bd5 0%, #1c3ab6 100%);
-  --gradient-2: linear-gradient(180deg, #155bd5 13.02%, #00d4d7 85.42%);
-  --gradient-3: linear-gradient(180deg, #155bd5 0%, #8f15d5 100%);
-  --gradient-4: linear-gradient(180deg, #155bd5 0%, #13d527 100%);
-  --gradient-5: linear-gradient(180deg, #155bd5 0%, #15bbd5 100%);
-  --gradient-6: linear-gradient(180deg, #155bd5 0%, #dbbb25 100%);
-  --gradient-7: linear-gradient(180deg, #155bd5 0%, #e6185e 100%);
-  --gradient-8: linear-gradient(180deg, #1c3ab6 0%, #00bac1 100%);
-  --gradient-9: linear-gradient(180deg, #00d4d7 13.02%, #155bd5 85.42%);
+  --gradient-1: linear-gradient(180deg, #003B6D 0%, #002a4d 100%);
+  --gradient-2: linear-gradient(180deg, #003B6D 13.02%, #F4A900 85.42%);
+  --gradient-3: linear-gradient(180deg, #003B6D 0%, #0096D6 100%);
+  --gradient-4: linear-gradient(180deg, #003B6D 0%, #13d527 100%);
+  --gradient-5: linear-gradient(180deg, #003B6D 0%, #0096D6 100%);
+  --gradient-6: linear-gradient(180deg, #003B6D 0%, #F4A900 100%);
+  --gradient-7: linear-gradient(180deg, #003B6D 0%, #e6185e 100%);
+  --gradient-8: linear-gradient(180deg, #002a4d 0%, #007bb0 100%);
+  --gradient-9: linear-gradient(180deg, #F4A900 13.02%, #003B6D 85.42%);
   --shadow-1: 0px 0px 1px rgba(40, 41, 61, 0.08),
     0px 0.5px 2px rgba(96, 97, 112, 0.16);
   --shadow-2: 0px 0px 1px rgba(40, 41, 61, 0.04),
@@ -381,7 +390,7 @@ section {
 }
 
 .header .logo img {
-  /*max-height: 40px;*/
+  max-height: 80px;
   margin-right: 6px;
 }
 
@@ -1057,7 +1066,7 @@ position: relative;
 # Call To Action Section
 --------------------------------------------------------------*/
 .facts {
- background: linear-gradient(rgba(21 91 213 / 80%), rgba(21 91 213 / 100%)), url("./img/cta-bg1.jpg") center center;
+ background: linear-gradient(rgba(21 91 213 / 80%), rgba(21 91 213 / 100%)), url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80") center center;
   background-size: cover;
   padding: 100px 0; 
 }
@@ -1810,7 +1819,7 @@ background: var(--color-white);}
 # Contact Section
 --------------------------------------------------------------*/
 .contact {
- background: #f5f5f5 url("./img/contact-bg.png") left top no-repeat;
+ background: #f5f5f5 url("https://images.unsplash.com/photo-1557683311-eac922347aa1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80") left top no-repeat;
   background-size: contain;
   position: relative;
   
@@ -2909,3 +2918,4 @@ padding:10px;
   font-size: 13px;
   color:  var(--dark-3);
 }
+

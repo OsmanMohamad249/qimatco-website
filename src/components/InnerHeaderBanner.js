@@ -8,7 +8,7 @@ const InnerHeaderBanner = (props) => {
          <div className="container position-relative d-flex flex-column align-items-center">
             <h2>{props.name}</h2>
             <ol>
-               <li><Link to="/"><i class="bi bi-house-door"></i> Home</Link></li>
+               <li><Link to="/"><i className="bi bi-house-door"></i> الرئيسية</Link></li>
                <li>{props.name}</li>
             </ol>
          </div>

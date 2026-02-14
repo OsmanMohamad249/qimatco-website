@@ -1,5 +1,5 @@
 import React from "react";
-import footerLogo from '../img/sym-logo.svg'
+import footerLogo from '../img/qimmah-logo.png'
 import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 
@@ -13,11 +13,11 @@ const Footer = () => {
             <div className="row gy-4">
               <div className="col-lg-4 col-md-12 footer-info">
                 <Link to="/" className="logo d-flex align-items-center">
-                  <img src={footerLogo} alt="" title="" />
+                  <img src={footerLogo} alt="QIMMAH AL EBTEKAR FOR INTEGRATED SOLUTIONS - قمة الإبتكار للحلول المتكاملة" title="QIMMAH AL EBTEKAR FOR INTEGRATED SOLUTIONS - قمة الإبتكار للحلول المتكاملة" />
                 </Link>
+                <h3>شركة قمة الابتكار للحلول المتكاملة</h3>
                 <p>
-                  We are a global leader in Telcom VAS, offer Services across
-                  Educational Content, Entertainment Content, Games and sports
+                  حلول متكاملة في الاستيراد والتصدير، التخليص الجمركي، والخدمات اللوجستية من الباب للباب.
                 </p>
                 <div className="social-links d-flex  mt-3">
                   <Link to="/" className="twitter">
@@ -28,73 +28,64 @@ const Footer = () => {
                     <i className="bi bi-facebook"></i>
                   </Link>
                   
-                  <Link to ="https://www.linkedin.com/company/symbiotic-infotech-pvt-ltd/" className="linkedin">
+                  <Link to ="https://www.linkedin.com/" className="linkedin">
                     <i className="bi bi-linkedin"></i>
                   </Link>
                 </div>
               </div>
               <div className="col-lg-2 col-6 footer-links">
-                <h4>Useful Links</h4>
+                <h4>روابط مفيدة</h4>
                 <ul>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <Link to ="/">Home</Link>
+                    <Link to ="/">الرئيسية</Link>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <Link to="/about">About Us</Link>
+                    <Link to="/about">من نحن</Link>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <Link to ="/services">Services</Link>
+                    <Link to ="/services">خدماتنا</Link>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <Link to="/careers">Careers</Link>
-                  </li>
-                  <li>
-                    <i className="bi bi-dash"></i>
-                    <Link to ="/contact">Contact Us</Link>
+                    <Link to ="/contact">تواصل معنا</Link>
                   </li>
                 </ul>
               </div>
               <div className="col-lg-3 col-6 footer-links">
-                <h4>Our Services</h4>
+                <h4>خدماتنا</h4>
                 <ul>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <HashLink smooth to ="/services/#Educational-content">
-                      Educational Content
+                    <HashLink smooth to ="/services/#sea-freight">
+                      الشحن البحري
                     </HashLink>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <HashLink smooth to ="/services/#Entertainment-content">
-                      Entertainment Content
+                    <HashLink smooth to ="/services/#air-freight">
+                      الشحن الجوي
                     </HashLink>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <HashLink smooth to="/services/#Games">Games</HashLink>
-                  </li>
-                  <li>
-                    <i className="bi bi-dash"></i>
-                    <HashLink smooth to ="/services/#Sports">Sports</HashLink>
+                    <HashLink smooth to="/services/#customs-clearance">التخليص الجمركي</HashLink>
                   </li>
                 </ul>
               </div>
               <div className="col-lg-3 col-md-12 footer-contact text-center text-md-start">
-                <h4>Contact Us</h4>
+                <h4>تواصل معنا</h4>
                 <address>
                  
-                  #1,Sundaram Illam, <br /> Chellamal Street, <br /> Shenoy
-                  Nagar, Chennai - 600 030. <br />
+                  الخرطوم، السودان <br />
                   <br />
-                  <strong>Phone:</strong> +91 - 44 - 4208 2102 <br />
-                  <strong>Email: </strong>
-                  <a href="mailto:info@symbioticinfo.com">                  
-                     info@symbioticinfo.com
-                  </a> 
+                  <strong>الهاتف:</strong> +249 000 000 000 <br />
+                  <strong>البريد الإلكتروني: </strong>
+                  <a href="mailto:info@qimmah.com">
+                     info@qimmah.com
+                  </a>
                   <br />
                 </address>
               </div>
@@ -110,8 +101,8 @@ const Footer = () => {
                   Date().getFullYear()) )
                 </script>
               </span>
-              &copy;  Copyright
-              <span> Symbiotic Infotech Pvt. Ltd </span>. All Rights Reserved
+              &copy;  جميع الحقوق محفوظة
+              <span> قمة الإبتكار للحلول المتكاملة - QIMMAH AL EBTEKAR FOR INTEGRATED SOLUTIONS </span>
             </div>
           </div>
         </div>

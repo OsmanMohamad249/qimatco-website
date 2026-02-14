@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import shapeImg from "../img/img-wave2.png";
-import heroImg1 from "../img/header/hero-image-1.jpg";
-import heroImg2 from "../img/header/hero-image-2.jpg";
-import heroImg3 from "../img/header/hero-image-3.jpg";
-import heroImg4 from "../img/header/hero-image-4.jpg";
 import { Link } from "react-router-dom";
 import '../../node_modules/react-modal-video/css/modal-video.css'
 import ModalVideo from 'react-modal-video'
+import { useLanguage } from "../context/LanguageContext";
 
 const Carousel = () => {
+  const { t } = useLanguage();
   const [isOpen, setOpen] = useState(false)
+  const logisticsHero1 = "https://loremflickr.com/1280/720/container,ship/all";
+  const logisticsHero2 = "https://loremflickr.com/1280/720/warehouse/all";
+  const logisticsHero3 = "https://loremflickr.com/1280/720/airplane,cargo/all";
+  const logisticsHero4 = "https://loremflickr.com/1280/720/truck,logistics/all";
   return (
     <>
       <section id="hero" className="hero d-flex">
@@ -22,23 +24,21 @@ const Carousel = () => {
           >
             <div className="col-lg-7 col-md-12 col-12">
               <h2 data-aos="fade-up">
-                Global Leader In Telecom VAS, Mobile Learning, Entertainment &
-                Sports
+                {t('hero_title')}
               </h2>
               <blockquote data-aos="fade-up" data-aos-delay="100">
                 <p>
-                  We are a global leader in Telcom VAS, offer Services across
-                  Educational Content, Entertainment Content, Games and sports
+                  {t('hero_subtitle')}
                 </p>
               </blockquote>
               <div className="d-flex align-items-center">
-                <Link to="/about" className="btn-get-started">
-                  Read More
+                <Link to="/contact" className="btn-get-started">
+                  {t('hero_cta_quote')}
                 </Link>
-                <ModalVideo channel='youtube' autoplay='true' isOpen={isOpen} videoId="yqWX86uT5jM" onClose={() => setOpen(false)} />
-              <span className="btn-watch-video d-flex align-items-center pointer" onClick={()=> setOpen(true)}> <i className="bi bi-play-circle-fill"></i>
-                <span>Watch Intro</span>
-              </span>
+                <Link to="/services" className="btn-watch-video d-flex align-items-center pointer" style={{marginLeft: '25px'}}>
+                  <i className="bi bi-arrow-right-circle"></i>
+                  <span>{t('hero_cta_services')}</span>
+                </Link>
               </div>
             </div>
             <div className="col-lg-5 col-md-12 col-12">
@@ -81,16 +81,16 @@ const Carousel = () => {
                       className="carousel-item active"
                      
                     >
-                      <img src={heroImg1} className="d-block w-100" alt="..." />
+                      <img src={logisticsHero1} className="d-block w-100" alt="Shipping" />
                     </div>
                     <div className="carousel-item">
-                      <img src={heroImg2} className="d-block w-100" alt="..." />
+                      <img src={logisticsHero2} className="d-block w-100" alt="Warehouse" />
                     </div>
                     <div className="carousel-item">
-                      <img src={heroImg3} className="d-block w-100" alt="..." />
+                      <img src={logisticsHero3} className="d-block w-100" alt="Air Cargo" />
                     </div>
                     <div className="carousel-item">
-                      <img src={heroImg4} className="d-block w-100" alt="..." />
+                      <img src={logisticsHero4} className="d-block w-100" alt="Trucking" />
                     </div>
                   </div>
                 </div>

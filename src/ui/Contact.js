@@ -2,7 +2,7 @@ import React, { useEffect, useState,useRef } from "react";
 import InnerHeaderBanner from "../components/InnerHeaderBanner";
 import InnerHeader from "../components/InnerHeader";
 import Footer from "../components/Footer";
-import contactHeader from "../img/contact-header.jpg";
+const contactHeader = "https://loremflickr.com/1920/600/contact,center,logistics/all";
 import emailjs from 'emailjs-com'
 
 
@@ -30,16 +30,16 @@ const Contact = () => {
     let errors = {};
 
     if (inputValues.username.length < 2) {
-      errors.username = "userName is too short";
+      errors.username = "الاسم قصير جدًا";
     }
     if (inputValues.email.length < 5) {
-      errors.email = "Email is too short";
+      errors.email = "البريد الإلكتروني قصير جدًا";
     }
     if (inputValues.subject.length < 5) {
-      errors.subject = "Subject is too short";
+      errors.subject = "الموضوع قصير جدًا";
     }
     if (inputValues.message.length < 10) {
-      errors.message = "Subject is too short";
+      errors.message = "الرسالة قصيرة جدًا";
     }
 
     return errors;
@@ -84,12 +84,12 @@ const Contact = () => {
   return (
     <>
       <InnerHeader />
-      <InnerHeaderBanner name={"Contact Us"} img={contactHeader} />
+      <InnerHeaderBanner name={"اتصل بنا"} img={contactHeader} />
       <main id="main">
         <section id="contact" className="contact">
           <div className="container position-relative" data-aos="fade-up">
             <div className="section-header">
-              <h2> Lets have a TALK </h2>
+              <h2>تواصل معنا</h2>
             </div>
 
             <div className="row gy-4 d-flex justify-content-end">
@@ -97,25 +97,18 @@ const Contact = () => {
                 <div className="info-item d-flex">
                   <i className="bi bi-geo-alt flex-shrink-0"></i>
                   <div>
-                    <h4>Location:</h4>
-                    <h5>India:</h5>
-                    <p>
-                      # 1,Sundaram Illam,Chellamal Street, <br /> Shenoy Nagar,
-                      Chennai - 600 030.
-                    </p>
-                    <br />
-                    <h5>U.A.E:</h5>
-                    <p>P.O.Box No 95114,Abu Dhabi,UAE </p>
+                    <h4>العنوان:</h4>
+                    <p>الخرطوم، السودان</p>
                   </div>
                 </div>
 
                 <div className="info-item d-flex">
                   <i className="bi bi-envelope flex-shrink-0"></i>
                   <div>
-                    <h4>Email:</h4>
+                    <h4>البريد الإلكتروني:</h4>
                     <p>
-                      <a href="mailto:info@symbioticinfo.com">
-                        info@symbioticinfo.com
+                      <a href="mailto:info@qimmah.com">
+                        info@qimmah.com
                       </a>
                     </p>
                   </div>
@@ -124,8 +117,8 @@ const Contact = () => {
                 <div className="info-item d-flex">
                   <i className="bi bi-phone flex-shrink-0"></i>
                   <div>
-                    <h4>Call:</h4>
-                    <p>+91 - 44 - 4208 2102</p>
+                    <h4>الهاتف:</h4>
+                    <p>+249 000 000 000</p>
                   </div>
                 </div>
               </div>
@@ -140,14 +133,14 @@ const Contact = () => {
                         type="text"
                         name="username"
                         className="form-control"
-                        placeholder="Your Name"
+                        placeholder="الاسم"
                         style={{
                           border: errors.username ? "1px solid red" : null,
                         }}
                       />
                       {errors.username ? (
                         <small className="error">
-                          Username should be at least 3 characters long
+                          يرجى إدخال اسم من 3 أحرف على الأقل
                         </small>
                       ) : null}
                     </div>
@@ -158,13 +151,13 @@ const Contact = () => {
                         type="email"
                         className="form-control"
                         name="email"
-                        placeholder="E-mail"
+                        placeholder="البريد الإلكتروني"
                         style={{
                           border: errors.email ? "1px solid red" : null,
                         }}
                       />
                       {errors.email ? (
-                        <small className="error">Enter valid email id </small>
+                        <small className="error">يرجى إدخال بريد إلكتروني صحيح</small>
                       ) : null}
                     </div>
                   </div>
@@ -176,12 +169,12 @@ const Contact = () => {
                       type="text"
                       className="form-control"
                       name="subject"
-                      placeholder="Subject"
+                      placeholder="الموضوع"
                       style={{ border: errors.message ? "1px solid red" : null }}
                     />
                     {errors.subject ? (
                       <small className="error">
-                        Subject should be at least 5 characters long
+                        يرجى إدخال موضوع من 5 أحرف على الأقل
                       </small>
                     ) : null}
                   </div>
@@ -192,14 +185,14 @@ const Contact = () => {
                       className="form-control"
                       name="message"
                       rows="5"
-                      placeholder="Message"
+                      placeholder="رسالتك"
                       style={{
                         border: errors.message ? "1px solid red" : null,
                       }}
                     ></textarea>
                     {errors.message ? (
                       <small className="error">
-                        message should be at least 10 characters long
+                        يرجى إدخال رسالة من 10 أحرف على الأقل
                       </small>
                     ) : null}
                   </div>
@@ -207,14 +200,14 @@ const Contact = () => {
                   <p className="text-center">
                     {Object.keys(errors).length === 0 && submitting ? (
                       <div className="alert alert-success p-2 ">
-                        Successfully submitted ✓
+                        تم الإرسال بنجاح ✓
                       </div>
                     ) : null}
                   </p>
 
                   <div className="text-center">
                     <button className="btn btn-primary" type="submit">
-                      Send Message
+                      إرسال الرسالة
                     </button>
                   </div>
                 </form>

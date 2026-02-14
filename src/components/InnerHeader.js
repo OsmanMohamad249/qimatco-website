@@ -1,13 +1,14 @@
 import React from "react";
-import logo from "../img/sym-logo-inverse.svg";
+import logo from "../img/qimmah-logo.png";
 //import Navbar from "./Navbar";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLocation } from 'react-router-dom'
 import { animateScroll as scroll } from "react-scroll";
+import { useLanguage } from "../context/LanguageContext";
 
 const InnerHeader = () => {
-//
+  const { t, language, toggleLanguage } = useLanguage();
 
   const toTop = () => {
     scroll.scrollToTop({ delay: 0, duration: 0 });
@@ -54,8 +55,8 @@ const InnerHeader = () => {
           <Link to="/" className="logo" onClick={toTop}>
             <img
               src={logo}
-              alt="Symbiotic Info tech Pvt. Ltd"
-              title="Symbiotic Info tech Pvt. Ltd"
+              alt="QIMMAH AL EBTEKAR FOR INTEGRATED SOLUTIONS - قمة الإبتكار للحلول المتكاملة"
+              title="QIMMAH AL EBTEKAR FOR INTEGRATED SOLUTIONS - قمة الإبتكار للحلول المتكاملة"
             />
           </Link>
           <span  onClick={mobilemenu}>  
@@ -66,19 +67,25 @@ const InnerHeader = () => {
           <nav id="navbar" className="navbar">
           <ul onClick={mobilemenu}>
             <li >
-              <Link to ="/"  className={splitLocation[1] === "" ? "active" : ""}> Home</Link>
+              <Link to ="/"  className={splitLocation[1] === "" ? "active" : ""}> {t('nav_home')}</Link>
             </li>
             <li>
-            <Link to ="/about"  className={splitLocation[1] === "about" ? "active" : ""}> About Us</Link>
+            <Link to ="/about"  className={splitLocation[1] === "about" ? "active" : ""}> {t('nav_about')}</Link>
             </li>
             <li>
-            <Link to ="/services"  className={splitLocation[1] === "services" ? "active" : ""}> Services</Link>
+            <Link to ="/services"  className={splitLocation[1] === "services" ? "active" : ""}> {t('nav_services')}</Link>
             </li>
             <li>
-            <Link to ="/careers"  className={splitLocation[1] === "careers" ? "active" : ""}> Careers</Link>
+            <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> {t('nav_contact')}</Link>
             </li>
             <li>
-            <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> Contact Us</Link>
+              <button
+                className="btn btn-sm btn-outline-primary ms-3"
+                onClick={toggleLanguage}
+                style={{ direction: 'ltr' }}
+              >
+                {language === 'ar' ? 'English' : 'العربية'}
+              </button>
             </li>
           </ul>
         </nav>

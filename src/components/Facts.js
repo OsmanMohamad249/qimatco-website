@@ -9,24 +9,29 @@ const Facts = () => {
           <div className="row justify-content-center">
             <div className="col-lg-12 text-center">
               <div className="section-header">
-                <h2 className="text-white">Our Footprints</h2>
-                <p>Delivering service excellence to over 43 million Happy Customers across geography… </p>
+                <h2 className="text-white">خبراتنا بالأرقام</h2>
+                <p>نفخر بخدمتنا لعملائنا عبر أسواق متعددة بثقة وكفاءة.</p>
               </div>
               <div className="row counters">
-                <div className="col-lg-4 col-6 text-center">
+                <div className="col-lg-3 col-6 text-center">
                   <span  className="purecounter">17</span>
-                  <h3> COUNTRIES </h3>
-                  <p> Global Presence </p>
+                  <h3> حاوية تم شحنها </h3>
+                  <p> عمليات شحن ناجحة </p>
                 </div>
-                <div className="col-lg-4 col-6 text-center">
+                <div className="col-lg-3 col-6 text-center">
                   <span className="purecounter">82</span>
-                  <h3> CUSTOMERS </h3>
-                  <p>Across the Globe</p>
+                  <h3> عميل سعيد </h3>
+                  <p>ثقة مستمرة</p>
                 </div>
-                <div className="col-lg-4 col-6 text-center">
+                <div className="col-lg-3 col-6 text-center">
                   <span  className="purecounter">43</span>
-                  <h3> MILLION USERS</h3>
-                  <p>Monthly Users (Active Base) </p>
+                  <h3> دولة نخدمها</h3>
+                  <p>تغطية عالمية </p>
+                </div>
+                 <div className="col-lg-3 col-6 text-center">
+                  <span  className="purecounter">20</span>
+                  <h3> سنوات من الخبرة</h3>
+                  <p>خبرة تراكمية</p>
                 </div>
               </div>
             </div>

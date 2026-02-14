@@ -35,7 +35,7 @@ const Carousel = () => {
                 <Link to="/contact" className="btn-get-started">
                   {t('hero_cta_quote')}
                 </Link>
-                <Link to="/services" className="btn-watch-video d-flex align-items-center pointer" style={{color: 'var(--primary-color)'}}>
+                <Link to="/services" className="btn-watch-video d-flex align-items-center pointer">
                   <i className="bi bi-truck"></i>
                   <span>{t('hero_cta_logistics')}</span>
                 </Link>

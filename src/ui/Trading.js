@@ -4,7 +4,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { Link } from "react-router-dom";
 import ProductGallery from "../components/ProductGallery";
 import AOS from "aos";
-import '../../node_modules/aos/dist/aos.css';
+import 'aos/dist/aos.css';
 
 const Trading = () => {
     const { t } = useLanguage();

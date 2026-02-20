@@ -1,7 +1,7 @@
 import React from 'react'
 import { Helmet } from "react-helmet";
 import AOS from "aos";
-import '../../node_modules/aos/dist/aos.css'
+import 'aos/dist/aos.css';
 import InnerHeaderBanner from '../components/InnerHeaderBanner';
 import InnerHeader from '../components/InnerHeader';
 import Footer from '../components/Footer';

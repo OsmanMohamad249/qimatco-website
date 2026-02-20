@@ -52,6 +52,10 @@ const Footer = () => {
                     <i className="bi bi-dash"></i>
                     <Link to ="/contact">تواصل معنا</Link>
                   </li>
+                  <li>
+                    <i className="bi bi-dash"></i>
+                    <Link to="/admin">بوابة الإدارة</Link>
+                  </li>
                 </ul>
               </div>
               <div className="col-lg-3 col-6 footer-links">

@@ -36,6 +36,9 @@ const Navbar = () => {
             <li>
             <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> تواصل معنا</Link>
             </li>
+            <li>
+              <Link to="/track" className={splitLocation[1] === "track" ? "active" : ""}> تتبع الشحنة</Link>
+            </li>
           </ul>
         </nav>
 

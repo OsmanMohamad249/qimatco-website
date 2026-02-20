@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { db, auth, storage } from "../firebase";
-import { doc, setDoc, serverTimestamp, getDoc, collection, addDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc, collection, addDoc, getDocs, query, orderBy, updateDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -43,6 +43,18 @@ const AdminPanel = () => {
   const [productLoading, setProductLoading] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
 
+  // Client form for Content & Ads tab
+  const [clientForm, setClientForm] = useState({ name: "" });
+  const [clientFile, setClientFile] = useState(null);
+  const [clientMessage, setClientMessage] = useState("");
+  const [clientLoading, setClientLoading] = useState(false);
+  const [clientFileKey, setClientFileKey] = useState(0);
+
+  // Messages tab state
+  const [messages, setMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const [messagesError, setMessagesError] = useState("");
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -53,6 +65,24 @@ const AdminPanel = () => {
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      const fetchMessages = async () => {
+        try {
+          const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+          const snap = await getDocs(q);
+          const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          setMessages(list);
+        } catch (err) {
+          setMessagesError("تعذر تحميل الرسائل حالياً");
+        } finally {
+          setMessagesLoading(false);
+        }
+      };
+      fetchMessages();
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,6 +96,15 @@ const AdminPanel = () => {
       return;
     }
     setProductForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleClientChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "clientLogo") {
+      setClientFile(files && files[0] ? files[0] : null);
+      return;
+    }
+    setClientForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleLoad = async () => {
@@ -277,7 +316,106 @@ const AdminPanel = () => {
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
         <h4 style={{ color: "var(--primary-color)" }}>إدارة المحتوى والإعلانات</h4>
-        <p className="text-muted mb-0">Coming soon: Content Management</p>
+        <p className="text-muted mb-3">Add client logos to appear in the clients carousel.</p>
+
+        <form className="row g-3" onSubmit={handleClientSave}>
+          <div className="col-md-6">
+            <label className="form-label">اسم العميل / Client Name</label>
+            <input
+              name="name"
+              type="text"
+              className="form-control"
+              value={clientForm.name}
+              onChange={handleClientChange}
+              required
+            />
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">شعار العميل / Client Logo</label>
+            <input
+              key={clientFileKey}
+              name="clientLogo"
+              type="file"
+              accept="image/*"
+              className="form-control"
+              onChange={handleClientChange}
+              required
+            />
+          </div>
+          <div className="col-12">
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              style={{ background: "var(--secondary-color)", border: "none" }}
+              disabled={clientLoading}
+            >
+              {clientLoading ? "جارٍ الحفظ..." : "حفظ العميل / Save Client"}
+            </button>
+          </div>
+        </form>
+
+        {clientMessage && (
+          <div className="alert alert-info mt-3" role="alert">
+            {clientMessage}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderMessagesTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h4 style={{ color: "var(--primary-color)" }}>الرسائل والطلبات</h4>
+          {messagesLoading && <span className="text-muted small">جاري التحميل...</span>}
+          {messagesError && <span className="text-danger small">{messagesError}</span>}
+        </div>
+        {!messagesLoading && messages.length === 0 && (
+          <p className="text-muted">لا توجد رسائل حالياً</p>
+        )}
+        {!messagesLoading && messages.length > 0 && (
+          <div className="table-responsive">
+            <table className="table align-middle">
+              <thead>
+                <tr>
+                  <th>الاسم</th>
+                  <th>النوع</th>
+                  <th>الهاتف</th>
+                  <th>التاريخ</th>
+                  <th>الحالة</th>
+                  <th>الرسالة</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {messages.map((m) => (
+                  <tr key={m.id}>
+                    <td>{m.name || '-'}</td>
+                    <td>{m.type || m.intent || '-'}</td>
+                    <td>{m.phone || '-'}</td>
+                    <td>{m.createdAt?.toDate ? m.createdAt.toDate().toLocaleString() : '-'}</td>
+                    <td>
+                      <span className={`badge ${m.status === 'New' ? 'bg-warning text-dark' : 'bg-success'}`}>
+                        {m.status === 'New' ? 'جديد' : 'تم الرد'}
+                      </span>
+                    </td>
+                    <td style={{ maxWidth: '240px' }}>
+                      <small className="text-muted">{m.message || '-'}</small>
+                    </td>
+                    <td>
+                      {m.status !== 'Read' && (
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => handleMarkRead(m.id)}>
+                          تعليم كمقروء / تم الرد
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -315,6 +453,49 @@ const AdminPanel = () => {
       setProductSaveMessage("Save failed. Please try again.");
     } finally {
       setProductLoading(false);
+    }
+  };
+
+  const handleClientSave = async (e) => {
+    e.preventDefault();
+    setClientMessage("");
+    if (!clientForm.name.trim()) {
+      setClientMessage("يرجى إدخال اسم العميل");
+      return;
+    }
+    if (!clientFile) {
+      setClientMessage("يرجى اختيار شعار العميل");
+      return;
+    }
+    try {
+      setClientLoading(true);
+      const storageRef = ref(storage, `clients/${Date.now()}-${clientFile.name}`);
+      await uploadBytes(storageRef, clientFile);
+      const logoUrl = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, "clients"), {
+        name: clientForm.name,
+        logoUrl,
+        createdAt: serverTimestamp(),
+      });
+
+      setClientMessage("تم حفظ العميل بنجاح");
+      setClientForm({ name: "" });
+      setClientFile(null);
+      setClientFileKey((prev) => prev + 1);
+    } catch (err) {
+      setClientMessage("تعذر حفظ العميل. حاول مرة أخرى.");
+    } finally {
+      setClientLoading(false);
+    }
+  };
+
+  const handleMarkRead = async (id) => {
+    try {
+      await updateDoc(doc(db, "messages", id), { status: "Read" });
+      setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, status: "Read" } : msg)));
+    } catch (err) {
+      // optional: handle error
     }
   };
 
@@ -413,6 +594,12 @@ const AdminPanel = () => {
               >
                 إدارة المحتوى والإعلانات
               </button>
+              <button
+                className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`}
+                onClick={() => setActiveTab("messages")}
+              >
+                الرسائل والطلبات
+              </button>
             </div>
           </div>
           <div className="col-lg-9">
@@ -432,6 +619,7 @@ const AdminPanel = () => {
             {activeTab === "shipments" && renderShipmentsTab()}
             {activeTab === "products" && renderProductsTab()}
             {activeTab === "content" && renderContentTab()}
+            {activeTab === "messages" && renderMessagesTab()}
           </div>
         </div>
       </div>

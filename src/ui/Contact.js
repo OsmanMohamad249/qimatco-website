@@ -3,6 +3,8 @@ import InnerHeaderBanner from "../components/InnerHeaderBanner";
 import InnerHeader from "../components/InnerHeader";
 import Footer from "../components/Footer";
 import { useLanguage } from "../context/LanguageContext";
+import { db } from "../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const contactHeader = "https://loremflickr.com/1920/600/contact,center,logistics/all";
 
@@ -10,14 +12,37 @@ const Contact = () => {
     const { t } = useLanguage();
     const formRef = useRef();
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Here you would typically integrate EmailJS or another backend service
-        // For now, we simulate success
-        setIsSubmitted(true);
-        formRef.current.reset();
-        setTimeout(() => setIsSubmitted(false), 5000);
+        if (submitting) return;
+        setSubmitting(true);
+        const formData = new FormData(e.target);
+        const payload = {
+            name: formData.get('name') || '',
+            email: formData.get('email') || '',
+            phone: formData.get('phone') || '',
+            origin: formData.get('origin') || '',
+            destination: formData.get('destination') || '',
+            service: formData.get('service_type') || '',
+            dimensions: formData.get('dimensions') || '',
+            message: formData.get('message') || '',
+            intent: formData.get('intent') || 'logistics',
+            type: "Contact",
+            status: "New",
+            createdAt: serverTimestamp(),
+        };
+        try {
+            await addDoc(collection(db, 'messages'), payload);
+            setIsSubmitted(true);
+            formRef.current.reset();
+            setTimeout(() => setIsSubmitted(false), 5000);
+        } catch (err) {
+            console.error('Failed to send message', err);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -138,7 +163,9 @@ const Contact = () => {
                                         </div>
 
                                         <div className="text-center">
-                                            <button type="submit">{t('contact_submit')}</button>
+                                            <button type="submit" disabled={submitting}>
+                                                {submitting ? t('contact_submitting', 'جاري الإرسال...') : t('contact_submit')}
+                                            </button>
                                         </div>
                                     </form>
                                 </div>

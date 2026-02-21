@@ -1,15 +1,13 @@
 import React, { useRef, useState } from "react";
-import InnerHeaderBanner from "../components/InnerHeaderBanner";
 import InnerHeader from "../components/InnerHeader";
 import Footer from "../components/Footer";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import { db } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
-const contactHeader = "https://loremflickr.com/1920/600/contact,center,logistics/all";
-
 const Contact = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const formRef = useRef();
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -48,7 +46,18 @@ const Contact = () => {
     return (
         <>
             <InnerHeader />
-            <InnerHeaderBanner name={t('contact_title')} img={contactHeader} />
+            {/* Enterprise Banner */}
+            <div className="breadcrumbs" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?q=80&w=2070&auto=format&fit=crop')", padding: "140px 0 60px 0", marginTop: "70px", position: "relative", backgroundSize: "cover", backgroundPosition: "center" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(11, 44, 92, 0.85)" }}></div>
+                <div className="container position-relative d-flex flex-column align-items-center text-center text-white" style={{ zIndex: 2 }}>
+                    <h2 style={{ fontWeight: "800", color: "#fff", marginBottom: "15px" }}>{language === 'ar' ? 'تواصل معنا' : 'Contact Us'}</h2>
+                    <ol className="d-flex list-unstyled gap-2 fw-bold" style={{ color: "rgba(255,255,255,0.7)" }}>
+                        <li><Link to="/" className="text-white text-decoration-none">{language === 'ar' ? 'الرئيسية' : 'Home'}</Link></li>
+                        <li>/</li>
+                        <li style={{ color: "var(--accent-color)" }}>{language === 'ar' ? 'تواصل معنا' : 'Contact Us'}</li>
+                    </ol>
+                </div>
+            </div>
             <main id="main">
                 <section id="contact" className="contact">
                     <div className="container position-relative" data-aos="fade-up">

@@ -15,6 +15,7 @@ import Carousel from "../components/Carousel";
 import ClientList from "../components/ClientList";
 import Facts from "../components/Facts";
 import ServiceList from "../components/ServiceList";
+import CBMCalculator from "../components/CBMCalculator";
 import Trading from "./Trading";
 
 const Home = () => {
@@ -31,11 +32,15 @@ const Home = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const snap = await getDocs(query(collection(db, "ads"), orderBy("createdAt", "desc"), limit(10)));
+        let snap;
+        try { snap = await getDocs(query(collection(db, "ads"), orderBy("createdAt", "desc"), limit(10))); }
+        catch { snap = await getDocs(query(collection(db, "ads"), limit(10))); }
         setAds(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch {}
       try {
-        const snap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3)));
+        let snap;
+        try { snap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3))); }
+        catch { snap = await getDocs(query(collection(db, "news"), limit(3))); }
         setNews(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch {}
     };
@@ -102,6 +107,18 @@ const Home = () => {
         )}
 
         <ServiceList />
+
+        {/* CBM Volume Calculator */}
+        <section className="py-5" style={{ backgroundColor: "#ffffff" }}>
+          <div className="container">
+            <div className="row justify-content-center">
+              <div className="col-lg-8">
+                <CBMCalculator />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <Trading />
         <ClientList />
 

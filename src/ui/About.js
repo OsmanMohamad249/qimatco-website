@@ -5,8 +5,10 @@ import 'aos/dist/aos.css';
 import InnerHeader from '../components/InnerHeader';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const About = () => {
+  const { language } = useLanguage();
   useEffect(() => { AOS.init(); AOS.refresh(); }, []);
 
   const img_hero = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop";
@@ -17,7 +19,7 @@ const About = () => {
   return (
     <>
       <Helmet>
-        <title>من نحن | قمة الابتكار</title>
+        <title>{language === 'ar' ? 'من نحن | قمة الابتكار' : 'About Us | Qimmah Al Ebtekar'}</title>
       </Helmet>
       <InnerHeader />
 
@@ -25,16 +27,16 @@ const About = () => {
       <div className="breadcrumbs" style={{ backgroundImage: `url(${img_hero})`, padding: "140px 0 60px 0", marginTop: "70px", position: "relative", backgroundSize: "cover", backgroundPosition: "center" }}>
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(11, 44, 92, 0.85)" }}></div>
         <div className="container position-relative text-center text-white" style={{ zIndex: 2 }} data-aos="fade">
-          <h2 style={{ fontWeight: "800", color: "#fff", marginBottom: "15px" }}>من نحن</h2>
+          <h2 style={{ fontWeight: "800", color: "#fff", marginBottom: "15px" }}>{language === 'ar' ? 'من نحن' : 'About Us'}</h2>
           <ol className="d-flex justify-content-center list-unstyled gap-2 fw-bold" style={{ color: "rgba(255,255,255,0.7)" }}>
-            <li><Link to="/" className="text-white text-decoration-none" style={{transition: "color 0.3s"}} onMouseOver={(e)=>e.target.style.color="var(--accent-color)"} onMouseOut={(e)=>e.target.style.color="#fff"}>الرئيسية</Link></li>
+            <li><Link to="/" className="text-white text-decoration-none" style={{transition: "color 0.3s"}} onMouseOver={(e)=>e.target.style.color="var(--accent-color)"} onMouseOut={(e)=>e.target.style.color="#fff"}>{language === 'ar' ? 'الرئيسية' : 'Home'}</Link></li>
             <li>/</li>
-            <li style={{ color: "var(--accent-color)" }}>من نحن</li>
+            <li style={{ color: "var(--accent-color)" }}>{language === 'ar' ? 'من نحن' : 'About Us'}</li>
           </ol>
         </div>
       </div>
 
-      <main id="main" style={{ backgroundColor: "var(--bg-main)" }} dir="rtl">
+      <main id="main" style={{ backgroundColor: "var(--bg-main)" }} dir={language === 'ar' ? 'rtl' : 'ltr'}>
 
         {/* Why Choose Us Section */}
         <section className="py-5 mt-4">
@@ -74,8 +76,8 @@ const About = () => {
                 <div className="position-relative rounded-4 overflow-hidden shadow-lg">
                   <img src={img_logistics} className="img-fluid w-100" alt="Logistics" style={{ minHeight: "500px", objectFit: "cover" }} />
                   <div className="position-absolute bottom-0 start-0 w-100 p-4" style={{ background: "linear-gradient(to top, rgba(11,44,92,0.95), transparent)" }}>
-                    <h4 className="text-white fw-bold mb-1">قمة الابتكار</h4>
-                    <p className="text-white-50 mb-0">لحلول الإمداد والتجارة المتكاملة</p>
+                    <h4 className="text-white fw-bold mb-1">{language === 'ar' ? 'قمة الابتكار' : 'Qimmah Al Ebtekar'}</h4>
+                    <p className="text-white-50 mb-0">{language === 'ar' ? 'لحلول الإمداد والتجارة المتكاملة' : 'Integrated Supply & Trade Solutions'}</p>
                   </div>
                 </div>
               </div>
@@ -93,18 +95,18 @@ const About = () => {
                   <img src={img_import} alt="Import Network" style={{ height: "250px", objectFit: "cover" }} />
                   <div className="p-4 p-md-5 flex-grow-1">
                     <i className="bi bi-globe-americas mb-3 d-block" style={{ fontSize: "3rem", color: "var(--primary-color)" }}></i>
-                    <h3 style={{ color: "var(--primary-color)", fontWeight: "700" }}>شبكة استيراد عالمية</h3>
+                    <h3 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'شبكة استيراد عالمية' : 'Global Import Network'}</h3>
                     <p className="mt-3 text-secondary" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                      نغطي حالياً أهم أسواق المنسوجات والمنتجات العالمية لضمان تنوع وجودة تلبي احتياجاتك:
+                      {language === 'ar' ? 'نغطي حالياً أهم أسواق المنسوجات والمنتجات العالمية لضمان تنوع وجودة تلبي احتياجاتك:' : 'We currently cover the most important textile and product markets globally to ensure variety and quality that meets your needs:'}
                     </p>
                     <ul className="list-unstyled mt-3">
-                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>الصين:</strong> للتنوع الواسع.</li>
-                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>تركيا:</strong> للموضة والأزياء الحديثة.</li>
-                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>الهند:</strong> لأجود أنواع الأقمشة.</li>
-                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>مصر:</strong> للمنتجات القطنية الفاخرة.</li>
+                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>{language === 'ar' ? 'الصين:' : 'China:'}</strong> {language === 'ar' ? 'للتنوع الواسع.' : 'For wide variety.'}</li>
+                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>{language === 'ar' ? 'تركيا:' : 'Turkey:'}</strong> {language === 'ar' ? 'للموضة والأزياء الحديثة.' : 'For modern fashion.'}</li>
+                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>{language === 'ar' ? 'الهند:' : 'India:'}</strong> {language === 'ar' ? 'لأجود أنواع الأقمشة.' : 'For finest fabrics.'}</li>
+                      <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>{language === 'ar' ? 'مصر:' : 'Egypt:'}</strong> {language === 'ar' ? 'للمنتجات القطنية الفاخرة.' : 'For premium cotton products.'}</li>
                     </ul>
                     <div className="alert alert-warning mt-4 mb-0 fw-bold border-0" style={{backgroundColor: "rgba(244, 169, 0, 0.15)", color: "#b37b00"}}>
-                      <i className="bi bi-rocket me-2 ms-2"></i> وقريباً في أوروبا والأمريكيتين...
+                      <i className="bi bi-rocket me-2 ms-2"></i> {language === 'ar' ? 'وقريباً في أوروبا والأمريكيتين...' : 'Expanding to Europe and the Americas soon...'}
                     </div>
                   </div>
                 </div>
@@ -116,14 +118,14 @@ const About = () => {
                   <img src={img_export} alt="Sudanese Exports" style={{ height: "250px", objectFit: "cover" }} />
                   <div className="p-4 p-md-5 flex-grow-1">
                     <i className="bi bi-box-seam mb-3 d-block" style={{ fontSize: "3rem", color: "var(--accent-color)" }}></i>
-                    <h3 style={{ color: "var(--primary-color)", fontWeight: "700" }}>الصادرات السودانية</h3>
+                    <h3 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'الصادرات السودانية' : 'Sudanese Exports'}</h3>
                     <p className="mt-3 text-secondary" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                      نفخر بتصدير أجود المنتجات السودانية الخالصة إلى الأسواق العالمية، ونعمل كجسر موثوق لربط خيرات أرضنا بالعالم.
+                      {language === 'ar' ? 'نفخر بتصدير أجود المنتجات السودانية الخالصة إلى الأسواق العالمية، ونعمل كجسر موثوق لربط خيرات أرضنا بالعالم.' : 'We proudly export the finest Sudanese products to global markets, serving as a trusted bridge connecting our homeland\'s bounty with the world.'}
                     </p>
                     <div className="mt-4">
-                      <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-droplet-fill text-warning me-2 ms-2"></i> الصمغ العربي</span>
-                      <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-flower1 text-warning me-2 ms-2"></i> السمسم السوداني</span>
-                      <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-cup-hot-fill text-warning me-2 ms-2"></i> الكركديه</span>
+                      <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-droplet-fill text-warning me-2 ms-2"></i> {language === 'ar' ? 'الصمغ العربي' : 'Gum Arabic'}</span>
+                      <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-flower1 text-warning me-2 ms-2"></i> {language === 'ar' ? 'السمسم السوداني' : 'Sudanese Sesame'}</span>
+                      <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-cup-hot-fill text-warning me-2 ms-2"></i> {language === 'ar' ? 'الكركديه' : 'Hibiscus'}</span>
                     </div>
                   </div>
                 </div>

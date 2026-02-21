@@ -22,7 +22,9 @@ const BlogPage = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const snap = await getDocs(query(collection(db, "blog"), orderBy("createdAt", "desc")));
+        let snap;
+        try { snap = await getDocs(query(collection(db, "blog"), orderBy("createdAt", "desc"))); }
+        catch { snap = await getDocs(collection(db, "blog")); }
         setPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch { /* */ }
       finally { setLoading(false); }

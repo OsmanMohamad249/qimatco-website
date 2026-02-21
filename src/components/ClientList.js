@@ -7,11 +7,20 @@ import "swiper/css/scrollbar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import { useLanguage } from "../context/LanguageContext";
 
 const ClientList = () => {
+  const { t, language } = useLanguage();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Helper: get localized text from an object or string (backward compat)
+  const loc = (val) => {
+    if (!val) return "";
+    if (typeof val === "string") return val;
+    return val[language] || val["ar"] || val["en"] || "";
+  };
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -20,26 +29,26 @@ const ClientList = () => {
         const list = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setClients(list);
       } catch (err) {
-        setError("تعذر تحميل العملاء حالياً");
+        setError(language === "ar" ? "تعذر تحميل العملاء حالياً" : "Failed to load clients");
       } finally {
         setLoading(false);
       }
     };
     fetchClients();
-  }, []);
+  }, [language]);
 
   return (
     <section id="clients" className="clients">
       <div className="container" data-aos="zoom-out">
         <div className="section-header">
-          <h2>عملاؤنا</h2>
+          <h2>{t('clients_title')}</h2>
         </div>
 
-        {loading && <p>جاري تحميل العملاء...</p>}
+        {loading && <p>{language === "ar" ? "جاري تحميل العملاء..." : "Loading clients..."}</p>}
         {error && <p className="text-danger">{error}</p>}
 
         {!loading && clients.length === 0 && (
-          <p className="text-muted">لا توجد شعارات عملاء حالياً</p>
+          <p className="text-muted">{language === "ar" ? "لا توجد شعارات عملاء حالياً" : "No client logos available"}</p>
         )}
 
         {!loading && clients.length > 0 && (
@@ -58,8 +67,8 @@ const ClientList = () => {
                   <img
                     src={client.logoUrl}
                     className="img-fluid"
-                    alt={client.name || "Client"}
-                    title={client.name || "Client"}
+                    alt={loc(client.name) || "Client"}
+                    title={loc(client.name) || "Client"}
                     style={{ maxHeight: "90px", objectFit: "contain" }}
                   />
                 </SwiperSlide>
@@ -73,3 +82,4 @@ const ClientList = () => {
 };
 
 export default ClientList;
+

@@ -6,6 +6,7 @@ import {
   getDocs, query, orderBy, updateDoc, deleteDoc, where
 } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { useLanguage } from "../context/LanguageContext";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmynksk5z/auto/upload";
 const CLOUDINARY_PRESET = "oiwrpbwq";
@@ -49,6 +50,9 @@ const can = (perms, section, action) => {
 };
 
 const AdminPanel = () => {
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
+
   // ── STATE ──
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
@@ -63,14 +67,14 @@ const AdminPanel = () => {
 
   const [activeTab, setActiveTab] = useState("shipments");
 
-  const [productForm, setProductForm] = useState({ name: "", category: "", description: "" });
+  const [productForm, setProductForm] = useState({ name_ar: "", name_en: "", category_ar: "", category_en: "", description_ar: "", description_en: "" });
   const [productImages, setProductImages] = useState([]);
   const [productVideo, setProductVideo] = useState(null);
   const [productSaveMessage, setProductSaveMessage] = useState("");
   const [productLoading, setProductLoading] = useState(false);
   const [products, setProducts] = useState([]);
 
-  const [clientForm, setClientForm] = useState({ name: "" });
+  const [clientForm, setClientForm] = useState({ name_ar: "", name_en: "" });
   const [clientFile, setClientFile] = useState(null);
   const [clientMessage, setClientMessage] = useState("");
   const [clientLoading, setClientLoading] = useState(false);
@@ -81,12 +85,12 @@ const AdminPanel = () => {
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [messagesError, setMessagesError] = useState("");
 
-  const [articleForm, setArticleForm] = useState({ title: "", body: "", imageUrl: "" });
+  const [articleForm, setArticleForm] = useState({ title_ar: "", title_en: "", body_ar: "", body_en: "", imageUrl: "" });
   const [articles, setArticles] = useState([]);
   const [articleLoading, setArticleLoading] = useState(false);
   const [articleMessage, setArticleMessage] = useState("");
 
-  const [newsForm, setNewsForm] = useState({ title: "", body: "", imageUrl: "" });
+  const [newsForm, setNewsForm] = useState({ title_ar: "", title_en: "", body_ar: "", body_en: "", imageUrl: "" });
   const [newsItems, setNewsItems] = useState([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsMessage, setNewsMessage] = useState("");
@@ -189,6 +193,13 @@ const AdminPanel = () => {
   }, [user, userPermissions, accessDenied]);
 
   // ── HANDLERS ──
+  // Helper: get localized text from an object or string (backward compat)
+  const loc = (val) => {
+    if (!val) return "";
+    if (typeof val === "string") return val;
+    return val[language] || val["ar"] || val["en"] || "";
+  };
+
   const handleChange = (e) => { const { name, value } = e.target; setForm((prev) => ({ ...prev, [name]: value })); };
 
   const handleProductChange = (e) => {
@@ -245,16 +256,22 @@ const AdminPanel = () => {
 
   const handleProductSave = async (e) => {
     e.preventDefault(); setProductSaveMessage("");
-    if (!productForm.name.trim() || !productForm.category.trim() || !productForm.description.trim()) { setProductSaveMessage("Please fill all product fields."); return; }
+    if (!productForm.name_ar.trim() && !productForm.name_en.trim()) { setProductSaveMessage("Please fill the product name."); return; }
     try {
       setProductLoading(true);
       const imageUrls = [];
       for (const file of productImages) { const url = await uploadToCloudinary(file); if (url) imageUrls.push(url); }
       let videoUrl = "";
       if (productVideo) { videoUrl = await uploadToCloudinary(productVideo); }
-      await addDoc(collection(db, "products"), { name: productForm.name, category: productForm.category, description: productForm.description, imageUrls, videoUrl, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "products"), {
+        name: { ar: productForm.name_ar, en: productForm.name_en },
+        category: { ar: productForm.category_ar, en: productForm.category_en },
+        description: { ar: productForm.description_ar, en: productForm.description_en },
+        imageUrls, videoUrl, createdAt: serverTimestamp()
+      });
       setProductSaveMessage("Product saved successfully.");
-      setProductForm({ name: "", category: "", description: "" }); setProductImages([]); setProductVideo(null);
+      setProductForm({ name_ar: "", name_en: "", category_ar: "", category_en: "", description_ar: "", description_en: "" });
+      setProductImages([]); setProductVideo(null);
       const snap = await getDocs(collection(db, "products"));
       setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch { setProductSaveMessage("Save failed. Please try again."); }
@@ -268,14 +285,14 @@ const AdminPanel = () => {
 
   const handleClientSave = async (e) => {
     e.preventDefault(); setClientMessage("");
-    if (!clientForm.name.trim()) { setClientMessage("يرجى إدخال اسم العميل"); return; }
+    if (!clientForm.name_ar.trim() && !clientForm.name_en.trim()) { setClientMessage("يرجى إدخال اسم العميل"); return; }
     if (!clientFile) { setClientMessage("يرجى اختيار شعار العميل"); return; }
     try {
       setClientLoading(true);
       const logoUrl = await uploadToCloudinary(clientFile);
       if (!logoUrl) throw new Error("Upload failed");
-      await addDoc(collection(db, "clients"), { name: clientForm.name, logoUrl, createdAt: serverTimestamp() });
-      setClientMessage("تم حفظ العميل بنجاح"); setClientForm({ name: "" }); setClientFile(null); setClientFileKey((k) => k + 1);
+      await addDoc(collection(db, "clients"), { name: { ar: clientForm.name_ar, en: clientForm.name_en }, logoUrl, createdAt: serverTimestamp() });
+      setClientMessage("تم حفظ العميل بنجاح"); setClientForm({ name_ar: "", name_en: "" }); setClientFile(null); setClientFileKey((k) => k + 1);
       const snap = await getDocs(collection(db, "clients"));
       setClients(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch { setClientMessage("تعذر حفظ العميل. حاول مرة أخرى."); }
@@ -291,8 +308,13 @@ const AdminPanel = () => {
     e.preventDefault(); setArticleMessage("");
     try {
       setArticleLoading(true);
-      await addDoc(collection(db, "articles"), { ...articleForm, createdAt: serverTimestamp() });
-      setArticleForm({ title: "", body: "", imageUrl: "" });
+      await addDoc(collection(db, "articles"), {
+        title: { ar: articleForm.title_ar, en: articleForm.title_en },
+        body: { ar: articleForm.body_ar, en: articleForm.body_en },
+        imageUrl: articleForm.imageUrl,
+        createdAt: serverTimestamp()
+      });
+      setArticleForm({ title_ar: "", title_en: "", body_ar: "", body_en: "", imageUrl: "" });
       const snap = await getDocs(collection(db, "articles"));
       setArticles(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setArticleMessage("تم حفظ المقال");
@@ -309,8 +331,13 @@ const AdminPanel = () => {
     e.preventDefault(); setNewsMessage("");
     try {
       setNewsLoading(true);
-      await addDoc(collection(db, "news"), { ...newsForm, createdAt: serverTimestamp() });
-      setNewsForm({ title: "", body: "", imageUrl: "" });
+      await addDoc(collection(db, "news"), {
+        title: { ar: newsForm.title_ar, en: newsForm.title_en },
+        body: { ar: newsForm.body_ar, en: newsForm.body_en },
+        imageUrl: newsForm.imageUrl,
+        createdAt: serverTimestamp()
+      });
+      setNewsForm({ title_ar: "", title_en: "", body_ar: "", body_en: "", imageUrl: "" });
       const snap = await getDocs(collection(db, "news"));
       setNewsItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setNewsMessage("تم حفظ الخبر");
@@ -457,18 +484,19 @@ const AdminPanel = () => {
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 style={{ color: "var(--primary-color)" }}>إدارة المنتجات</h4>
+          <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_products')}</h4>
           {productSaveMessage && <span className="small text-info">{productSaveMessage}</span>}
         </div>
         {products.length > 0 && (
           <div className="table-responsive mb-4">
             <table className="table align-middle">
-              <thead><tr><th>الصورة</th><th>الاسم</th><th>الفئة</th>{can(userPermissions, "products", "delete") && <th></th>}</tr></thead>
+              <thead><tr><th>{t('trading_no_image')}</th><th>{t('admin_product_name_ar')}</th><th>{t('admin_product_name_en')}</th>{can(userPermissions, "products", "delete") && <th></th>}</tr></thead>
               <tbody>{products.map((p) => (
                 <tr key={p.id}>
-                  <td>{p.imageUrls?.length ? <img src={p.imageUrls[0]} alt={p.name} style={{ maxHeight: 50 }} /> : "-"}</td>
-                  <td>{p.name}</td><td>{p.category}</td>
-                  {can(userPermissions, "products", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteProduct(p.id)}>حذف</button></td>}
+                  <td>{p.imageUrls?.length ? <img src={p.imageUrls[0]} alt={loc(p.name)} style={{ maxHeight: 50 }} /> : "-"}</td>
+                  <td>{typeof p.name === "object" ? p.name.ar : p.name}</td>
+                  <td>{typeof p.name === "object" ? p.name.en : "-"}</td>
+                  {can(userPermissions, "products", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteProduct(p.id)}>{t('admin_delete')}</button></td>}
                 </tr>
               ))}</tbody>
             </table>
@@ -476,14 +504,19 @@ const AdminPanel = () => {
         )}
         {can(userPermissions, "products", "add") ? (
           <form className="row g-3" onSubmit={handleProductSave}>
-            <div className="col-md-6"><label className="form-label">Product Name</label><input name="name" type="text" className="form-control" value={productForm.name} onChange={handleProductChange} required /></div>
-            <div className="col-md-6"><label className="form-label">Category</label><input name="category" type="text" className="form-control" value={productForm.category} onChange={handleProductChange} required /></div>
-            <div className="col-12"><label className="form-label">Description</label><textarea name="description" className="form-control" rows="3" value={productForm.description} onChange={handleProductChange} required></textarea></div>
-            <div className="col-12"><label className="form-label">Product Images (multiple)</label><input name="images" type="file" accept="image/*" multiple className="form-control" onChange={handleProductChange} /></div>
-            <div className="col-12"><label className="form-label">Promotional Video</label><input name="video" type="file" accept="video/*" className="form-control" onChange={handleProductChange} /></div>
-            <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={productLoading}>{productLoading ? "جارٍ الرفع والحفظ..." : "حفظ المنتج"}</button></div>
+            <div className="col-12"><h6 className="text-muted">🇸🇦 {language === 'ar' ? 'العربية' : 'Arabic'}</h6></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_product_name_ar')}</label><input name="name_ar" type="text" className="form-control" dir="rtl" value={productForm.name_ar} onChange={handleProductChange} required /></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_product_category_ar')}</label><input name="category_ar" type="text" className="form-control" dir="rtl" value={productForm.category_ar} onChange={handleProductChange} /></div>
+            <div className="col-12"><label className="form-label">{t('admin_product_desc_ar')}</label><textarea name="description_ar" className="form-control" rows="2" dir="rtl" value={productForm.description_ar} onChange={handleProductChange}></textarea></div>
+            <div className="col-12"><h6 className="text-muted">🇬🇧 {language === 'ar' ? 'الإنجليزية' : 'English'}</h6></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_product_name_en')}</label><input name="name_en" type="text" className="form-control" dir="ltr" value={productForm.name_en} onChange={handleProductChange} /></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_product_category_en')}</label><input name="category_en" type="text" className="form-control" dir="ltr" value={productForm.category_en} onChange={handleProductChange} /></div>
+            <div className="col-12"><label className="form-label">{t('admin_product_desc_en')}</label><textarea name="description_en" className="form-control" rows="2" dir="ltr" value={productForm.description_en} onChange={handleProductChange}></textarea></div>
+            <div className="col-12"><label className="form-label">{t('admin_product_images')}</label><input name="images" type="file" accept="image/*" multiple className="form-control" onChange={handleProductChange} /></div>
+            <div className="col-12"><label className="form-label">{t('admin_product_video')}</label><input name="video" type="file" accept="video/*" className="form-control" onChange={handleProductChange} /></div>
+            <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={productLoading}>{productLoading ? t('admin_uploading') : t('admin_product_save')}</button></div>
           </form>
-        ) : <div className="alert alert-secondary mt-2">ليس لديك صلاحية إضافة منتجات</div>}
+        ) : <div className="alert alert-secondary mt-2">{t('admin_no_permission')}</div>}
       </div>
     </div>
   );
@@ -492,18 +525,19 @@ const AdminPanel = () => {
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 style={{ color: "var(--primary-color)" }}>إدارة العملاء</h4>
+          <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_clients')}</h4>
           {clientMessage && <span className="small text-info">{clientMessage}</span>}
         </div>
         {clients.length > 0 && (
           <div className="table-responsive mb-4">
             <table className="table align-middle">
-              <thead><tr><th>الشعار</th><th>الاسم</th>{can(userPermissions, "clients", "delete") && <th></th>}</tr></thead>
+              <thead><tr><th>{t('admin_client_logo')}</th><th>{t('admin_client_name_ar')}</th><th>{t('admin_client_name_en')}</th>{can(userPermissions, "clients", "delete") && <th></th>}</tr></thead>
               <tbody>{clients.map((c) => (
                 <tr key={c.id}>
-                  <td>{c.logoUrl ? <img src={c.logoUrl} alt={c.name} style={{ maxHeight: 50 }} /> : "-"}</td>
-                  <td>{c.name}</td>
-                  {can(userPermissions, "clients", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClient(c.id)}>حذف</button></td>}
+                  <td>{c.logoUrl ? <img src={c.logoUrl} alt={loc(c.name)} style={{ maxHeight: 50 }} /> : "-"}</td>
+                  <td>{typeof c.name === "object" ? c.name.ar : c.name}</td>
+                  <td>{typeof c.name === "object" ? c.name.en : "-"}</td>
+                  {can(userPermissions, "clients", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClient(c.id)}>{t('admin_delete')}</button></td>}
                 </tr>
               ))}</tbody>
             </table>
@@ -511,11 +545,12 @@ const AdminPanel = () => {
         )}
         {can(userPermissions, "clients", "add") ? (
           <form className="row g-3" onSubmit={handleClientSave}>
-            <div className="col-md-6"><label className="form-label">اسم العميل</label><input name="name" type="text" className="form-control" value={clientForm.name} onChange={handleClientChange} required /></div>
-            <div className="col-md-6"><label className="form-label">شعار العميل</label><input key={clientFileKey} name="clientLogo" type="file" accept="image/*" className="form-control" onChange={handleClientChange} required /></div>
-            <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={clientLoading}>{clientLoading ? "جارٍ الرفع والحفظ..." : "حفظ العميل"}</button></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_client_name_ar')}</label><input name="name_ar" type="text" className="form-control" dir="rtl" value={clientForm.name_ar} onChange={handleClientChange} required /></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_client_name_en')}</label><input name="name_en" type="text" className="form-control" dir="ltr" value={clientForm.name_en} onChange={handleClientChange} /></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_client_logo')}</label><input key={clientFileKey} name="clientLogo" type="file" accept="image/*" className="form-control" onChange={handleClientChange} required /></div>
+            <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={clientLoading}>{clientLoading ? t('admin_uploading') : t('admin_client_save')}</button></div>
           </form>
-        ) : <div className="alert alert-secondary mt-2">ليس لديك صلاحية إضافة عملاء</div>}
+        ) : <div className="alert alert-secondary mt-2">{t('admin_no_permission')}</div>}
       </div>
     </div>
   );
@@ -523,22 +558,26 @@ const AdminPanel = () => {
   const renderArticlesTab = () => (
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
-        <h4 style={{ color: "var(--primary-color)" }}>إدارة المقالات</h4>
+        <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_articles')}</h4>
         {articleMessage && <div className="alert alert-info py-1 small">{articleMessage}</div>}
         {can(userPermissions, "articles", "add") ? (
           <form className="row g-3" onSubmit={handleArticleSave}>
-            <div className="col-md-6"><label className="form-label">العنوان</label><input name="title" type="text" className="form-control" value={articleForm.title} onChange={handleArticleChange} required /></div>
-            <div className="col-md-6"><label className="form-label">صورة غلاف (رابط)</label><input name="imageUrl" type="text" className="form-control" value={articleForm.imageUrl} onChange={handleArticleChange} /></div>
-            <div className="col-12"><label className="form-label">المحتوى</label><textarea name="body" className="form-control" rows="4" value={articleForm.body} onChange={handleArticleChange} required></textarea></div>
-            <div className="col-12"><button type="submit" className="btn btn-primary" disabled={articleLoading}>{articleLoading ? "جارٍ الحفظ..." : "حفظ المقال"}</button></div>
+            <div className="col-12"><h6 className="text-muted">🇸🇦 {language === 'ar' ? 'العربية' : 'Arabic'}</h6></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_article_title_ar')}</label><input name="title_ar" type="text" className="form-control" dir="rtl" value={articleForm.title_ar} onChange={handleArticleChange} required /></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_article_image')}</label><input name="imageUrl" type="text" className="form-control" value={articleForm.imageUrl} onChange={handleArticleChange} /></div>
+            <div className="col-12"><label className="form-label">{t('admin_article_body_ar')}</label><textarea name="body_ar" className="form-control" rows="3" dir="rtl" value={articleForm.body_ar} onChange={handleArticleChange} required></textarea></div>
+            <div className="col-12"><h6 className="text-muted">🇬🇧 {language === 'ar' ? 'الإنجليزية' : 'English'}</h6></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_article_title_en')}</label><input name="title_en" type="text" className="form-control" dir="ltr" value={articleForm.title_en} onChange={handleArticleChange} /></div>
+            <div className="col-12"><label className="form-label">{t('admin_article_body_en')}</label><textarea name="body_en" className="form-control" rows="3" dir="ltr" value={articleForm.body_en} onChange={handleArticleChange}></textarea></div>
+            <div className="col-12"><button type="submit" className="btn btn-primary" disabled={articleLoading}>{articleLoading ? t('admin_saving') : t('admin_article_save')}</button></div>
           </form>
-        ) : <div className="alert alert-secondary">ليس لديك صلاحية إضافة مقالات</div>}
+        ) : <div className="alert alert-secondary">{t('admin_no_permission')}</div>}
         {articles.length > 0 && (
           <div className="table-responsive mt-4">
-            <table className="table align-middle"><thead><tr><th>العنوان</th>{can(userPermissions, "articles", "delete") && <th></th>}</tr></thead>
+            <table className="table align-middle"><thead><tr><th>{t('admin_article_title_ar')}</th><th>{t('admin_article_title_en')}</th>{can(userPermissions, "articles", "delete") && <th></th>}</tr></thead>
               <tbody>{articles.map((a) => (
-                <tr key={a.id}><td>{a.title}</td>
-                  {can(userPermissions, "articles", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteArticle(a.id)}>حذف</button></td>}
+                <tr key={a.id}><td>{typeof a.title === "object" ? a.title.ar : a.title}</td><td>{typeof a.title === "object" ? a.title.en : "-"}</td>
+                  {can(userPermissions, "articles", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteArticle(a.id)}>{t('admin_delete')}</button></td>}
                 </tr>
               ))}</tbody>
             </table>
@@ -551,22 +590,26 @@ const AdminPanel = () => {
   const renderNewsTab = () => (
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
-        <h4 style={{ color: "var(--primary-color)" }}>إدارة الأخبار</h4>
+        <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_news')}</h4>
         {newsMessage && <div className="alert alert-info py-1 small">{newsMessage}</div>}
         {can(userPermissions, "news", "add") ? (
           <form className="row g-3" onSubmit={handleNewsSave}>
-            <div className="col-md-6"><label className="form-label">العنوان</label><input name="title" type="text" className="form-control" value={newsForm.title} onChange={handleNewsChange} required /></div>
-            <div className="col-md-6"><label className="form-label">صورة غلاف (رابط)</label><input name="imageUrl" type="text" className="form-control" value={newsForm.imageUrl} onChange={handleNewsChange} /></div>
-            <div className="col-12"><label className="form-label">المحتوى</label><textarea name="body" className="form-control" rows="4" value={newsForm.body} onChange={handleNewsChange} required></textarea></div>
-            <div className="col-12"><button type="submit" className="btn btn-primary" disabled={newsLoading}>{newsLoading ? "جارٍ الحفظ..." : "حفظ الخبر"}</button></div>
+            <div className="col-12"><h6 className="text-muted">🇸🇦 {language === 'ar' ? 'العربية' : 'Arabic'}</h6></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_news_title_ar')}</label><input name="title_ar" type="text" className="form-control" dir="rtl" value={newsForm.title_ar} onChange={handleNewsChange} required /></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_news_image')}</label><input name="imageUrl" type="text" className="form-control" value={newsForm.imageUrl} onChange={handleNewsChange} /></div>
+            <div className="col-12"><label className="form-label">{t('admin_news_body_ar')}</label><textarea name="body_ar" className="form-control" rows="3" dir="rtl" value={newsForm.body_ar} onChange={handleNewsChange} required></textarea></div>
+            <div className="col-12"><h6 className="text-muted">🇬🇧 {language === 'ar' ? 'الإنجليزية' : 'English'}</h6></div>
+            <div className="col-md-6"><label className="form-label">{t('admin_news_title_en')}</label><input name="title_en" type="text" className="form-control" dir="ltr" value={newsForm.title_en} onChange={handleNewsChange} /></div>
+            <div className="col-12"><label className="form-label">{t('admin_news_body_en')}</label><textarea name="body_en" className="form-control" rows="3" dir="ltr" value={newsForm.body_en} onChange={handleNewsChange}></textarea></div>
+            <div className="col-12"><button type="submit" className="btn btn-primary" disabled={newsLoading}>{newsLoading ? t('admin_saving') : t('admin_news_save')}</button></div>
           </form>
-        ) : <div className="alert alert-secondary">ليس لديك صلاحية إضافة أخبار</div>}
+        ) : <div className="alert alert-secondary">{t('admin_no_permission')}</div>}
         {newsItems.length > 0 && (
           <div className="table-responsive mt-4">
-            <table className="table align-middle"><thead><tr><th>العنوان</th>{can(userPermissions, "news", "delete") && <th></th>}</tr></thead>
+            <table className="table align-middle"><thead><tr><th>{t('admin_news_title_ar')}</th><th>{t('admin_news_title_en')}</th>{can(userPermissions, "news", "delete") && <th></th>}</tr></thead>
               <tbody>{newsItems.map((n) => (
-                <tr key={n.id}><td>{n.title}</td>
-                  {can(userPermissions, "news", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteNews(n.id)}>حذف</button></td>}
+                <tr key={n.id}><td>{typeof n.title === "object" ? n.title.ar : n.title}</td><td>{typeof n.title === "object" ? n.title.en : "-"}</td>
+                  {can(userPermissions, "news", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteNews(n.id)}>{t('admin_delete')}</button></td>}
                 </tr>
               ))}</tbody>
             </table>
@@ -580,17 +623,17 @@ const AdminPanel = () => {
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 style={{ color: "var(--primary-color)" }}>الرسائل والطلبات</h4>
-          {messagesLoading && <span className="text-muted small">جاري التحميل...</span>}
+          <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_messages')}</h4>
+          {messagesLoading && <span className="text-muted small">{t('admin_msg_loading')}</span>}
           {messagesError && <span className="text-danger small">{messagesError}</span>}
         </div>
-        {!can(userPermissions, "messages", "view") && <div className="alert alert-secondary">ليس لديك صلاحية عرض الرسائل</div>}
-        {can(userPermissions, "messages", "view") && !messagesLoading && messages.length === 0 && <div className="alert alert-info">لا توجد رسائل جديدة حالياً.</div>}
+        {!can(userPermissions, "messages", "view") && <div className="alert alert-secondary">{t('admin_no_permission')}</div>}
+        {can(userPermissions, "messages", "view") && !messagesLoading && messages.length === 0 && <div className="alert alert-info">{t('admin_msg_empty')}</div>}
         {can(userPermissions, "messages", "view") && !messagesLoading && messages.length > 0 && (
           <div className="table-responsive">
             <table className="table table-bordered table-striped align-middle">
               <thead className="table-dark">
-                <tr><th>الاسم</th><th>الهاتف</th><th>النوع</th><th>الرسالة</th><th>الحالة</th>{can(userPermissions, "messages", "markRead") && <th></th>}</tr>
+                <tr><th>{t('admin_msg_name')}</th><th>{t('admin_msg_phone')}</th><th>{t('admin_msg_type')}</th><th>{t('admin_msg_message')}</th><th>{t('admin_msg_status')}</th>{can(userPermissions, "messages", "markRead") && <th></th>}</tr>
               </thead>
               <tbody>
                 {messages.map((msg) => (
@@ -599,8 +642,8 @@ const AdminPanel = () => {
                     <td>{msg.phone || "-"}</td>
                     <td>{msg.type || msg.intent || "-"}</td>
                     <td style={{ maxWidth: 200 }}>{msg.message || "-"}</td>
-                    <td><span className={`badge ${msg.status === "New" ? "bg-warning text-dark" : "bg-success"}`}>{msg.status === "New" ? "جديد" : "تم الرد"}</span></td>
-                    {can(userPermissions, "messages", "markRead") && <td>{msg.status !== "Read" && <button className="btn btn-sm btn-outline-primary" onClick={() => handleMarkRead(msg.id)}>تعليم كمقروء</button>}</td>}
+                    <td><span className={`badge ${msg.status === "New" ? "bg-warning text-dark" : "bg-success"}`}>{msg.status === "New" ? t('admin_msg_new') : t('admin_msg_read')}</span></td>
+                    {can(userPermissions, "messages", "markRead") && <td>{msg.status !== "Read" && <button className="btn btn-sm btn-outline-primary" onClick={() => handleMarkRead(msg.id)}>{t('admin_msg_mark_read')}</button>}</td>}
                   </tr>
                 ))}
               </tbody>
@@ -834,19 +877,19 @@ const AdminPanel = () => {
 
   if (!user) {
     return (
-      <main id="main" className="py-5">
-        <Helmet><title>Admin Login | Qimmah</title></Helmet>
+      <main id="main" className="py-5" dir={isRTL ? 'rtl' : 'ltr'}>
+        <Helmet><title>{t('admin_login_title')} | Qimmah</title></Helmet>
         <div className="container" data-aos="fade-up">
           <div className="row justify-content-center">
             <div className="col-lg-5">
               <div className="card shadow-sm border-0">
                 <div className="card-body p-4">
-                  <h3 className="mb-3" style={{ color: "var(--primary-color)" }}>تسجيل الدخول</h3>
+                  <h3 className="mb-3" style={{ color: "var(--primary-color)" }}>{t('admin_login_title')}</h3>
                   <form onSubmit={handleLogin} className="row g-3">
-                    <div className="col-12"><label className="form-label">Email</label><input type="email" className="form-control" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required /></div>
-                    <div className="col-12"><label className="form-label">Password</label><input type="password" className="form-control" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required /></div>
+                    <div className="col-12"><label className="form-label">{t('admin_login_email')}</label><input type="email" className="form-control" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required /></div>
+                    <div className="col-12"><label className="form-label">{t('admin_login_password')}</label><input type="password" className="form-control" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required /></div>
                     {loginError && <div className="text-danger small">{loginError}</div>}
-                    <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={loginLoading}>{loginLoading ? "جارٍ الدخول..." : "دخول"}</button></div>
+                    <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={loginLoading}>{loginLoading ? t('admin_login_loading') : t('admin_login_btn')}</button></div>
                   </form>
                 </div>
               </div>
@@ -859,22 +902,22 @@ const AdminPanel = () => {
 
   // Still loading permissions
   if (userPermissions === null && !accessDenied) {
-    return <main id="main" className="py-5"><div className="container text-center"><div className="spinner-border text-primary" role="status"></div><p className="mt-2 text-muted">جاري التحقق من الصلاحيات...</p></div></main>;
+    return <main id="main" className="py-5"><div className="container text-center"><div className="spinner-border text-primary" role="status"></div><p className="mt-2 text-muted">{t('admin_checking_perms')}</p></div></main>;
   }
 
   // Access Denied
   if (accessDenied) {
     return (
-      <main id="main" className="py-5">
-        <Helmet><title>Access Denied | Qimmah</title></Helmet>
+      <main id="main" className="py-5" dir={isRTL ? 'rtl' : 'ltr'}>
+        <Helmet><title>{t('admin_access_denied')} | Qimmah</title></Helmet>
         <div className="container text-center" data-aos="fade-up">
           <div className="card shadow-sm border-0 mx-auto" style={{ maxWidth: 500 }}>
             <div className="card-body p-5">
               <i className="bi bi-shield-lock" style={{ fontSize: 64, color: "var(--accent-color, #F4A900)" }}></i>
-              <h3 className="mt-3" style={{ color: "var(--primary-color)" }}>غير مصرح بالدخول</h3>
-              <p className="text-muted">ليس لديك صلاحية الوصول إلى لوحة الإدارة. يرجى التواصل مع المسؤول.</p>
+              <h3 className="mt-3" style={{ color: "var(--primary-color)" }}>{t('admin_access_denied')}</h3>
+              <p className="text-muted">{t('admin_access_denied_msg')}</p>
               <p className="text-muted small">{user.email}</p>
-              <button className="btn btn-outline-danger" onClick={handleLogout}>تسجيل الخروج</button>
+              <button className="btn btn-outline-danger" onClick={handleLogout}>{t('admin_access_denied_logout')}</button>
             </div>
           </div>
         </div>
@@ -883,24 +926,24 @@ const AdminPanel = () => {
   }
 
   return (
-    <main id="main" className="py-5">
-      <Helmet><title>Admin Panel | Qimmah</title></Helmet>
+    <main id="main" className="py-5" dir={isRTL ? 'rtl' : 'ltr'}>
+      <Helmet><title>{t('admin_panel_title')} | Qimmah</title></Helmet>
       <div className="container" data-aos="fade-up">
         <div className="row">
           <div className="col-lg-3 mb-3 mb-lg-0">
             <div className="list-group shadow-sm">
-              <button className={`list-group-item list-group-item-action ${activeTab === "shipments" ? "active" : ""}`} onClick={() => setActiveTab("shipments")}>إدارة الشحنات</button>
-              <button className={`list-group-item list-group-item-action ${activeTab === "products" ? "active" : ""}`} onClick={() => setActiveTab("products")}>إدارة المنتجات</button>
-              <button className={`list-group-item list-group-item-action ${activeTab === "clients" ? "active" : ""}`} onClick={() => setActiveTab("clients")}>إدارة العملاء</button>
-              <button className={`list-group-item list-group-item-action ${activeTab === "articles" ? "active" : ""}`} onClick={() => setActiveTab("articles")}>إدارة المقالات</button>
-              <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}>إدارة الأخبار</button>
-              <button className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`} onClick={() => setActiveTab("messages")}>الرسائل والطلبات</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "shipments" ? "active" : ""}`} onClick={() => setActiveTab("shipments")}>{t('admin_tab_shipments')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "products" ? "active" : ""}`} onClick={() => setActiveTab("products")}>{t('admin_tab_products')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "clients" ? "active" : ""}`} onClick={() => setActiveTab("clients")}>{t('admin_tab_clients')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "articles" ? "active" : ""}`} onClick={() => setActiveTab("articles")}>{t('admin_tab_articles')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}>{t('admin_tab_news')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`} onClick={() => setActiveTab("messages")}>{t('admin_tab_messages')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "social" ? "active" : ""}`} onClick={() => setActiveTab("social")}>
-                <i className="bi bi-share me-1"></i>السوشيال ميديا والواتساب
+                <i className="bi bi-share me-1"></i>{t('admin_tab_social')}
               </button>
               {can(userPermissions, "admins", "view") && (
                 <button className={`list-group-item list-group-item-action ${activeTab === "admins" ? "active" : ""}`} onClick={() => setActiveTab("admins")}>
-                  <i className="bi bi-people-fill me-1"></i>إدارة المشرفين
+                  <i className="bi bi-people-fill me-1"></i>{t('admin_tab_admins')}
                 </button>
               )}
             </div>
@@ -908,12 +951,12 @@ const AdminPanel = () => {
           <div className="col-lg-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div>
-                <h3 style={{ color: "var(--primary-color)" }}>لوحة الإدارة</h3>
-                <p className="text-muted small mb-0">إدارة الشحنات، المنتجات، والمحتوى</p>
+                <h3 style={{ color: "var(--primary-color)" }}>{t('admin_panel_title')}</h3>
+                <p className="text-muted small mb-0">{t('admin_panel_subtitle')}</p>
               </div>
               <div className="d-flex align-items-center gap-2">
                 <span className="text-muted small">{user.email}</span>
-                <button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>خروج</button>
+                <button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>{t('admin_logout')}</button>
               </div>
             </div>
             {activeTab === "shipments" && renderShipmentsTab()}

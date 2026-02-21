@@ -77,7 +77,7 @@ const mergePerms = (saved, base) => {
 };
 
 const AdminPanel = () => {
-  const { t, language } = useLanguage();
+  const { t, language, toggleLanguage } = useLanguage();
   const isRTL = language === 'ar';
 
   // ── STATE ──
@@ -752,7 +752,7 @@ const AdminPanel = () => {
           <div className="col-lg-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div><h3 style={{ color: "var(--primary-color)" }}>{t('admin_panel_title')}</h3><p className="text-muted small mb-0">{t('admin_panel_subtitle')}</p></div>
-              <div className="d-flex align-items-center gap-2"><span className="text-muted small">{user.email}</span><button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>{t('admin_logout')}</button></div>
+              <div className="d-flex align-items-center gap-2"><span className="text-muted small">{user.email}</span><button className="btn btn-outline-primary btn-sm" onClick={toggleLanguage} style={{ direction: 'ltr' }}>{language === 'ar' ? 'English' : 'العربية'}</button><button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>{t('admin_logout')}</button></div>
             </div>
             {activeTab === "shipments" && renderShipmentsTab()}
             {activeTab === "products" && renderProductsTab()}

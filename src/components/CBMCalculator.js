@@ -18,14 +18,10 @@ const CBMCalculator = () => {
         const q = parseInt(quantity);
 
         if (isNaN(l) || isNaN(w) || isNaN(h) || isNaN(q)) {
-            alert("Please enter valid numbers");
             return;
         }
 
-        // Volume in CBM: (L * W * H * Qty) / 1,000,000
         const totalVolume = (l * w * h * q) / 1000000;
-
-        // Volumetric Weight (Standard 6000): (L * W * H * Qty) / 6000
         const totalVolWeight = (l * w * h * q) / 6000;
 
         setVolume(totalVolume.toFixed(3));
@@ -37,13 +33,13 @@ const CBMCalculator = () => {
             <div className="card-body p-4">
                 <h4 className="card-title mb-4" style={{ color: 'var(--primary-color)' }}>
                     <i className="bi bi-calculator me-2"></i>
-                    {t('cbm_title', 'حاسبة الحجم والوزن (CBM Calculator)')}
+                    {t('cbm_title')}
                 </h4>
 
                 <form onSubmit={calculateCBM}>
                     <div className="row g-3">
                         <div className="col-md-6">
-                            <label className="form-label text-muted">{t('cbm_length', 'الطول (سم) / Length (cm)')}</label>
+                            <label className="form-label text-muted">{t('cbm_length')}</label>
                             <input
                                 type="number"
                                 className="form-control"
@@ -54,7 +50,7 @@ const CBMCalculator = () => {
                             />
                         </div>
                         <div className="col-md-6">
-                            <label className="form-label text-muted">{t('cbm_width', 'العرض (سم) / Width (cm)')}</label>
+                            <label className="form-label text-muted">{t('cbm_width')}</label>
                             <input
                                 type="number"
                                 className="form-control"
@@ -65,7 +61,7 @@ const CBMCalculator = () => {
                             />
                         </div>
                         <div className="col-md-6">
-                            <label className="form-label text-muted">{t('cbm_height', 'الارتفاع (سم) / Height (cm)')}</label>
+                            <label className="form-label text-muted">{t('cbm_height')}</label>
                             <input
                                 type="number"
                                 className="form-control"
@@ -76,21 +72,21 @@ const CBMCalculator = () => {
                             />
                         </div>
                         <div className="col-md-6">
-                            <label className="form-label text-muted">{t('cbm_qty', 'العدد / Quantity')}</label>
+                            <label className="form-label text-muted">{t('cbm_qty')}</label>
                             <input
                                 type="number"
                                 className="form-control"
                                 value={quantity}
                                 onChange={(e) => setQuantity(e.target.value)}
                                 required
-                                port="0"
+                                placeholder="1"
                                 min="1"
                             />
                         </div>
                         <div className="col-12 mt-4">
                             <button type="submit" className="btn btn-primary w-100 py-2" style={{ backgroundColor: 'var(--secondary-color)', border: 'none' }}>
                                 <i className="bi bi-calculator-fill me-2"></i>
-                                {t('cbm_calc_btn', 'احسب / Calculate')}
+                                {t('cbm_calc_btn')}
                             </button>
                         </div>
                     </div>
@@ -100,16 +96,16 @@ const CBMCalculator = () => {
                     <div className="mt-4 p-3 rounded" style={{ backgroundColor: '#e9ecef' }}>
                         <div className="row text-center">
                             <div className="col-6 border-end">
-                                <small className="text-muted d-block">{t('cbm_total_vol', 'الحجم الكلي')}</small>
-                                <strong className="fs-5 text-dark">{volume} m³</strong>
+                                <small className="text-muted d-block">{t('cbm_vol_weight')}</small>
+                                <strong className="fs-5 text-dark">{volumetricWeight} kg</strong>
                             </div>
                             <div className="col-6">
-                                <small className="text-muted d-block">{t('cbm_vol_weight', 'الوزن الحجمي')}</small>
-                                <strong className="fs-5 text-dark">{volumetricWeight} kg</strong>
+                                <small className="text-muted d-block">{t('cbm_total_vol')}</small>
+                                <strong className="fs-5 text-dark">{volume} m³</strong>
                             </div>
                         </div>
                         <p className="text-center mt-2 mb-0 text-muted" style={{ fontSize: '0.8rem' }}>
-                            * {t('cbm_disclaimer', 'نتائج تقديرية. تواصل معنا للحصول على عرض سعر دقيق.')}
+                            * {t('cbm_disclaimer')}
                         </p>
                     </div>
                 )}

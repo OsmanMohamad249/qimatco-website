@@ -108,12 +108,36 @@ export const translations = {
     service_customs: "التخليص الجمركي",
 
     // Footer
+    footer_company_name: "شركة قمة الابتكار للحلول المتكاملة",
     footer_desc: "حلول متكاملة في الاستيراد والتصدير، التخليص الجمركي، والخدمات اللوجستية من الباب للباب.",
     footer_useful_links: "روابط مفيدة",
     footer_services: "خدماتنا",
     footer_contact: "تواصل معنا",
     footer_copyright: "جميع الحقوق محفوظة",
+    footer_home: "الرئيسية",
+    footer_about: "من نحن",
+    footer_services_link: "خدماتنا",
+    footer_contact_link: "تواصل معنا",
+    footer_admin: "بوابة الإدارة",
+    footer_sea_freight: "الشحن البحري",
+    footer_air_freight: "الشحن الجوي",
+    footer_customs: "التخليص الجمركي",
+    footer_phone: "الهاتف",
+    footer_email: "البريد الإلكتروني",
+    footer_address: "الخرطوم، السودان",
+    footer_copyright_company: "قمة الإبتكار للحلول المتكاملة - QIMMAH AL EBTEKAR FOR INTEGRATED SOLUTIONS",
     settings_language: "اللغة",
+
+    // CBM Calculator
+    cbm_title: "حاسبة الحجم والوزن الحجمي",
+    cbm_length: "الطول (سم)",
+    cbm_width: "العرض (سم)",
+    cbm_height: "الارتفاع (سم)",
+    cbm_qty: "العدد",
+    cbm_calc_btn: "احسب",
+    cbm_total_vol: "الحجم الكلي",
+    cbm_vol_weight: "الوزن الحجمي",
+    cbm_disclaimer: "نتائج تقديرية. تواصل معنا للحصول على عرض سعر دقيق.",
 
     // Admin Panel
     admin_login_title: "تسجيل الدخول",
@@ -340,12 +364,36 @@ export const translations = {
     service_customs: "Customs Clearance",
 
     // Footer
+    footer_company_name: "Qimmah Al Ebtekar Integrated Solutions",
     footer_desc: "Integrated solutions in import & export, customs clearance, and logistics from door to door.",
     footer_useful_links: "Useful Links",
     footer_services: "Our Services",
     footer_contact: "Contact Us",
     footer_copyright: "All Rights Reserved",
+    footer_home: "Home",
+    footer_about: "About Us",
+    footer_services_link: "Services",
+    footer_contact_link: "Contact Us",
+    footer_admin: "Admin Portal",
+    footer_sea_freight: "Sea Freight",
+    footer_air_freight: "Air Freight",
+    footer_customs: "Customs Clearance",
+    footer_phone: "Phone",
+    footer_email: "Email",
+    footer_address: "Khartoum, Sudan",
+    footer_copyright_company: "Qimmah Al Ebtekar for Integrated Solutions - قمة الإبتكار للحلول المتكاملة",
     settings_language: "Language",
+
+    // CBM Calculator
+    cbm_title: "CBM & Volumetric Weight Calculator",
+    cbm_length: "Length (cm)",
+    cbm_width: "Width (cm)",
+    cbm_height: "Height (cm)",
+    cbm_qty: "Quantity",
+    cbm_calc_btn: "Calculate",
+    cbm_total_vol: "Total Volume",
+    cbm_vol_weight: "Volumetric Weight",
+    cbm_disclaimer: "Estimated results. Contact us for an accurate quote.",
 
     // Admin Panel
     admin_login_title: "Admin Login",

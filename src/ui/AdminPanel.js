@@ -61,10 +61,14 @@ const AdminPanel = () => {
   // Articles tab state
   const [articleForm, setArticleForm] = useState({ title: "", body: "", imageUrl: "" });
   const [articles, setArticles] = useState([]);
+  const [articleLoading, setArticleLoading] = useState(false);
+  const [articleMessage, setArticleMessage] = useState({ type: '', text: '' });
 
   // News tab state
   const [newsForm, setNewsForm] = useState({ title: "", body: "", imageUrl: "" });
   const [newsItems, setNewsItems] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [newsMessage, setNewsMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {

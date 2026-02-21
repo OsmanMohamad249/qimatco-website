@@ -55,6 +55,17 @@ const AdminPanel = () => {
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [messagesError, setMessagesError] = useState("");
 
+  // Clients tab state
+  const [clients, setClients] = useState([]);
+
+  // Articles tab state
+  const [articleForm, setArticleForm] = useState({ title: "", body: "", imageUrl: "" });
+  const [articles, setArticles] = useState([]);
+
+  // News tab state
+  const [newsForm, setNewsForm] = useState({ title: "", body: "", imageUrl: "" });
+  const [newsItems, setNewsItems] = useState([]);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -89,8 +100,23 @@ const AdminPanel = () => {
           setProductSaveMessage("تعذر تحميل المنتجات");
         }
       };
+      const fetchClients = async () => {
+        const snap = await getDocs(collection(db, "clients"));
+        setClients(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      };
+      const fetchArticles = async () => {
+        const snap = await getDocs(collection(db, "articles"));
+        setArticles(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      };
+      const fetchNews = async () => {
+        const snap = await getDocs(collection(db, "news"));
+        setNewsItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      };
       fetchMessages();
       fetchProducts();
+      fetchClients();
+      fetchArticles();
+      fetchNews();
     }
   }, [user]);
 
@@ -353,104 +379,106 @@ const AdminPanel = () => {
     </div>
   );
 
-  const renderContentTab = () => (
+  const renderClientsTab = () => (
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
-        <h4 style={{ color: "var(--primary-color)" }}>إدارة المحتوى والإعلانات</h4>
-        <p className="text-muted mb-3">Add client logos to appear in the clients carousel.</p>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h4 style={{ color: "var(--primary-color)" }}>إدارة العملاء</h4>
+          {clientMessage && <span className="text-success small">{clientMessage}</span>}
+        </div>
+
+        {clients.length > 0 && (
+          <div className="table-responsive mb-4">
+            <table className="table align-middle">
+              <thead>
+                <tr><th>الشعار</th><th>الاسم</th><th></th></tr>
+              </thead>
+              <tbody>
+                {clients.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.logoUrl ? <img src={c.logoUrl} alt={c.name} style={{ maxHeight: 60 }} /> : '-'}</td>
+                    <td>{c.name}</td>
+                    <td>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClient(c.id)}>
+                        حذف
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <form className="row g-3" onSubmit={handleClientSave}>
           <div className="col-md-6">
             <label className="form-label">اسم العميل / Client Name</label>
-            <input
-              name="name"
-              type="text"
-              className="form-control"
-              value={clientForm.name}
-              onChange={handleClientChange}
-              required
-            />
+            <input name="name" type="text" className="form-control" value={clientForm.name} onChange={handleClientChange} required />
           </div>
           <div className="col-md-6">
             <label className="form-label">شعار العميل / Client Logo</label>
-            <input
-              key={clientFileKey}
-              name="clientLogo"
-              type="file"
-              accept="image/*"
-              className="form-control"
-              onChange={handleClientChange}
-              required
-            />
+            <input key={clientFileKey} name="clientLogo" type="file" accept="image/*" className="form-control" onChange={handleClientChange} required />
           </div>
           <div className="col-12">
-            <button
-              type="submit"
-              className="btn btn-primary w-100"
-              style={{ background: "var(--secondary-color)", border: "none" }}
-              disabled={clientLoading}
-            >
+            <button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={clientLoading}>
               {clientLoading ? "جارٍ الحفظ..." : "حفظ العميل / Save Client"}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
 
-        {clientMessage && (
-          <div className="alert alert-info mt-3" role="alert">
-            {clientMessage}
+  const renderArticlesTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <h4 style={{ color: "var(--primary-color)" }}>إدارة المقالات</h4>
+        <form className="row g-3" onSubmit={handleArticleSave}>
+          <div className="col-md-6"><label className="form-label">العنوان</label><input name="title" type="text" className="form-control" value={articleForm.title} onChange={handleArticleChange} required /></div>
+          <div className="col-md-6"><label className="form-label">صورة الغلاف (رابط اختياري)</label><input name="imageUrl" type="text" className="form-control" value={articleForm.imageUrl} onChange={handleArticleChange} /></div>
+          <div className="col-12"><label className="form-label">المحتوى</label><textarea name="body" className="form-control" rows="4" value={articleForm.body} onChange={handleArticleChange} required></textarea></div>
+          <div className="col-12"><button type="submit" className="btn btn-primary" disabled={articleLoading}>حفظ المقال</button></div>
+        </form>
+
+        {articles.length > 0 && (
+          <div className="table-responsive mt-4">
+            <table className="table align-middle">
+              <thead><tr><th>العنوان</th><th></th></tr></thead>
+              <tbody>
+                {articles.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.title}</td>
+                    <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteArticle(a.id)}>حذف</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
     </div>
   );
 
-  const renderMessagesTab = () => (
+  const renderNewsTab = () => (
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 style={{ color: "var(--primary-color)" }}>الرسائل والطلبات</h4>
-          {messagesLoading && <span className="text-muted small">جاري التحميل...</span>}
-          {messagesError && <span className="text-danger small">{messagesError}</span>}
-        </div>
-        {!messagesLoading && messages.length === 0 && (
-          <p className="text-muted">لا توجد رسائل حالياً</p>
-        )}
-        {!messagesLoading && messages.length > 0 && (
-          <div className="table-responsive">
+        <h4 style={{ color: "var(--primary-color)" }}>إدارة الأخبار</h4>
+        <form className="row g-3" onSubmit={handleNewsSave}>
+          <div className="col-md-6"><label className="form-label">العنوان</label><input name="title" type="text" className="form-control" value={newsForm.title} onChange={handleNewsChange} required /></div>
+          <div className="col-md-6"><label className="form-label">صورة الغلاف (رابط اختياري)</label><input name="imageUrl" type="text" className="form-control" value={newsForm.imageUrl} onChange={handleNewsChange} /></div>
+          <div className="col-12"><label className="form-label">المحتوى</label><textarea name="body" className="form-control" rows="4" value={newsForm.body} onChange={handleNewsChange} required></textarea></div>
+          <div className="col-12"><button type="submit" className="btn btn-primary" disabled={newsLoading}>حفظ الخبر</button></div>
+        </form>
+
+        {newsItems.length > 0 && (
+          <div className="table-responsive mt-4">
             <table className="table align-middle">
-              <thead>
-                <tr>
-                  <th>الاسم</th>
-                  <th>النوع</th>
-                  <th>الهاتف</th>
-                  <th>التاريخ</th>
-                  <th>الحالة</th>
-                  <th>الرسالة</th>
-                  <th></th>
-                </tr>
-              </thead>
+              <thead><tr><th>العنوان</th><th></th></tr></thead>
               <tbody>
-                {messages.map((m) => (
-                  <tr key={m.id}>
-                    <td>{m.name || '-'}</td>
-                    <td>{m.type || m.intent || '-'}</td>
-                    <td>{m.phone || '-'}</td>
-                    <td>{m.createdAt?.toDate ? m.createdAt.toDate().toLocaleString() : '-'}</td>
-                    <td>
-                      <span className={`badge ${m.status === 'New' ? 'bg-warning text-dark' : 'bg-success'}`}>
-                        {m.status === 'New' ? 'جديد' : 'تم الرد'}
-                      </span>
-                    </td>
-                    <td style={{ maxWidth: '240px' }}>
-                      <small className="text-muted">{m.message || '-'}</small>
-                    </td>
-                    <td>
-                      {m.status !== 'Read' && (
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => handleMarkRead(m.id)}>
-                          تعليم كمقروء / تم الرد
-                        </button>
-                      )}
-                    </td>
+                {newsItems.map((n) => (
+                  <tr key={n.id}>
+                    <td>{n.title}</td>
+                    <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteNews(n.id)}>حذف</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -538,10 +566,83 @@ const AdminPanel = () => {
       setClientForm({ name: "" });
       setClientFile(null);
       setClientFileKey((prev) => prev + 1);
+      const snap = await getDocs(collection(db, "clients"));
+      setClients(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
       setClientMessage("تعذر حفظ العميل. حاول مرة أخرى.");
     } finally {
       setClientLoading(false);
+    }
+  };
+
+  const handleDeleteClient = async (id) => {
+    try {
+      await deleteDoc(doc(db, "clients", id));
+      setClients((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      setClientMessage("تعذر حذف العميل");
+    }
+  };
+
+  const handleArticleChange = (e) => {
+    const { name, value } = e.target;
+    setArticleForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleArticleSave = async (e) => {
+    e.preventDefault();
+    setArticleMessage("");
+    try {
+      setArticleLoading(true);
+      await addDoc(collection(db, "articles"), { ...articleForm, createdAt: serverTimestamp() });
+      setArticleForm({ title: "", body: "", imageUrl: "" });
+      const snap = await getDocs(collection(db, "articles"));
+      setArticles(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setArticleMessage("تم حفظ المقال");
+    } catch (err) {
+      setArticleMessage("تعذر حفظ المقال");
+    } finally {
+      setArticleLoading(false);
+    }
+  };
+
+  const handleDeleteArticle = async (id) => {
+    try {
+      await deleteDoc(doc(db, "articles", id));
+      setArticles((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      setArticleMessage("تعذر حذف المقال");
+    }
+  };
+
+  const handleNewsChange = (e) => {
+    const { name, value } = e.target;
+    setNewsForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleNewsSave = async (e) => {
+    e.preventDefault();
+    setNewsMessage("");
+    try {
+      setNewsLoading(true);
+      await addDoc(collection(db, "news"), { ...newsForm, createdAt: serverTimestamp() });
+      setNewsForm({ title: "", body: "", imageUrl: "" });
+      const snap = await getDocs(collection(db, "news"));
+      setNewsItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setNewsMessage("تم حفظ الخبر");
+    } catch (err) {
+      setNewsMessage("تعذر حفظ الخبر");
+    } finally {
+      setNewsLoading(false);
+    }
+  };
+
+  const handleDeleteNews = async (id) => {
+    try {
+      await deleteDoc(doc(db, "news", id));
+      setNewsItems((prev) => prev.filter((n) => n.id !== id));
+    } catch (err) {
+      setNewsMessage("تعذر حذف الخبر");
     }
   };
 
@@ -643,27 +744,12 @@ const AdminPanel = () => {
               <button
                 className={`list-group-item list-group-item-action ${activeTab === "shipments" ? "active" : ""}`}
                 onClick={() => setActiveTab("shipments")}
-              >
-                إدارة الشحنات
-              </button>
-              <button
-                className={`list-group-item list-group-item-action ${activeTab === "products" ? "active" : ""}`}
-                onClick={() => setActiveTab("products")}
-              >
-                إدارة المنتجات (تجارة)
-              </button>
-              <button
-                className={`list-group-item list-group-item-action ${activeTab === "content" ? "active" : ""}`}
-                onClick={() => setActiveTab("content")}
-              >
-                إدارة المحتوى والإعلانات
-              </button>
-              <button
-                className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`}
-                onClick={() => setActiveTab("messages")}
-              >
-                الرسائل والطلبات
-              </button>
+              >إدارة الشحنات</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "products" ? "active" : ""}`} onClick={() => setActiveTab("products")}>إدارة المنتجات (تجارة)</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "clients" ? "active" : ""}`} onClick={() => setActiveTab("clients")}>إدارة العملاء</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "articles" ? "active" : ""}`} onClick={() => setActiveTab("articles")}>إدارة المقالات</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}>إدارة الأخبار</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`} onClick={() => setActiveTab("messages")}>الرسائل والطلبات</button>
             </div>
           </div>
           <div className="col-lg-9">
@@ -682,7 +768,9 @@ const AdminPanel = () => {
 
             {activeTab === "shipments" && renderShipmentsTab()}
             {activeTab === "products" && renderProductsTab()}
-            {activeTab === "content" && renderContentTab()}
+            {activeTab === "clients" && renderClientsTab()}
+            {activeTab === "articles" && renderArticlesTab()}
+            {activeTab === "news" && renderNewsTab()}
             {activeTab === "messages" && renderMessagesTab()}
           </div>
         </div>

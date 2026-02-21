@@ -60,6 +60,22 @@ const can = (perms, section, action) => {
   return !!perms[section][action];
 };
 
+// Merge saved permissions with defaults so new keys are always present
+const mergePerms = (saved, base) => {
+  const merged = JSON.parse(JSON.stringify(base));
+  if (!saved) return merged;
+  for (const section of Object.keys(merged)) {
+    if (saved[section]) {
+      for (const action of Object.keys(merged[section])) {
+        if (typeof saved[section][action] === "boolean") {
+          merged[section][action] = saved[section][action];
+        }
+      }
+    }
+  }
+  return merged;
+};
+
 const AdminPanel = () => {
   const { t, language } = useLanguage();
   const isRTL = language === 'ar';
@@ -174,7 +190,16 @@ const AdminPanel = () => {
           } else { setAccessDenied(true); setUserPermissions(null); }
         } else {
           const adminData = snap.docs[0].data();
-          setUserPermissions(adminData.permissions || DEFAULT_PERMS); setAccessDenied(false);
+          const isSuperAdmin = adminData.role === "Super Admin";
+          // Merge with FULL_PERMS for Super Admin (auto-grant new permissions)
+          // Merge with DEFAULT_PERMS for regular admins (new sections default to false)
+          const base = isSuperAdmin ? FULL_PERMS : DEFAULT_PERMS;
+          const merged = mergePerms(adminData.permissions, base);
+          setUserPermissions(merged); setAccessDenied(false);
+          // Auto-update Firestore if permissions were outdated
+          if (JSON.stringify(merged) !== JSON.stringify(adminData.permissions)) {
+            try { await updateDoc(doc(db, "admins", snap.docs[0].id), { permissions: merged }); } catch {}
+          }
         }
       } catch { setAccessDenied(true); }
     };

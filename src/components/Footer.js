@@ -193,11 +193,11 @@ const Footer = () => {
               >
                 <i className="bi bi-geo-alt me-2 text-warning"></i>{" "}
                 {language === "ar"
-                  ? "المملكة العربية السعودية، الرياض"
-                  : "Riyadh, Saudi Arabia"}
+                  ? "السودان، الخرطوم"
+                  : "Khartoum, Sudan"}
                 <br />
                 <br />
-                <i className="bi bi-telephone me-2 text-warning"></i> +966 XX XXX
+                <i className="bi bi-telephone me-2 text-warning"></i> +249 XX XXX
                 XXXX
                 <br />
                 <br />

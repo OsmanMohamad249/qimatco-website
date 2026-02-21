@@ -80,6 +80,9 @@ const InnerHeader = () => {
             <li>
             <Link to ="/contact"  className={splitLocation[1] === "contact" ? "active" : ""}> {t('nav_contact')}</Link>
             </li>
+            <li>
+            <Link to ="/blog"  className={splitLocation[1] === "blog" ? "active" : ""}> {t('nav_blog')}</Link>
+            </li>
             <li className="tracking-widget">
                <form onSubmit={(e) => {
                   e.preventDefault();

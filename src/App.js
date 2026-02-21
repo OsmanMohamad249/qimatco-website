@@ -11,6 +11,7 @@ const Service = lazy(() => import("./ui/Service"));
 const NoPage = lazy(() => import("./layout/NoPage"));
 const TrackShipment = lazy(() => import("./ui/TrackShipment"));
 const AdminPanel = lazy(() => import("./ui/AdminPanel"));
+const BlogPage = lazy(() => import("./ui/BlogPage"));
 
 function App() {
   return (

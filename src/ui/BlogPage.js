@@ -5,6 +5,7 @@ import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
 import InnerHeaderBanner from "../components/InnerHeaderBanner";
 import Footer from "../components/Footer";
+import MediaGallery from "../components/MediaGallery";
 
 const BlogPage = () => {
   const { t, language } = useLanguage();
@@ -29,12 +30,12 @@ const BlogPage = () => {
     fetchPosts();
   }, []);
 
-  // Single post view
+  // ── Single post view ──
   if (selectedPost) {
     return (
       <>
         <Helmet><title>{loc(selectedPost.title)} | Qimmah Blog</title></Helmet>
-        <InnerHeaderBanner title={t('blog_page_title')} />
+        <InnerHeaderBanner name={t('blog_page_title')} />
         <main id="main">
           <section className="py-5">
             <div className="container">
@@ -45,32 +46,19 @@ const BlogPage = () => {
                 <h2 style={{ color: "var(--primary-color)" }}>{loc(selectedPost.title)}</h2>
                 {selectedPost.createdAt && (
                   <p className="text-muted small mb-3">
-                    {new Date(selectedPost.createdAt.seconds * 1000).toLocaleDateString(language === 'ar' ? 'ar-SD' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    {new Date(selectedPost.createdAt.seconds * 1000).toLocaleDateString(
+                      language === 'ar' ? 'ar-SD' : 'en-US',
+                      { year: 'numeric', month: 'long', day: 'numeric' }
+                    )}
                   </p>
                 )}
 
-                {/* Media Gallery */}
-                {(selectedPost.imageUrls?.length > 0 || selectedPost.videoUrls?.length > 0) && (
-                  <div className="row g-3 mb-4">
-                    {selectedPost.imageUrls?.map((url, i) => (
-                      <div key={`img-${i}`} className="col-md-6">
-                        <img src={url} alt="" className="img-fluid rounded shadow-sm" style={{ width: "100%", maxHeight: 400, objectFit: "cover" }} />
-                      </div>
-                    ))}
-                    {selectedPost.videoUrls?.map((url, i) => (
-                      <div key={`vid-${i}`} className="col-md-6">
-                        <video controls className="rounded shadow-sm" style={{ width: "100%", maxHeight: 400 }}>
-                          <source src={url} type="video/mp4" />
-                        </video>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Legacy single imageUrl */}
-                {!selectedPost.imageUrls?.length && selectedPost.imageUrl && (
-                  <div className="mb-4"><img src={selectedPost.imageUrl} alt="" className="img-fluid rounded shadow-sm" style={{ maxHeight: 400 }} /></div>
-                )}
+                {/* Professional Media Gallery */}
+                <MediaGallery
+                  imageUrls={selectedPost.imageUrls || (selectedPost.imageUrl ? [selectedPost.imageUrl] : [])}
+                  videoUrls={selectedPost.videoUrls || []}
+                  maxVisible={6}
+                />
 
                 <div className="blog-content" style={{ lineHeight: 2, fontSize: "1.1rem" }}>
                   <p style={{ whiteSpace: "pre-wrap" }}>{loc(selectedPost.body)}</p>
@@ -84,7 +72,7 @@ const BlogPage = () => {
     );
   }
 
-  // List view
+  // ── List view ──
   return (
     <>
       <Helmet>
@@ -104,39 +92,64 @@ const BlogPage = () => {
             {!loading && posts.length === 0 && <p className="text-center text-muted">{t('blog_no_posts')}</p>}
 
             <div className="row g-4">
-              {posts.map((post) => (
-                <div key={post.id} className="col-lg-4 col-md-6" data-aos="fade-up">
-                  <div className="card h-100 shadow-sm border-0" style={{ cursor: "pointer" }} onClick={() => setSelectedPost(post)}>
-                    {/* Cover media */}
-                    {post.imageUrls?.length ? (
-                      <img src={post.imageUrls[0]} alt={loc(post.title)} className="card-img-top" style={{ height: 220, objectFit: "cover" }} />
-                    ) : post.videoUrls?.length ? (
-                      <video muted className="card-img-top" style={{ height: 220, objectFit: "cover" }}>
-                        <source src={post.videoUrls[0]} type="video/mp4" />
-                      </video>
-                    ) : post.imageUrl ? (
-                      <img src={post.imageUrl} alt={loc(post.title)} className="card-img-top" style={{ height: 220, objectFit: "cover" }} />
-                    ) : (
-                      <div className="card-img-top bg-light d-flex align-items-center justify-content-center" style={{ height: 220 }}>
-                        <i className="bi bi-journal-richtext" style={{ fontSize: 48, color: "var(--secondary-color)" }}></i>
-                      </div>
-                    )}
+              {posts.map((post) => {
+                const imgs = post.imageUrls || (post.imageUrl ? [post.imageUrl] : []);
+                const vids = post.videoUrls || [];
+                const totalMedia = imgs.length + vids.length;
 
-                    <div className="card-body d-flex flex-column">
-                      <h5 className="card-title" style={{ color: "var(--primary-color)" }}>{loc(post.title)}</h5>
-                      {post.createdAt && (
-                        <p className="text-muted small">
-                          {new Date(post.createdAt.seconds * 1000).toLocaleDateString(language === 'ar' ? 'ar-SD' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </p>
+                return (
+                  <div key={post.id} className="col-lg-4 col-md-6" data-aos="fade-up">
+                    <div
+                      className="card h-100 shadow-sm border-0"
+                      style={{ cursor: "pointer", borderRadius: "var(--border-radius, 12px)", overflow: "hidden" }}
+                      onClick={() => setSelectedPost(post)}
+                    >
+                      {/* Cover: show mini gallery preview (max 3) with "+more" */}
+                      {imgs.length > 0 ? (
+                        <div className="position-relative">
+                          <img src={imgs[0]} alt={loc(post.title)} className="card-img-top" style={{ height: 220, objectFit: "cover" }} />
+                          {totalMedia > 1 && (
+                            <span className="position-absolute bottom-0 end-0 m-2 badge" style={{ background: "rgba(0,0,0,0.6)", fontSize: "0.8rem" }}>
+                              <i className="bi bi-images me-1"></i>{totalMedia}
+                            </span>
+                          )}
+                        </div>
+                      ) : vids.length > 0 ? (
+                        <div className="position-relative">
+                          <video muted preload="metadata" className="card-img-top" style={{ height: 220, objectFit: "cover", width: "100%" }}>
+                            <source src={vids[0]} type="video/mp4" />
+                          </video>
+                          <span className="position-absolute top-50 start-50 translate-middle" style={{ color: "#fff", fontSize: "2.5rem", textShadow: "0 2px 8px rgba(0,0,0,.4)" }}>
+                            <i className="bi bi-play-circle-fill"></i>
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="card-img-top bg-light d-flex align-items-center justify-content-center" style={{ height: 220 }}>
+                          <i className="bi bi-journal-richtext" style={{ fontSize: 48, color: "var(--secondary-color)" }}></i>
+                        </div>
                       )}
-                      <p className="card-text flex-grow-1" style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
-                        {loc(post.body)}
-                      </p>
-                      <span className="text-primary mt-2 d-inline-block">{t('blog_read_more')} <i className="bi bi-arrow-left"></i></span>
+
+                      <div className="card-body d-flex flex-column">
+                        <h5 className="card-title" style={{ color: "var(--primary-color)" }}>{loc(post.title)}</h5>
+                        {post.createdAt && (
+                          <p className="text-muted small">
+                            {new Date(post.createdAt.seconds * 1000).toLocaleDateString(
+                              language === 'ar' ? 'ar-SD' : 'en-US',
+                              { year: 'numeric', month: 'short', day: 'numeric' }
+                            )}
+                          </p>
+                        )}
+                        <p className="card-text flex-grow-1" style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
+                          {loc(post.body)}
+                        </p>
+                        <span className="text-primary mt-2 d-inline-block">
+                          {t('blog_read_more')} <i className={`bi bi-arrow-${language === 'ar' ? 'left' : 'right'}`}></i>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

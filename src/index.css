@@ -388,7 +388,9 @@ html[dir="rtl"] .hero .btn-watch-video i {
 .header {
   transition: all 0.5s;
   z-index: 997;
-  padding: 24px 0;
+  padding: 15px 0;
+  background-color: #ffffff; /* Solid white background */
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08); /* Soft shadow */
 }
 
 @media (max-width: 1200px) {
@@ -398,8 +400,9 @@ html[dir="rtl"] .hero .btn-watch-video i {
 }
 
 .header.sticked {
-  background: var(--primary);
-  padding: 12px 0;
+  background-color: #ffffff;
+  padding: 10px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
 .header .logo img {
@@ -444,8 +447,8 @@ html[dir="rtl"] .hero .btn-watch-video i {
     padding: 10px 0;
     font-family: var(--font-primary);
     font-size: 16px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.85); /* Improved contrast */
+    font-weight: 700;
+    color: var(--primary-color) !important; /* Dark Blue Text for visibility */
     white-space: nowrap;
     transition: 0.3s;
     text-transform: capitalize;
@@ -462,7 +465,7 @@ html[dir="rtl"] .hero .btn-watch-video i {
   .navbar .active,
   .navbar .active:focus,
   .navbar li:hover>a {
-    color: var(--accent-color); /* Highlight active/hover with accent */
+    color: var(--accent-color) !important; /* Orange/Gold on hover */
   }
 
   /* Tracking Widget Styles */
@@ -3237,12 +3240,3 @@ padding:10px;
   border-radius: 6px;
 }
 
-/* Fix header overlap so the hero image goes under the transparent header */
-body:not(.mobile-nav-active) .header:not(.sticked) {
-  background-color: transparent !important;
-  box-shadow: none !important;
-}
-
-body:not(.mobile-nav-active) .header:not(.sticked) .enterprise-navbar a {
-  color: #ffffff !important;
-}

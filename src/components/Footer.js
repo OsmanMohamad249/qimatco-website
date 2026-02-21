@@ -1,10 +1,23 @@
-import React from "react";
-import footerLogo from '../img/qimmah-logo.png'
+import React, { useEffect, useState } from "react";
+import footerLogo from '../img/qimmah-logo.png';
 import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
-
+import { db } from "../firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 const Footer = () => {
+  const [socialLinks, setSocialLinks] = useState([]);
+
+  useEffect(() => {
+    const fetchSocial = async () => {
+      try {
+        const snap = await getDocs(collection(db, "socialLinks"));
+        setSocialLinks(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch { /* use empty */ }
+    };
+    fetchSocial();
+  }, []);
+
   return (
     <>
       <footer id="footer" className="footer">
@@ -19,18 +32,24 @@ const Footer = () => {
                 <p>
                   حلول متكاملة في الاستيراد والتصدير، التخليص الجمركي، والخدمات اللوجستية من الباب للباب.
                 </p>
-                <div className="social-links d-flex  mt-3">
-                  <Link to="/" className="twitter">
-                    <i className="bi bi-twitter"></i>
-                  </Link>
-
-                  <Link to="/" className="facebook">
-                    <i className="bi bi-facebook"></i>
-                  </Link>
-                  
-                  <Link to ="https://www.linkedin.com/" className="linkedin">
-                    <i className="bi bi-linkedin"></i>
-                  </Link>
+                <div className="social-links d-flex mt-3">
+                  {socialLinks.length > 0 ? (
+                    socialLinks.map((s) => (
+                      <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" style={{ color: s.color || "#fff" }} title={s.name}>
+                        {s.logoUrl ? (
+                          <img src={s.logoUrl} alt={s.name} style={{ width: 20, height: 20, objectFit: "contain" }} />
+                        ) : (
+                          <i className={`bi ${s.icon || "bi-globe"}`}></i>
+                        )}
+                      </a>
+                    ))
+                  ) : (
+                    <>
+                      <Link to="/" className="twitter"><i className="bi bi-twitter"></i></Link>
+                      <Link to="/" className="facebook"><i className="bi bi-facebook"></i></Link>
+                      <Link to="https://www.linkedin.com/" className="linkedin"><i className="bi bi-linkedin"></i></Link>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="col-lg-2 col-6 footer-links">
@@ -38,7 +57,7 @@ const Footer = () => {
                 <ul>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <Link to ="/">الرئيسية</Link>
+                    <Link to="/">الرئيسية</Link>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
@@ -46,11 +65,11 @@ const Footer = () => {
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <Link to ="/services">خدماتنا</Link>
+                    <Link to="/services">خدماتنا</Link>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <Link to ="/contact">تواصل معنا</Link>
+                    <Link to="/contact">تواصل معنا</Link>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
@@ -63,13 +82,13 @@ const Footer = () => {
                 <ul>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <HashLink smooth to ="/services/#sea-freight">
+                    <HashLink smooth to="/services/#sea-freight">
                       الشحن البحري
                     </HashLink>
                   </li>
                   <li>
                     <i className="bi bi-dash"></i>
-                    <HashLink smooth to ="/services/#air-freight">
+                    <HashLink smooth to="/services/#air-freight">
                       الشحن الجوي
                     </HashLink>
                   </li>
@@ -82,13 +101,12 @@ const Footer = () => {
               <div className="col-lg-3 col-md-12 footer-contact text-center text-md-start">
                 <h4>تواصل معنا</h4>
                 <address>
-                 
                   الخرطوم، السودان <br />
                   <br />
                   <strong>الهاتف:</strong> +249 000 000 000 <br />
                   <strong>البريد الإلكتروني: </strong>
                   <a href="mailto:info@qimmah.com">
-                     info@qimmah.com
+                    info@qimmah.com
                   </a>
                   <br />
                 </address>
@@ -111,10 +129,9 @@ const Footer = () => {
           </div>
         </div>
       </footer>
-      
     </>
-  )
-  
+  );
 };
 
 export default Footer;
+

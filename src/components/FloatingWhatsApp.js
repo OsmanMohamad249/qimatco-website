@@ -1,10 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const FloatingWhatsApp = () => {
-    // Replace with actual number
-    const phoneNumber = "249123456789";
-    const message = "Hello, I am interested in your services.";
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+    const [settings, setSettings] = useState({ phone: "249123456789", message: "Hello, I am interested in your services.", enabled: true });
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const snap = await getDoc(doc(db, "settings", "whatsapp"));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    setSettings({
+                        phone: data.phone || "249123456789",
+                        message: data.message || "Hello, I am interested in your services.",
+                        enabled: data.enabled !== false,
+                    });
+                }
+            } catch { /* use defaults */ }
+        };
+        fetchSettings();
+    }, []);
+
+    if (!settings.enabled) return null;
+
+    const whatsappUrl = `https://wa.me/${settings.phone}?text=${encodeURIComponent(settings.message)}`;
 
     return (
         <a

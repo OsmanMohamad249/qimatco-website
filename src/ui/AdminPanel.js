@@ -100,6 +100,19 @@ const AdminPanel = () => {
   const [adminSaveMsg, setAdminSaveMsg] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
 
+  // Social links state
+  const [socialLinks, setSocialLinks] = useState([]);
+  const [socialForm, setSocialForm] = useState({ name: "", url: "", icon: "bi-globe", color: "#000000" });
+  const [socialFile, setSocialFile] = useState(null);
+  const [socialFileKey, setSocialFileKey] = useState(0);
+  const [socialMsg, setSocialMsg] = useState("");
+  const [socialLoading, setSocialLoading] = useState(false);
+
+  // WhatsApp settings state
+  const [whatsappSettings, setWhatsappSettings] = useState({ phone: "", message: "", enabled: true });
+  const [whatsappMsg, setWhatsappMsg] = useState("");
+  const [whatsappLoading, setWhatsappLoading] = useState(false);
+
   // ── EFFECTS ──
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
@@ -166,6 +179,11 @@ const AdminPanel = () => {
       try { const snap = await getDocs(collection(db, "articles")); setArticles(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch { /* */ }
       try { const snap = await getDocs(collection(db, "news")); setNewsItems(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch { /* */ }
       try { const snap = await getDocs(collection(db, "admins")); setAdmins(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch { /* */ }
+      try { const snap = await getDocs(collection(db, "socialLinks")); setSocialLinks(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch { /* */ }
+      try {
+        const waSnap = await getDoc(doc(db, "settings", "whatsapp"));
+        if (waSnap.exists()) setWhatsappSettings(waSnap.data());
+      } catch { /* */ }
     };
     load();
   }, [user, userPermissions, accessDenied]);
@@ -347,6 +365,58 @@ const AdminPanel = () => {
     if (email === user.email) { setAdminSaveMsg("لا يمكنك حذف حسابك الخاص"); return; }
     try { await deleteDoc(doc(db, "admins", id)); setAdmins((prev) => prev.filter((a) => a.id !== id)); }
     catch { setAdminSaveMsg("تعذر حذف المشرف"); }
+  };
+
+  // Social links handlers
+  const handleSocialChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "socialLogo") { setSocialFile(files && files[0] ? files[0] : null); return; }
+    setSocialForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSocialSave = async (e) => {
+    e.preventDefault(); setSocialMsg("");
+    if (!socialForm.name.trim() || !socialForm.url.trim()) { setSocialMsg("يرجى ملء الاسم والرابط"); return; }
+    try {
+      setSocialLoading(true);
+      let logoUrl = "";
+      if (socialFile) { logoUrl = await uploadToCloudinary(socialFile); }
+      await addDoc(collection(db, "socialLinks"), {
+        name: socialForm.name, url: socialForm.url, icon: socialForm.icon,
+        color: socialForm.color, logoUrl, createdAt: serverTimestamp(),
+      });
+      setSocialMsg("تم حفظ الرابط بنجاح");
+      setSocialForm({ name: "", url: "", icon: "bi-globe", color: "#000000" });
+      setSocialFile(null); setSocialFileKey((k) => k + 1);
+      const snap = await getDocs(collection(db, "socialLinks"));
+      setSocialLinks(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch { setSocialMsg("تعذر حفظ الرابط"); }
+    finally { setSocialLoading(false); }
+  };
+
+  const handleDeleteSocial = async (id) => {
+    try { await deleteDoc(doc(db, "socialLinks", id)); setSocialLinks((prev) => prev.filter((s) => s.id !== id)); }
+    catch { setSocialMsg("تعذر حذف الرابط"); }
+  };
+
+  // WhatsApp settings handlers
+  const handleWhatsappChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setWhatsappSettings((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  };
+
+  const handleWhatsappSave = async (e) => {
+    e.preventDefault(); setWhatsappMsg("");
+    if (!whatsappSettings.phone.trim()) { setWhatsappMsg("يرجى إدخال رقم الواتساب"); return; }
+    try {
+      setWhatsappLoading(true);
+      await setDoc(doc(db, "settings", "whatsapp"), {
+        phone: whatsappSettings.phone, message: whatsappSettings.message,
+        enabled: whatsappSettings.enabled, updatedAt: serverTimestamp(),
+      });
+      setWhatsappMsg("تم حفظ إعدادات الواتساب بنجاح");
+    } catch { setWhatsappMsg("تعذر حفظ الإعدادات"); }
+    finally { setWhatsappLoading(false); }
   };
 
   // ── RENDER TAB FUNCTIONS ──
@@ -553,6 +623,120 @@ const AdminPanel = () => {
 
   const ACTION_LABELS = { add: "إضافة", edit: "تعديل", delete: "حذف", view: "عرض", markRead: "تعليم كمقروء" };
 
+  const SOCIAL_ICONS = [
+    { value: "bi-facebook", label: "Facebook" },
+    { value: "bi-twitter", label: "Twitter / X" },
+    { value: "bi-instagram", label: "Instagram" },
+    { value: "bi-linkedin", label: "LinkedIn" },
+    { value: "bi-tiktok", label: "TikTok" },
+    { value: "bi-youtube", label: "YouTube" },
+    { value: "bi-snapchat", label: "Snapchat" },
+    { value: "bi-telegram", label: "Telegram" },
+    { value: "bi-whatsapp", label: "WhatsApp" },
+    { value: "bi-globe", label: "Website" },
+  ];
+
+  const renderSocialTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <h4 style={{ color: "var(--primary-color)" }} className="mb-3">إدارة روابط التواصل الاجتماعي</h4>
+        {socialMsg && <div className="alert alert-info py-1 small">{socialMsg}</div>}
+
+        {/* Existing links */}
+        {socialLinks.length > 0 && (
+          <div className="table-responsive mb-4">
+            <table className="table align-middle table-bordered">
+              <thead className="table-light">
+                <tr><th>الأيقونة</th><th>الاسم</th><th>الرابط</th><th>اللون</th><th>لوجو</th><th></th></tr>
+              </thead>
+              <tbody>
+                {socialLinks.map((s) => (
+                  <tr key={s.id}>
+                    <td><i className={`bi ${s.icon}`} style={{ fontSize: 24, color: s.color || "#333" }}></i></td>
+                    <td>{s.name}</td>
+                    <td style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <a href={s.url} target="_blank" rel="noopener noreferrer">{s.url}</a>
+                    </td>
+                    <td><span style={{ display: "inline-block", width: 24, height: 24, background: s.color || "#333", borderRadius: 4 }}></span></td>
+                    <td>{s.logoUrl ? <img src={s.logoUrl} alt={s.name} style={{ maxHeight: 30 }} /> : "-"}</td>
+                    <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteSocial(s.id)}>حذف</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Add new link */}
+        <h5 className="mt-3 mb-3">إضافة رابط جديد</h5>
+        <form className="row g-3" onSubmit={handleSocialSave}>
+          <div className="col-md-4">
+            <label className="form-label">اسم المنصة</label>
+            <input name="name" type="text" className="form-control" value={socialForm.name} onChange={handleSocialChange} placeholder="مثال: Facebook" required />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">الرابط (URL)</label>
+            <input name="url" type="url" className="form-control" value={socialForm.url} onChange={handleSocialChange} placeholder="https://facebook.com/..." required />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">الأيقونة</label>
+            <select name="icon" className="form-select" value={socialForm.icon} onChange={handleSocialChange}>
+              {SOCIAL_ICONS.map((ic) => (<option key={ic.value} value={ic.value}>{ic.label}</option>))}
+            </select>
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">اللون</label>
+            <input name="color" type="color" className="form-control form-control-color" value={socialForm.color} onChange={handleSocialChange} />
+          </div>
+          <div className="col-md-8">
+            <label className="form-label">لوجو مخصص (اختياري)</label>
+            <input key={socialFileKey} name="socialLogo" type="file" accept="image/*" className="form-control" onChange={handleSocialChange} />
+          </div>
+          <div className="col-12">
+            <button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={socialLoading}>
+              {socialLoading ? "جارٍ الحفظ..." : "حفظ الرابط"}
+            </button>
+          </div>
+        </form>
+
+        {/* WhatsApp Settings */}
+        <hr className="my-4" />
+        <h4 style={{ color: "var(--primary-color)" }} className="mb-3"><i className="bi bi-whatsapp me-2" style={{ color: "#25D366" }}></i>إعدادات زر الواتساب العائم</h4>
+        {whatsappMsg && <div className="alert alert-info py-1 small">{whatsappMsg}</div>}
+        <form className="row g-3" onSubmit={handleWhatsappSave}>
+          <div className="col-md-6">
+            <label className="form-label">رقم الواتساب (مع رمز الدولة)</label>
+            <input name="phone" type="text" className="form-control" value={whatsappSettings.phone} onChange={handleWhatsappChange} placeholder="249123456789" required />
+            <small className="text-muted">بدون + أو 00، مثال: 249123456789</small>
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">الرسالة الافتراضية</label>
+            <input name="message" type="text" className="form-control" value={whatsappSettings.message} onChange={handleWhatsappChange} placeholder="مرحباً، أريد الاستفسار عن..." />
+          </div>
+          <div className="col-md-6">
+            <div className="form-check form-switch mt-2">
+              <input className="form-check-input" type="checkbox" id="waEnabled" name="enabled" checked={whatsappSettings.enabled} onChange={handleWhatsappChange} />
+              <label className="form-check-label" htmlFor="waEnabled">تفعيل زر الواتساب العائم</label>
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="p-2 border rounded d-flex align-items-center gap-2" style={{ background: "#f9f9f9" }}>
+              <span>معاينة:</span>
+              <a href={`https://wa.me/${whatsappSettings.phone}?text=${encodeURIComponent(whatsappSettings.message)}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ background: "#25D366", color: "#fff", borderRadius: 50 }}>
+                <i className="bi bi-whatsapp"></i> {whatsappSettings.phone || "---"}
+              </a>
+            </div>
+          </div>
+          <div className="col-12">
+            <button type="submit" className="btn btn-primary w-100" style={{ background: "#25D366", border: "none" }} disabled={whatsappLoading}>
+              {whatsappLoading ? "جارٍ الحفظ..." : "حفظ إعدادات الواتساب"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
   const renderAdminsTab = () => (
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
@@ -711,6 +895,9 @@ const AdminPanel = () => {
               <button className={`list-group-item list-group-item-action ${activeTab === "articles" ? "active" : ""}`} onClick={() => setActiveTab("articles")}>إدارة المقالات</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}>إدارة الأخبار</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`} onClick={() => setActiveTab("messages")}>الرسائل والطلبات</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "social" ? "active" : ""}`} onClick={() => setActiveTab("social")}>
+                <i className="bi bi-share me-1"></i>السوشيال ميديا والواتساب
+              </button>
               {can(userPermissions, "admins", "view") && (
                 <button className={`list-group-item list-group-item-action ${activeTab === "admins" ? "active" : ""}`} onClick={() => setActiveTab("admins")}>
                   <i className="bi bi-people-fill me-1"></i>إدارة المشرفين
@@ -735,6 +922,7 @@ const AdminPanel = () => {
             {activeTab === "articles" && renderArticlesTab()}
             {activeTab === "news" && renderNewsTab()}
             {activeTab === "messages" && renderMessagesTab()}
+            {activeTab === "social" && renderSocialTab()}
             {activeTab === "admins" && renderAdminsTab()}
           </div>
         </div>

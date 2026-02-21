@@ -1,169 +1,121 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import InnerHeaderBanner from "../components/InnerHeaderBanner";
+import { Link } from "react-router-dom";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db } from "../firebase";
+import { useLanguage } from "../context/LanguageContext";
 import InnerHeader from "../components/InnerHeader";
 import Footer from "../components/Footer";
-import serviceHeader from '../img/services-header.jpg'
-import { useLanguage } from "../context/LanguageContext";
-import CBMCalculator from "../components/CBMCalculator";
-
-const education = "https://loremflickr.com/800/600/container,ship/all";
-const entertainment = "https://loremflickr.com/800/600/warehouse/all";
-const games = "https://loremflickr.com/800/600/cargo,plane/all";
-const sports = "https://loremflickr.com/800/600/truck,logistics/all";
 
 const Service = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loc = (val) => {
+    if (!val) return "";
+    if (typeof val === "string") return val;
+    return val[language] || val["ar"] || val["en"] || "";
+  };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const snap = await getDocs(query(collection(db, "services"), orderBy("createdAt", "desc")));
+        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (error) {
+        console.error("Error fetching services", error);
+      } finally {
+        setLoading(false);
+        window.scrollTo(0, 0);
+      }
+    };
+    fetchServices();
+  }, []);
+
   return (
     <>
       <Helmet>
-        <title>Logistics Services | Qimmah Al Ebtekar</title>
-        <meta name="description" content="Professional logistics services: Sea Freight, Air Freight, Land Transport, and Customs Clearance by Qimmah Al Ebtekar." />
+        <title>{t('nav_services') || 'Services'} | Qimmah Al Ebtekar</title>
       </Helmet>
       <InnerHeader />
-      <InnerHeaderBanner name={t('nav_services')} img = {serviceHeader}/>
 
-      <main id="main">
-        <section id="services-list" className="services-list">
-          <div className="container" data-aos="fade-up">
-            <div className="section-header">
-              <h2>
-                {t('services_title_main')}
-              </h2>
-            </div>
-            {/* Sea Freight */}
-            <div className="row gy-5 pt-5 align-items-center" id="sea-freight">
-              <div className="col-lg-5 col-md-6 service-item" data-aos="fade-up" data-aos-delay="100">
-                <img src={education} className="img-fluid" alt="Sea Freight" title="Sea Freight" />
-              </div>
-              <div className="col-lg-7 col-md-6 service-item" data-aos="fade-up" data-aos-delay="100">
-                <div className="icon flex-shrink-0">
-                  <i className="bi bi-tsunami" style={{ color: "#003B6D" }}></i>
-                </div>
-                <div>
-                  <h4 className="title"> {t('service_sea_title')} </h4>
-                  <p className="description">
-                    {t('service_sea_desc')}
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* Enterprise Page Banner */}
+      <div className="breadcrumbs" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop')", padding: "140px 0 60px 0", marginTop: "70px", position: "relative", backgroundSize: "cover", backgroundPosition: "center" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(11, 44, 92, 0.85)" }}></div>
+        <div className="container position-relative d-flex flex-column align-items-center text-center text-white" style={{ zIndex: 2 }} data-aos="fade">
+          <h2 style={{ fontWeight: "800", color: "#fff", marginBottom: "15px" }}>{t('nav_services') || 'خدماتنا'}</h2>
+          <ol className="d-flex list-unstyled gap-2 fw-bold" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <li><Link to="/" className="text-white text-decoration-none">{t('nav_home') || 'الرئيسية'}</Link></li>
+            <li>/</li>
+            <li style={{ color: "var(--accent-color)" }}>{t('nav_services') || 'خدماتنا'}</li>
+          </ol>
+        </div>
+      </div>
 
-             {/* Air Freight */}
-             <div className="row gy-5 pt-5 align-items-center" id="air-freight">
-              <div className="col-lg-7 col-md-6 service-item" data-aos="fade-up" data-aos-delay="200">
-                <div className="icon flex-shrink-0">
-                  <i className="bi bi-airplane-fill" style={{ color: "#0096D6" }}></i>
-                </div>
-                <div>
-                  <h4 className="title"> {t('service_air_title')} </h4>
-                  <p className="description">
-                     {t('service_air_desc')}
-                  </p>
-                </div>
-              </div>
-              <div className="col-lg-5 col-md-6 service-item" data-aos="fade-up" data-aos-delay="200">
-                <img src={games} className="img-fluid" alt="Air Freight" />
-              </div>
-            </div>
+      <main id="main" className="py-5" style={{ backgroundColor: "var(--bg-main)", minHeight: "50vh" }}>
+        <div className="container" data-aos="fade-up">
+          <div className="section-header mb-5 text-center">
+            <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem" }}>
+              {language === 'ar' ? 'جميع الخدمات اللوجستية' : 'All Logistics Services'}
+            </h2>
+            <div style={{ width: "60px", height: "4px", backgroundColor: "var(--accent-color)", margin: "15px auto", borderRadius: "var(--radius-sm)" }}></div>
+            <p className="mt-3 text-muted" style={{ fontSize: "1.1rem" }}>
+              {language === 'ar' ? 'نقدم مجموعة متكاملة من الحلول اللوجستية المصممة خصيصاً لتلبية احتياجات أعمالك.' : 'We offer a comprehensive range of logistics solutions tailored to meet your business needs.'}
+            </p>
           </div>
-        </section>
 
-        <section className="services-list light-bg" id="land-freight">
-          <div className="container" data-aos="fade-up">
-            <div className="row gy-5 align-items-center ">
-              <div className="col-lg-5 col-md-6 service-item" data-aos="fade-up" data-aos-delay="300">
-                <img src={sports} className="img-fluid" alt="Land Freight" />
-              </div>
-              <div className="col-lg-7 col-md-6 service-item" data-aos="fade-up" data-aos-delay="300">
-                 <div className="icon flex-shrink-0">
-                  <i className="bi bi-truck-front-fill" style={{ color: "var(--accent-color)" }}></i>
-                </div>
-                <div>
-                  <h4 className="title"> {t('service_land_title')} </h4>
-                  <p className="description">
-                    {t('service_land_desc')}
-                  </p>
-                </div>
-              </div>
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status"></div>
             </div>
-          </div>
-        </section>
+          ) : services.length > 0 ? (
+            <div className="row g-4">
+              {services.map((service, index) => (
+                <div className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={index * 100} key={service.id}>
+                  <div className="enterprise-service-card h-100">
+                    <div className="card-img-wrapper">
+                      {service.imageUrl ? (
+                        <img src={service.imageUrl} alt={loc(service.title)} className="img-fluid" />
+                      ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100 bg-light" style={{ minHeight: "220px" }}>
+                          <i className="bi bi-briefcase" style={{fontSize: "4rem", color: "var(--primary-color)"}}></i>
+                        </div>
+                      )}
 
-        <section className="services-list" id="customs-clearance">
-          <div className="container" data-aos="fade-up">
-            <div className="row gy-5 align-items-center ">
-               <div className="col-lg-7 col-md-6 service-item " data-aos="fade-up" data-aos-delay="400">
-                <div className="icon flex-shrink-0">
-                  <i className="bi bi-file-earmark-check-fill" style={{ color: "var(--primary-color)" }}></i>
+                      {/* Dynamic Icon Badge */}
+                      {service.iconUrl ? (
+                        <div className="icon-badge">
+                          <img src={service.iconUrl} alt="icon" style={{ width: "24px", height: "24px" }} />
+                        </div>
+                      ) : (
+                        <div className="icon-badge">
+                          <i className={`bi ${service.icon || 'bi-briefcase'}`}></i>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="card-content d-flex flex-column h-100">
+                      <h4 className="title">{loc(service.title)}</h4>
+                      <p className="description flex-grow-1" style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
+                        {loc(service.shortDesc)}
+                      </p>
+                      <Link to={`/services/${service.id}`} className="read-more-btn mt-3 text-decoration-none">
+                        {t('service_read_more') || 'اقرأ المزيد'}
+                        <i className={`bi ${language === 'ar' ? 'bi-arrow-left-short' : 'bi-arrow-right-short'}`}></i>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="title"> {t('service_customs_title')} </h4>
-                  <p className="description">
-                     {t('service_customs_desc')}
-                  </p>
-                </div>
-              </div>
-              <div className="col-lg-5 col-md-6 service-item order-first order-sm-last" data-aos="fade-up" data-aos-delay="400">
-                <img src={education} className="img-fluid" alt="Customs Clearance" />
-              </div>
+              ))}
             </div>
-          </div>
-        </section>
-
-         <section className="services-list light-bg" id="import-services">
-          <div className="container" data-aos="fade-up">
-            <div className="row gy-5 align-items-center ">
-               <div className="col-lg-5 col-md-6 service-item" data-aos="fade-up" data-aos-delay="500">
-                <img src={entertainment} className="img-fluid" alt="Import Services" />
-              </div>
-               <div className="col-lg-7 col-md-6 service-item " data-aos="fade-up" data-aos-delay="500">
-                <div className="icon flex-shrink-0">
-                  <i className="bi bi-globe-americas" style={{ color: "var(--secondary-color)" }}></i>
-                </div>
-                <div>
-                  <h4 className="title"> {t('service_import_title')} </h4>
-                  <p className="description">
-                    {t('service_import_desc')}
-                  </p>
-                </div>
-              </div>
+          ) : (
+            <div className="text-center py-5 text-muted">
+              <i className="bi bi-inbox fs-1 mb-3 d-block text-secondary"></i>
+              <h5>{language === 'ar' ? 'لا توجد خدمات متاحة حالياً' : 'No services available currently.'}</h5>
             </div>
-          </div>
-        </section>
-
-        <section className="services-list" id="warehousing">
-          <div className="container" data-aos="fade-up">
-            <div className="row gy-5 align-items-center ">
-               <div className="col-lg-7 col-md-6 service-item " data-aos="fade-up" data-aos-delay="600">
-                <div className="icon flex-shrink-0">
-                  <i className="bi bi-box-seam-fill" style={{ color: "#13d527" }}></i>
-                </div>
-                <div>
-                  <h4 className="title"> {t('service_warehouse_title')} </h4>
-                  <p className="description">
-                     {t('service_warehouse_desc')}
-                  </p>
-                </div>
-              </div>
-              <div className="col-lg-5 col-md-6 service-item order-first order-sm-last" data-aos="fade-up" data-aos-delay="600">
-                <img src={entertainment} className="img-fluid" alt="Warehousing" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CBM Calculator Section */}
-        <section id="shipping-tools" className="shipping-tools light-bg">
-          <div className="container" data-aos="fade-up">
-            <div className="row justify-content-center">
-              <div className="col-lg-8">
-                <CBMCalculator />
-              </div>
-            </div>
-          </div>
-        </section>
-
+          )}
+        </div>
       </main>
       <Footer />
     </>

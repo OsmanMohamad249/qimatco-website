@@ -14,10 +14,17 @@ const ServiceList = () => {
   const loc = (val) => { if (!val) return ""; if (typeof val === "string") return val; return val[language] || val["ar"] || val["en"] || ""; };
 
   useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
+  useEffect(() => {
     const fetchServices = async () => {
+      console.log("ServiceList: Starting fetch...");
       try {
         const snap = await getDocs(collection(db, "services"));
-        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        console.log("ServiceList: Fetched services:", data);
+        setServices(data);
       } catch (error) { console.error("Error fetching services", error); }
       finally { setLoading(false); }
     };
@@ -39,14 +46,14 @@ const ServiceList = () => {
 
   return (
     <section id="services-list" className="py-5" style={{ backgroundColor: "var(--bg-main)" }}>
-      <div className="container" data-aos="fade-up">
+      <div className="container">
         <div className="section-header mb-5 text-center">
           <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem" }}>{t('services_title_main')}</h2>
           <div style={{ width: "60px", height: "4px", backgroundColor: "var(--accent-color)", margin: "15px auto", borderRadius: "var(--radius-sm)" }}></div>
         </div>
         <div className="row g-4">
           {services.map((service, index) => (
-            <div className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={index * 100} key={service.id}>
+            <div className="col-lg-4 col-md-6" key={service.id}>
               <div className="enterprise-service-card h-100">
                 <div className="card-img-wrapper">
                   <img src={service.imageUrl} alt={loc(service.title)} className="img-fluid" />

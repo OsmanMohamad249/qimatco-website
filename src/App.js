@@ -1,8 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import "../node_modules/bootstrap/dist/css/bootstrap.css";
 import Preloader from "./layout/Preloader";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
 const Home = lazy(() => import("./ui/Home"));
 const Career = lazy(() => import("./ui/Career"));
 const Contact = lazy(() => import("./ui/Contact"));
@@ -16,6 +19,15 @@ const ServiceDetail = lazy(() => import("./ui/ServiceDetail"));
 const ProductDetail = lazy(() => import("./ui/ProductDetail"));
 
 function App() {
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      easing: 'slide',
+      once: true,
+      mirror: false
+    });
+  }, []);
+
   return (
     <>
       <Router>

@@ -19,7 +19,7 @@ const Facts = () => {
   return (
     <>
       <section id="facts" className="facts">
-        <div className="container" data-aos="fade-up">
+        <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-12 text-center">
               <div className="section-header">

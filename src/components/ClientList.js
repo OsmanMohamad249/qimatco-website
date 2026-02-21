@@ -8,6 +8,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const ClientList = () => {
   const { t, language } = useLanguage();
@@ -37,9 +39,24 @@ const ClientList = () => {
     fetchClients();
   }, [language]);
 
+  useEffect(() => {
+    if (!loading) {
+      setTimeout(() => { AOS.refresh(); }, 500); // Increased delay
+    }
+  }, [clients, loading]);
+
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: false, // Changed to false to try re-triggering
+      mirror: true,
+    });
+  }, []);
+
   return (
     <section id="clients" className="clients">
-      <div className="container" data-aos="zoom-out">
+      {/* Removed data-aos="zoom-out" from container to prevent it from hiding the whole section if AOS fails */}
+      <div className="container">
         <div className="section-header">
           <h2>{t('clients_title')}</h2>
         </div>

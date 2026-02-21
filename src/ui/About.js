@@ -43,12 +43,12 @@ const About = () => {
           <div className="container" data-aos="fade-up">
             <div className="row gy-5 align-items-center">
               <div className="col-lg-6">
-                <h6 className="mb-2" style={{ color: "var(--accent-color)", fontWeight: "700" }}>لماذا تختار قمة الابتكار؟</h6>
+                <h6 className="mb-2" style={{ color: "var(--accent-color)", fontWeight: "700" }}>{language === 'ar' ? 'لماذا تختار قمة الابتكار؟' : 'Why Choose Qimmah Al Ebtekar?'}</h6>
                 <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem", marginBottom: "30px" }}>
-                  شريكك الاستراتيجي للنمو
+                  {language === 'ar' ? 'شريكك الاستراتيجي للنمو' : 'Your Strategic Partner for Growth'}
                 </h2>
                 <p className="text-secondary mb-4" style={{ fontSize: "1.1rem", lineHeight: "1.8" }}>
-                  نحن لسنا مجرد شركة خدمات لوجستية، بل منظومة متكاملة تهدف إلى تسهيل أعمالك وربطك بالأسواق العالمية بكفاءة عالية.
+                  {language === 'ar' ? 'نحن لسنا مجرد شركة خدمات لوجستية، بل منظومة متكاملة تهدف إلى تسهيل أعمالك وربطك بالأسواق العالمية بكفاءة عالية.' : 'We are not just a logistics company, but an integrated system aiming to facilitate your business and connect you to global markets with high efficiency.'}
                 </p>
 
                 <div className="d-flex mb-4 p-3 rounded-3" style={{ backgroundColor: "#fff", boxShadow: "var(--shadow-sm)", borderRight: "4px solid var(--accent-color)" }}>
@@ -56,8 +56,8 @@ const About = () => {
                     <i className="bi bi-rocket-takeoff" style={{ fontSize: "2.5rem", color: "var(--accent-color)" }}></i>
                   </div>
                   <div>
-                    <h5 style={{ color: "var(--primary-color)", fontWeight: "700" }}>السرعة الدقيقة</h5>
-                    <p className="mb-0 text-secondary" style={{ fontSize: "0.95rem" }}>ندرك أن الوقت هو المال، لذا نضمن وصول شحناتك في أسرع وقت ممكن وبدقة متناهية.</p>
+                    <h5 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'السرعة الدقيقة' : 'Precise Speed'}</h5>
+                    <p className="mb-0 text-secondary" style={{ fontSize: "0.95rem" }}>{language === 'ar' ? 'ندرك أن الوقت هو المال، لذا نضمن وصول شحناتك في أسرع وقت ممكن وبدقة متناهية.' : 'We understand that time is money, so we ensure your shipments arrive as quickly as possible with extreme precision.'}</p>
                   </div>
                 </div>
 
@@ -66,8 +66,8 @@ const About = () => {
                     <i className="bi bi-shield-check" style={{ fontSize: "2.5rem", color: "var(--primary-color)" }}></i>
                   </div>
                   <div>
-                    <h5 style={{ color: "var(--primary-color)", fontWeight: "700" }}>الثقة والأمان</h5>
-                    <p className="mb-0 text-secondary" style={{ fontSize: "0.95rem" }}>نلتزم بأعلى معايير الشفافية والأمان في نقل بضائعك، مع توفير تحديثات دورية لكل مرحلة.</p>
+                    <h5 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'الثقة والأمان' : 'Trust & Security'}</h5>
+                    <p className="mb-0 text-secondary" style={{ fontSize: "0.95rem" }}>{language === 'ar' ? 'نلتزم بأعلى معايير الشفافية والأمان في نقل بضائعك، مع توفير تحديثات دورية لكل مرحلة.' : 'We adhere to the highest standards of transparency and security in transporting your goods, providing periodic updates for every stage.'}</p>
                   </div>
                 </div>
               </div>

@@ -25,14 +25,18 @@ const Trading = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      console.log("Trading: Starting fetch...");
       try {
         let snap;
         try {
           snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-        } catch {
-          snap = await getDocs(collection(db, "products"));
+        } catch (err) {
+            console.warn("Trading: Query failed (indexes?), falling back to simple collection fetch", err);
+            snap = await getDocs(collection(db, "products"));
         }
-        setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        console.log("Trading: Fetched products:", data);
+        setProducts(data);
       } catch (error) { console.error(error); } finally { setLoading(false); }
     };
     fetchProducts();
@@ -43,7 +47,7 @@ const Trading = () => {
 
   return (
     <section id="trading" className="py-5" style={{ backgroundColor: "#ffffff" }}>
-      <div className="container" data-aos="fade-up">
+      <div className="container">
         <div className="section-header mb-5 text-center">
           <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem" }}>
             {language === 'ar' ? 'قطاع التجارة الدولية' : 'International Trading Sector'}

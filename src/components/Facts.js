@@ -1,45 +1,53 @@
-import React from 'react'
+import React, { useEffect } from 'react';
+import { useLanguage } from "../context/LanguageContext";
+import PureCounter from '@srexi/purecounterjs';
 
 const Facts = () => {
+  const { language } = useLanguage();
+
+  useEffect(() => {
+    new PureCounter();
+  }, []);
+
+  const facts = [
+    { count: "17", label: language === 'ar' ? 'حاوية تم شحنها' : 'Containers Shipped', sub: language === 'ar' ? 'عمليات شحن ناجحة' : 'Successful operations' },
+    { count: "82", label: language === 'ar' ? 'عميل سعيد' : 'Happy Clients', sub: language === 'ar' ? 'ثقة مستمرة' : 'Ongoing trust' },
+    { count: "43", label: language === 'ar' ? 'دولة نخدمها' : 'Countries Served', sub: language === 'ar' ? 'تغطية عالمية' : 'Global coverage' },
+    { count: "20", label: language === 'ar' ? 'سنوات من الخبرة' : 'Years of Experience', sub: language === 'ar' ? 'خبرة تراكمية' : 'Cumulative expertise' },
+  ];
+
   return (
     <>
-  
       <section id="facts" className="facts">
         <div className="container" data-aos="fade-up">
           <div className="row justify-content-center">
             <div className="col-lg-12 text-center">
               <div className="section-header">
-                <h2 className="text-white">خبراتنا بالأرقام</h2>
-                <p>نفخر بخدمتنا لعملائنا عبر أسواق متعددة بثقة وكفاءة.</p>
+                <h2 className="text-white">{language === 'ar' ? 'خبراتنا بالأرقام' : 'Our Expertise in Numbers'}</h2>
+                <p>{language === 'ar' ? 'نفخر بخدمتنا لعملائنا عبر أسواق متعددة بثقة وكفاءة.' : 'We proudly serve our clients across multiple markets with trust and efficiency.'}</p>
               </div>
               <div className="row counters">
-                <div className="col-lg-3 col-6 text-center">
-                  <span  className="purecounter">17</span>
-                  <h3> حاوية تم شحنها </h3>
-                  <p> عمليات شحن ناجحة </p>
-                </div>
-                <div className="col-lg-3 col-6 text-center">
-                  <span className="purecounter">82</span>
-                  <h3> عميل سعيد </h3>
-                  <p>ثقة مستمرة</p>
-                </div>
-                <div className="col-lg-3 col-6 text-center">
-                  <span  className="purecounter">43</span>
-                  <h3> دولة نخدمها</h3>
-                  <p>تغطية عالمية </p>
-                </div>
-                 <div className="col-lg-3 col-6 text-center">
-                  <span  className="purecounter">20</span>
-                  <h3> سنوات من الخبرة</h3>
-                  <p>خبرة تراكمية</p>
-                </div>
+                {facts.map((fact, idx) => (
+                  <div className="col-lg-3 col-6 text-center" key={idx}>
+                    <span
+                      data-purecounter-start="0"
+                      data-purecounter-end={fact.count}
+                      data-purecounter-duration="1"
+                      className="purecounter"
+                    >
+                      {fact.count}
+                    </span>
+                    <h3>{fact.label}</h3>
+                    <p>{fact.sub}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
     </>
-  )
+  );
 }
 
-export default Facts
+export default Facts;

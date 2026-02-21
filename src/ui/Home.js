@@ -15,7 +15,6 @@ import Carousel from "../components/Carousel";
 import ClientList from "../components/ClientList";
 import Facts from "../components/Facts";
 import ServiceList from "../components/ServiceList";
-import CBMCalculator from "../components/CBMCalculator";
 import Trading from "./Trading";
 
 const Home = () => {
@@ -107,17 +106,6 @@ const Home = () => {
         )}
 
         <ServiceList />
-
-        {/* CBM Volume Calculator */}
-        <section className="py-5" style={{ backgroundColor: "#ffffff" }}>
-          <div className="container">
-            <div className="row justify-content-center">
-              <div className="col-lg-8">
-                <CBMCalculator />
-              </div>
-            </div>
-          </div>
-        </section>
 
         <Trading />
         <ClientList />

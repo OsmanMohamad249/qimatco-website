@@ -6,6 +6,7 @@ import { db } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import InnerHeader from "../components/InnerHeader";
 import Footer from "../components/Footer";
+import CBMCalculator from "../components/CBMCalculator";
 
 const Service = () => {
   const { t, language } = useLanguage();
@@ -59,6 +60,18 @@ const Service = () => {
       </div>
 
       <main id="main" className="py-5" style={{ backgroundColor: "var(--bg-main)", minHeight: "50vh" }}>
+
+        {/* CBM Calculator */}
+        <section className="position-relative py-4">
+          <div className="container" data-aos="fade-up">
+            <div className="row justify-content-center">
+              <div className="col-lg-10">
+                <CBMCalculator />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <div className="container" data-aos="fade-up">
           <div className="section-header mb-5 text-center">
             <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem" }}>

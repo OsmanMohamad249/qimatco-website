@@ -41,7 +41,7 @@ const DEFAULT_PERMS = {
   blog: { add: false, edit: false, delete: false },
   ads: { add: false, edit: false, delete: false },
   shipments: { add: false, edit: false, delete: false },
-  admins: { view: false, add: false, delete: false },
+  admins: { view: false, add: false, edit: false, delete: false },
 };
 
 const FULL_PERMS = {
@@ -52,7 +52,7 @@ const FULL_PERMS = {
   blog: { add: true, edit: true, delete: true },
   ads: { add: true, edit: true, delete: true },
   shipments: { add: true, edit: true, delete: true },
-  admins: { view: true, add: true, delete: true },
+  admins: { view: true, add: true, edit: true, delete: true },
 };
 
 const can = (perms, section, action) => {
@@ -131,6 +131,11 @@ const AdminPanel = () => {
   const [adminPerms, setAdminPerms] = useState(JSON.parse(JSON.stringify(DEFAULT_PERMS)));
   const [adminSaveMsg, setAdminSaveMsg] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
+
+  // Inline editing existing admin permissions
+  const [editingAdminId, setEditingAdminId] = useState(null);
+  const [editingAdminPerms, setEditingAdminPerms] = useState(null);
+  const [editingAdminLoading, setEditingAdminLoading] = useState(false);
 
   // Social links
   const [socialLinks, setSocialLinks] = useState([]);
@@ -337,6 +342,33 @@ const AdminPanel = () => {
   };
   const handleDeleteAdmin = async (id, email) => { if (email === user.email) { setAdminSaveMsg("لا يمكنك حذف حسابك الخاص"); return; } try { await deleteDoc(doc(db, "admins", id)); setAdmins((prev) => prev.filter((a) => a.id !== id)); } catch {} };
 
+  // Edit existing admin permissions
+  const handleEditAdmin = (admin) => {
+    setEditingAdminId(admin.id);
+    setEditingAdminPerms(JSON.parse(JSON.stringify(admin.permissions || DEFAULT_PERMS)));
+    setAdminSaveMsg("");
+  };
+  const handleEditPermToggle = (section, action) => {
+    setEditingAdminPerms((prev) => {
+      const u = JSON.parse(JSON.stringify(prev));
+      if (!u[section]) u[section] = {};
+      u[section][action] = !u[section][action];
+      return u;
+    });
+  };
+  const handleCancelEdit = () => { setEditingAdminId(null); setEditingAdminPerms(null); };
+  const handleUpdateAdminPerms = async () => {
+    if (!editingAdminId || !editingAdminPerms) return;
+    try {
+      setEditingAdminLoading(true);
+      await updateDoc(doc(db, "admins", editingAdminId), { permissions: editingAdminPerms });
+      setAdmins((prev) => prev.map((a) => a.id === editingAdminId ? { ...a, permissions: editingAdminPerms } : a));
+      setAdminSaveMsg(language === 'ar' ? "تم تحديث الصلاحيات بنجاح" : "Permissions updated successfully");
+      setEditingAdminId(null); setEditingAdminPerms(null);
+    } catch { setAdminSaveMsg(language === 'ar' ? "تعذر تحديث الصلاحيات" : "Failed to update permissions"); }
+    finally { setEditingAdminLoading(false); }
+  };
+
   // Social handlers
   const handleSocialChange = (e) => { const { name, value, files } = e.target; if (name === "socialLogo") { setSocialFile(files && files[0] ? files[0] : null); return; } setSocialForm((prev) => ({ ...prev, [name]: value })); };
   const handleSocialSave = async (e) => {
@@ -515,7 +547,7 @@ const AdminPanel = () => {
     { key: "blog", label: "المدونة", actions: ["add", "edit", "delete"] },
     { key: "news", label: "الأخبار", actions: ["add", "edit", "delete"] },
     { key: "ads", label: "الإعلانات", actions: ["add", "edit", "delete"] },
-    { key: "admins", label: "المشرفين", actions: ["view", "add", "delete"] },
+    { key: "admins", label: "المشرفين", actions: ["view", "add", "edit", "delete"] },
   ];
   const ACTION_LABELS = { add: "إضافة", edit: "تعديل", delete: "حذف", view: "عرض", markRead: "تعليم كمقروء" };
 
@@ -550,12 +582,86 @@ const AdminPanel = () => {
     <div className="card shadow-sm border-0"><div className="card-body p-4">
       <h4 style={{ color: "var(--primary-color)" }} className="mb-3">{t('admin_tab_admins')}</h4>
       {adminSaveMsg && <div className="alert alert-info py-1 small">{adminSaveMsg}</div>}
-      {admins.length > 0 && (<div className="table-responsive mb-4"><table className="table align-middle table-bordered"><thead className="table-light"><tr><th>Email</th><th>Role</th><th>Permissions</th>{can(userPermissions, "admins", "delete") && <th></th>}</tr></thead>
-        <tbody>{admins.map((a) => (<tr key={a.id}><td><strong>{a.email}</strong>{a.email === user.email && <span className="badge bg-primary ms-2">You</span>}</td><td><span className={`badge ${a.role === "Super Admin" ? "bg-danger" : "bg-secondary"}`}>{a.role || "Admin"}</span></td><td style={{ fontSize: "0.8rem" }}>{a.permissions && PERM_SECTIONS.map((s) => { const sp = a.permissions[s.key]; if (!sp) return null; const aa = s.actions.filter((act) => sp[act]); if (!aa.length) return null; return <div key={s.key}><strong>{s.label}:</strong> {aa.map((act) => ACTION_LABELS[act]).join(", ")}</div>; })}</td>{can(userPermissions, "admins", "delete") && (<td>{a.email !== user.email ? <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteAdmin(a.id, a.email)}>{t('admin_delete')}</button> : <span className="text-muted">-</span>}</td>)}</tr>))}</tbody></table></div>)}
+
+      {/* Admin List */}
+      {admins.length > 0 && admins.map((a) => (
+        <div key={a.id} className="border rounded p-3 mb-3" style={{ background: editingAdminId === a.id ? "#fffbe6" : "#fff" }}>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <strong>{a.email}</strong>
+              {a.email === user.email && <span className="badge bg-primary ms-2">{language === 'ar' ? 'أنت' : 'You'}</span>}
+              <span className={`badge ms-2 ${a.role === "Super Admin" ? "bg-danger" : "bg-secondary"}`}>{a.role || "Admin"}</span>
+            </div>
+            <div className="d-flex gap-2">
+              {can(userPermissions, "admins", "edit") && editingAdminId !== a.id && (
+                <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditAdmin(a)}>
+                  <i className="bi bi-pencil-square me-1"></i>{language === 'ar' ? 'تعديل الصلاحيات' : 'Edit Permissions'}
+                </button>
+              )}
+              {can(userPermissions, "admins", "delete") && a.email !== user.email && editingAdminId !== a.id && (
+                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteAdmin(a.id, a.email)}>
+                  <i className="bi bi-trash me-1"></i>{t('admin_delete')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* View mode – show current permissions summary */}
+          {editingAdminId !== a.id && a.permissions && (
+            <div style={{ fontSize: "0.85rem" }}>
+              {PERM_SECTIONS.map((s) => {
+                const sp = a.permissions[s.key];
+                if (!sp) return null;
+                const aa = s.actions.filter((act) => sp[act]);
+                if (!aa.length) return null;
+                return <span key={s.key} className="me-3"><strong>{s.label}:</strong> {aa.map((act) => ACTION_LABELS[act]).join("، ")}</span>;
+              })}
+            </div>
+          )}
+
+          {/* Edit mode – checkboxes for each permission */}
+          {editingAdminId === a.id && editingAdminPerms && (
+            <div className="mt-3">
+              <div className="border rounded p-3" style={{ background: "#f9f9f9" }}>
+                {PERM_SECTIONS.map((section) => (
+                  <div key={section.key} className="mb-3">
+                    <div className="fw-bold mb-1" style={{ color: "var(--primary-color)" }}>{section.label}</div>
+                    <div className="d-flex flex-wrap gap-3">
+                      {section.actions.map((action) => (
+                        <div className="form-check" key={`edit-${section.key}-${action}`}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`edit-perm-${a.id}-${section.key}-${action}`}
+                            checked={editingAdminPerms[section.key]?.[action] || false}
+                            onChange={() => handleEditPermToggle(section.key, action)}
+                          />
+                          <label className="form-check-label" htmlFor={`edit-perm-${a.id}-${section.key}-${action}`}>{ACTION_LABELS[action]}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="d-flex gap-2 mt-3">
+                <button className="btn btn-success" onClick={handleUpdateAdminPerms} disabled={editingAdminLoading}>
+                  <i className="bi bi-check-lg me-1"></i>{editingAdminLoading ? (language === 'ar' ? 'جارٍ الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}
+                </button>
+                <button className="btn btn-outline-secondary" onClick={handleCancelEdit}>
+                  <i className="bi bi-x-lg me-1"></i>{language === 'ar' ? 'إلغاء' : 'Cancel'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* Add Admin Form */}
       {can(userPermissions, "admins", "add") ? (<>
-        <h5 className="mt-4 mb-3">{language === 'ar' ? 'إضافة مشرف جديد' : 'Add New Admin'}</h5>
+        <hr className="my-4" />
+        <h5 className="mb-3"><i className="bi bi-person-plus me-2"></i>{language === 'ar' ? 'إضافة مشرف جديد' : 'Add New Admin'}</h5>
         <form className="row g-3" onSubmit={handleAdminSave}>
-          <div className="col-12"><label className="form-label">Email</label><input type="email" className="form-control" value={adminForm.email} onChange={(e) => setAdminForm({ email: e.target.value })} required /></div>
+          <div className="col-12"><label className="form-label">Email</label><input type="email" className="form-control" value={adminForm.email} onChange={(e) => setAdminForm({ email: e.target.value })} required /><small className="text-muted">{language === 'ar' ? 'يجب أن يكون لديه حساب في Firebase Auth مسبقاً' : 'Must have a Firebase Auth account'}</small></div>
           <div className="col-12"><label className="form-label fw-bold mb-2">{language === 'ar' ? 'الصلاحيات' : 'Permissions'}</label>
             <div className="border rounded p-3" style={{ background: "#f9f9f9" }}>{PERM_SECTIONS.map((section) => (<div key={section.key} className="mb-3"><div className="fw-bold mb-1" style={{ color: "var(--primary-color)" }}>{section.label}</div><div className="d-flex flex-wrap gap-3">{section.actions.map((action) => (<div className="form-check" key={`${section.key}-${action}`}><input className="form-check-input" type="checkbox" id={`perm-${section.key}-${action}`} checked={adminPerms[section.key]?.[action] || false} onChange={() => handleAdminPermToggle(section.key, action)} /><label className="form-check-label" htmlFor={`perm-${section.key}-${action}`}>{ACTION_LABELS[action]}</label></div>))}</div></div>))}</div>
           </div>

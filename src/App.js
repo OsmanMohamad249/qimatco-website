@@ -13,6 +13,7 @@ const TrackShipment = lazy(() => import("./ui/TrackShipment"));
 const AdminPanel = lazy(() => import("./ui/AdminPanel"));
 const BlogPage = lazy(() => import("./ui/BlogPage"));
 const ServiceDetail = lazy(() => import("./ui/ServiceDetail"));
+const ProductDetail = lazy(() => import("./ui/ProductDetail"));
 
 function App() {
   return (

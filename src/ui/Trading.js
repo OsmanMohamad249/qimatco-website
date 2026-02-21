@@ -1,17 +1,36 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useLanguage } from "../context/LanguageContext";
 import { Link } from "react-router-dom";
-import ProductGallery from "../components/ProductGallery";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 import AOS from "aos";
 import 'aos/dist/aos.css';
 
 const Trading = () => {
     const { t } = useLanguage();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         AOS.init();
         AOS.refresh();
+    }, []);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const snap = await getDocs(collection(db, 'products'));
+                const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                setProducts(list);
+            } catch (err) {
+                setError('تعذر تحميل المنتجات حالياً');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
     }, []);
 
     return (
@@ -27,7 +46,6 @@ const Trading = () => {
                 </div>
 
                 <div className="row gy-4">
-
                     <div className="col-lg-6" data-aos="fade-up" data-aos-delay="100">
                         <div className="card-item">
                             <div className="row">
@@ -75,11 +93,44 @@ const Trading = () => {
                             </div>
                         </div>
                     </div>
-
                 </div>
 
                 <div className="mt-5">
-                    <ProductGallery />
+                    <div className="section-header mb-4">
+                        <h3 style={{ color: 'var(--primary-color)' }}>منتجاتنا</h3>
+                        <p>تصفح قائمة المنتجات المستوردة والمصدرة</p>
+                    </div>
+                    {loading && <p>جاري تحميل المنتجات...</p>}
+                    {error && <p className="text-danger">{error}</p>}
+                    {!loading && products.length === 0 && <p className="text-muted">لا توجد منتجات متاحة حالياً</p>}
+
+                    <div className="row g-4">
+                        {products.map((product) => (
+                            <div key={product.id} className="col-lg-4 col-md-6" data-aos="fade-up">
+                                <div className="card h-100 shadow-sm border-0">
+                                    {product.imageUrls?.length ? (
+                                        <img src={product.imageUrls[0]} alt={product.name} className="card-img-top" style={{ height: 220, objectFit: 'cover' }} />
+                                    ) : (
+                                        <div className="card-img-top bg-light d-flex align-items-center justify-content-center" style={{ height: 220 }}>
+                                            <span className="text-muted">No Image</span>
+                                        </div>
+                                    )}
+                                    <div className="card-body d-flex flex-column">
+                                        <h5 className="card-title">{product.name}</h5>
+                                        <p className="text-muted mb-2">{product.category}</p>
+                                        <p className="card-text flex-grow-1" style={{ minHeight: 60 }}>{product.description}</p>
+                                        {product.videoUrl && (
+                                            <div className="mt-2">
+                                                <video controls style={{ width: '100%', borderRadius: 8 }}>
+                                                    <source src={product.videoUrl} type="video/mp4" />
+                                                </video>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
             </div>
@@ -88,4 +139,3 @@ const Trading = () => {
 };
 
 export default Trading;
-

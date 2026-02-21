@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import { db, auth, storage } from "../firebase";
-import { doc, setDoc, serverTimestamp, getDoc, collection, addDoc, getDocs, query, orderBy, updateDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { doc, setDoc, serverTimestamp, getDoc, collection, addDoc, getDocs, query, orderBy, updateDoc, deleteDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const initialForm = {
   id: "",
@@ -31,17 +30,17 @@ const AdminPanel = () => {
   // Dashboard tabs
   const [activeTab, setActiveTab] = useState("shipments");
 
-  // Products form (placeholder wiring only)
+  // Products form
   const [productForm, setProductForm] = useState({
     name: "",
     category: "",
     description: "",
-    imageUrl: "",
   });
-  const [productFile, setProductFile] = useState(null);
+  const [productImages, setProductImages] = useState([]);
+  const [productVideo, setProductVideo] = useState(null);
   const [productSaveMessage, setProductSaveMessage] = useState("");
   const [productLoading, setProductLoading] = useState(false);
-  const [fileInputKey, setFileInputKey] = useState(0);
+  const [products, setProducts] = useState([]);
 
   // Client form for Content & Ads tab
   const [clientForm, setClientForm] = useState({ name: "" });
@@ -80,7 +79,17 @@ const AdminPanel = () => {
           setMessagesLoading(false);
         }
       };
+      const fetchProducts = async () => {
+        try {
+          const snap = await getDocs(collection(db, "products"));
+          const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          setProducts(list);
+        } catch (err) {
+          setProductSaveMessage("تعذر تحميل المنتجات");
+        }
+      };
       fetchMessages();
+      fetchProducts();
     }
   }, [user]);
 
@@ -91,8 +100,12 @@ const AdminPanel = () => {
 
   const handleProductChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "imageFile") {
-      setProductFile(files && files[0] ? files[0] : null);
+    if (name === "images") {
+      setProductImages(files ? Array.from(files) : []);
+      return;
+    }
+    if (name === "video") {
+      setProductVideo(files && files[0] ? files[0] : null);
       return;
     }
     setProductForm((prev) => ({ ...prev, [name]: value }));
@@ -278,29 +291,56 @@ const AdminPanel = () => {
           <h4 style={{ color: "var(--primary-color)" }}>إدارة المنتجات (تجارة)</h4>
           {productSaveMessage && <span className="text-success small">{productSaveMessage}</span>}
         </div>
+
+        {products.length > 0 && (
+          <div className="table-responsive mb-4">
+            <table className="table align-middle">
+              <thead>
+                <tr>
+                  <th>الصورة</th>
+                  <th>الاسم</th>
+                  <th>الفئة</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.imageUrls?.length ? <img src={p.imageUrls[0]} alt={p.name} style={{ maxHeight: 60 }} /> : '-'}</td>
+                    <td>{p.name}</td>
+                    <td>{p.category}</td>
+                    <td>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteProduct(p.id)}>
+                        حذف
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         <form className="row g-3" onSubmit={handleProductSave}>
           <div className="col-md-6">
             <label className="form-label">Product Name</label>
-            <input name="name" type="text" className="form-control" value={productForm.name} onChange={handleProductChange} />
+            <input name="name" type="text" className="form-control" value={productForm.name} onChange={handleProductChange} required />
           </div>
           <div className="col-md-6">
             <label className="form-label">Category</label>
-            <input name="category" type="text" className="form-control" value={productForm.category} onChange={handleProductChange} />
+            <input name="category" type="text" className="form-control" value={productForm.category} onChange={handleProductChange} required />
           </div>
           <div className="col-12">
             <label className="form-label">Description</label>
-            <textarea name="description" className="form-control" rows="3" value={productForm.description} onChange={handleProductChange}></textarea>
+            <textarea name="description" className="form-control" rows="3" value={productForm.description} onChange={handleProductChange} required></textarea>
           </div>
           <div className="col-12">
-            <label className="form-label">Product Image</label>
-            <input
-              key={fileInputKey}
-              name="imageFile"
-              type="file"
-              accept="image/*"
-              className="form-control"
-              onChange={handleProductChange}
-            />
+            <label className="form-label">Product Images (multiple)</label>
+            <input name="images" type="file" accept="image/*" multiple className="form-control" onChange={handleProductChange} />
+          </div>
+          <div className="col-12">
+            <label className="form-label">Promotional Video</label>
+            <input name="video" type="file" accept="video/*" className="form-control" onChange={handleProductChange} />
           </div>
           <div className="col-12">
             <button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={productLoading}>
@@ -427,28 +467,42 @@ const AdminPanel = () => {
       setProductSaveMessage("Please fill all product fields.");
       return;
     }
-    if (!productFile) {
-      setProductSaveMessage("Please select an image.");
-      return;
-    }
     try {
       setProductLoading(true);
-      const storageRef = ref(storage, `products/${Date.now()}-${productFile.name}`);
-      await uploadBytes(storageRef, productFile);
-      const downloadURL = await getDownloadURL(storageRef);
+      const imageUrls = [];
+      for (const file of productImages) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "oiwrpbwq");
+        const res = await fetch("https://api.cloudinary.com/v1_1/dmynksk5z/auto/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.secure_url) imageUrls.push(data.secure_url);
+      }
+      let videoUrl = "";
+      if (productVideo) {
+        const formData = new FormData();
+        formData.append("file", productVideo);
+        formData.append("upload_preset", "oiwrpbwq");
+        const res = await fetch("https://api.cloudinary.com/v1_1/dmynksk5z/auto/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.secure_url) videoUrl = data.secure_url;
+      }
 
       await addDoc(collection(db, "products"), {
         name: productForm.name,
         category: productForm.category,
         description: productForm.description,
-        imageUrl: downloadURL,
+        imageUrls,
+        videoUrl,
         createdAt: serverTimestamp(),
       });
 
       setProductSaveMessage("Product saved successfully.");
-      setProductForm({ name: "", category: "", description: "", imageUrl: "" });
-      setProductFile(null);
-      setFileInputKey((prev) => prev + 1);
+      setProductForm({ name: "", category: "", description: "" });
+      setProductImages([]);
+      setProductVideo(null);
+      const snap = await getDocs(collection(db, "products"));
+      setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
       setProductSaveMessage("Save failed. Please try again.");
     } finally {
@@ -496,6 +550,15 @@ const AdminPanel = () => {
       setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, status: "Read" } : msg)));
     } catch (err) {
       // optional: handle error
+    }
+  };
+
+  const handleDeleteProduct = async (id) => {
+    try {
+      await deleteDoc(doc(db, "products", id));
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      setProductSaveMessage("تعذر حذف المنتج");
     }
   };
 

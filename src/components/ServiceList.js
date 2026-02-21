@@ -7,6 +7,7 @@ import { useLanguage } from "../context/LanguageContext";
 const ServiceList = () => {
   const { t, language } = useLanguage();
   const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const loc = (val) => { if (!val) return ""; if (typeof val === "string") return val; return val[language] || val["ar"] || val["en"] || ""; };
 
@@ -15,12 +16,18 @@ const ServiceList = () => {
       try {
         const snap = await getDocs(collection(db, "services"));
         setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (error) { console.error("Error fetching services"); }
+      } catch (error) { console.error("Error fetching services", error); }
+      finally { setLoading(false); }
     };
     fetchServices();
   }, []);
 
-  if(services.length === 0) return null;
+  if (loading) return (
+    <section id="services-list" className="py-5" style={{ backgroundColor: "var(--bg-main)" }}>
+      <div className="container text-center"><div className="spinner-border text-primary"></div></div>
+    </section>
+  );
+  if (services.length === 0) return null;
 
   return (
     <section id="services-list" className="py-5" style={{ backgroundColor: "var(--bg-main)" }}>

@@ -21,7 +21,12 @@ const Service = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const snap = await getDocs(query(collection(db, "services"), orderBy("createdAt", "desc")));
+        let snap;
+        try {
+          snap = await getDocs(query(collection(db, "services"), orderBy("createdAt", "desc")));
+        } catch {
+          snap = await getDocs(collection(db, "services"));
+        }
         setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (error) {
         console.error("Error fetching services", error);

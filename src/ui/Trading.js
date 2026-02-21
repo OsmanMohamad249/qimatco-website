@@ -18,7 +18,12 @@ const Trading = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+        let snap;
+        try {
+          snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+        } catch {
+          snap = await getDocs(collection(db, "products"));
+        }
         setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (error) { console.error(error); } finally { setLoading(false); }
     };

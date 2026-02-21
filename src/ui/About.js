@@ -143,9 +143,9 @@ const About = () => {
                   <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-4" style={{ width: "80px", height: "80px", backgroundColor: "rgba(244, 169, 0, 0.1)" }}>
                     <i className="bi bi-eye text-warning" style={{ fontSize: "2.5rem" }}></i>
                   </div>
-                  <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>رؤيتنا</h4>
+                  <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>{language === 'ar' ? 'رؤيتنا' : 'Our Vision'}</h4>
                   <p className="text-secondary mb-0" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                    أن نكون الخيار الأول والشريك الاستراتيجي الأكثر موثوقية في مجال الخدمات اللوجستية في المنطقة.
+                    {language === 'ar' ? 'أن نكون الخيار الأول والشريك الاستراتيجي الأكثر موثوقية في مجال الخدمات اللوجستية في المنطقة.' : 'To be the first choice and the most reliable strategic partner in the logistics sector in the region.'}
                   </p>
                 </div>
               </div>
@@ -155,9 +155,9 @@ const About = () => {
                   <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-4" style={{ width: "80px", height: "80px", backgroundColor: "rgba(244, 169, 0, 0.1)" }}>
                     <i className="bi bi-bullseye text-warning" style={{ fontSize: "2.5rem" }}></i>
                   </div>
-                  <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>رسالتنا</h4>
+                  <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>{language === 'ar' ? 'رسالتنا' : 'Our Mission'}</h4>
                   <p className="text-secondary mb-0" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                    تسهيل التجارة العالمية وربط الأسواق من خلال خدمات شحن وتخليص جمركي تتسم بالكفاءة والسرعة.
+                    {language === 'ar' ? 'تسهيل التجارة العالمية وربط الأسواق من خلال خدمات شحن وتخليص جمركي تتسم بالكفاءة والسرعة.' : 'Facilitating global trade and connecting markets through efficient and fast shipping and customs clearance services.'}
                   </p>
                 </div>
               </div>
@@ -167,9 +167,12 @@ const About = () => {
                   <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-4" style={{ width: "80px", height: "80px", backgroundColor: "rgba(244, 169, 0, 0.1)" }}>
                     <i className="bi bi-gem text-warning" style={{ fontSize: "2.5rem" }}></i>
                   </div>
-                  <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>قيمنا</h4>
+                  <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>{language === 'ar' ? 'قيمنا' : 'Our Values'}</h4>
                   <p className="text-secondary fw-bold mb-0" style={{ fontSize: "1.1rem", lineHeight: "2.2" }}>
-                    النزاهة <br/> الالتزام بالمواعيد <br/> الابتكار في الحلول <br/> التركيز الدائم على رضا العميل
+                    {language === 'ar' ?
+                      <>النزاهة <br/> الالتزام بالمواعيد <br/> الابتكار في الحلول <br/> التركيز الدائم على رضا العميل</> :
+                      <>Integrity <br/> Punctuality <br/> Innovative Solutions <br/> Constant Focus on Customer Satisfaction</>
+                    }
                   </p>
                 </div>
               </div>

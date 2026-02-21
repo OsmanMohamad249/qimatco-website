@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import { db, auth } from "../firebase";
+import { db, auth, storage } from "../firebase";
 import { doc, setDoc, serverTimestamp, getDoc, collection, addDoc, getDocs, query, orderBy, updateDoc, deleteDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const initialForm = {
   id: "",

@@ -1,188 +1,56 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 
 const ServiceList = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [services, setServices] = useState([]);
+
+  const loc = (val) => { if (!val) return ""; if (typeof val === "string") return val; return val[language] || val["ar"] || val["en"] || ""; };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const snap = await getDocs(collection(db, "services"));
+        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (error) { console.error("Error fetching services"); }
+    };
+    fetchServices();
+  }, []);
+
+  if(services.length === 0) return null;
+
   return (
-    <>
-      <section id="services-list" className="services-list">
-        <div className="container" data-aos="fade-up">
-          <div className="section-header">
-            <h2>{t('services_title_main')}</h2>
-            <p>
-              {t('services_subtitle_main')}
-            </p>
-          </div>
-          <div className="row gy-5">
-            <div
-              className="col-lg-6 col-md-6 service-item d-flex"
-              data-aos="fade-up"
-              data-aos-delay="100"
-            >
-              <div className="single-service">
-                <div className="icon flex-shrink-0">
-                  <i className="bi bi-water" style={{ color: "#003B6D" }}></i>
-                </div>
-                <div>
-                  <h4 className="title">
-                    <Link to="/services" className="stretched-link">
-                      {t('service_sea_title')}
-                    </Link>
-                  </h4>
-                  <p className="description">
-                    {t('service_sea_desc')}
-                  </p>
-                  <Link to="/services" className="btn-get-started">
-                    {t('service_read_more')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="col-lg-6 col-md-6 service-item d-flex"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
-              <div className="single-service">
-                <div className="icon flex-shrink-0">
-                  <i
-                    className="bi bi-airplane-fill"
-                    style={{ color: "var(--secondary-color)" }}
-                  ></i>
-                </div>
-                <div>
-                  <h4 className="title">
-                    <Link to="/services" className="stretched-link">
-                      {t('service_air_title')}
-                    </Link>
-                  </h4>
-                  <p className="description">
-                    {t('service_air_desc')}
-                  </p>
-                  <Link to="/services" className="btn-get-started">
-                    {t('service_read_more')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="col-lg-6 col-md-6 service-item d-flex"
-              data-aos="fade-up"
-              data-aos-delay="400"
-            >
-              <div className="single-service">
-                <div className="icon flex-shrink-0">
-                  <i
-                    className="bi bi-file-earmark-check-fill"
-                    style={{ color: "var(--primary-color)" }}
-                  ></i>
-                </div>
-                <div>
-                  <h4 className="title">
-                    <Link to="/services" className="stretched-link">
-                      {t('service_customs_title')}
-                    </Link>
-                  </h4>
-                  <p className="description">
-                    {t('service_customs_desc')}
-                  </p>
-                  <Link to="/services" className="btn-get-started">
-                    {t('service_read_more')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="col-lg-6 col-md-6 service-item d-flex"
-              data-aos="fade-up"
-              data-aos-delay="300"
-            >
-              <div className="single-service">
-                <div className="icon flex-shrink-0">
-                  <i
-                    className="bi bi-truck-front-fill"
-                    style={{ color: "var(--accent-color)" }}
-                  ></i>
-                </div>
-                <div>
-                  <h4 className="title">
-                    <Link to="/services" className="stretched-link">
-                      {t('service_land_title')}
-                    </Link>
-                  </h4>
-                  <p className="description">
-                    {t('service_land_desc')}
-                  </p>
-                  <Link to="/services" className="btn-get-started">
-                    {t('service_read_more')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="col-lg-6 col-md-6 service-item d-flex"
-              data-aos="fade-up"
-              data-aos-delay="600"
-            >
-              <div className="single-service">
-                <div className="icon flex-shrink-0">
-                  <i
-                    className="bi bi-globe-americas"
-                    style={{ color: "var(--secondary-color)" }}
-                  ></i>
-                </div>
-                <div>
-                  <h4 className="title">
-                    <Link to="/services" className="stretched-link">
-                      {t('service_import_title')}
-                    </Link>
-                  </h4>
-                  <p className="description">
-                    {t('service_import_desc')}
-                  </p>
-                  <Link to="/services" className="btn-get-started">
-                    {t('service_read_more')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="col-lg-6 col-md-6 service-item d-flex"
-              data-aos="fade-up"
-              data-aos-delay="500"
-            >
-              <div className="single-service">
-                <div className="icon flex-shrink-0">
-                  <i
-                    className="bi bi-box-seam-fill"
-                    style={{ color: "#13d527" }}
-                  ></i>
-                </div>
-                <div>
-                  <h4 className="title">
-                    <Link to="/services" className="stretched-link">
-                      {t('service_warehouse_title')}
-                    </Link>
-                  </h4>
-                  <p className="description">
-                    {t('service_warehouse_desc')}
-                  </p>
-                  <Link to="/services" className="btn-get-started">
-                    {t('service_read_more')}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
+    <section id="services-list" className="py-5" style={{ backgroundColor: "var(--bg-main)" }}>
+      <div className="container" data-aos="fade-up">
+        <div className="section-header mb-5 text-center">
+          <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem" }}>{t('services_title_main')}</h2>
+          <div style={{ width: "60px", height: "4px", backgroundColor: "var(--accent-color)", margin: "15px auto", borderRadius: "var(--radius-sm)" }}></div>
         </div>
-      </section>
-    </>
+        <div className="row g-4">
+          {services.map((service, index) => (
+            <div className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={index * 100} key={service.id}>
+              <div className="enterprise-service-card h-100">
+                <div className="card-img-wrapper">
+                  <img src={service.imageUrl} alt={loc(service.title)} className="img-fluid" />
+                  <div className="icon-badge"><i className={`bi ${service.icon}`}></i></div>
+                </div>
+                <div className="card-content d-flex flex-column h-100">
+                  <h4 className="title">{loc(service.title)}</h4>
+                  <p className="description flex-grow-1">{loc(service.shortDesc)}</p>
+                  <Link to={`/services/${service.id}`} className="read-more-btn mt-3 text-decoration-none">
+                    {t('service_read_more') || 'اقرأ المزيد'}
+                    <i className={`bi ${language === 'ar' ? 'bi-arrow-left-short' : 'bi-arrow-right-short'}`}></i>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 

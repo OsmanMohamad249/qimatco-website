@@ -34,6 +34,7 @@ const initialForm = {
 };
 
 const DEFAULT_PERMS = {
+  services: { add: false, edit: false, delete: false },
   products: { add: false, edit: false, delete: false },
   clients: { add: false, edit: false, delete: false },
   messages: { view: false, markRead: false },
@@ -45,6 +46,7 @@ const DEFAULT_PERMS = {
 };
 
 const FULL_PERMS = {
+  services: { add: true, edit: true, delete: true },
   products: { add: true, edit: true, delete: true },
   clients: { add: true, edit: true, delete: true },
   messages: { view: true, markRead: true },
@@ -169,6 +171,14 @@ const AdminPanel = () => {
   const [whatsappMsg, setWhatsappMsg] = useState("");
   const [whatsappLoading, setWhatsappLoading] = useState(false);
 
+  // Services
+  const [serviceForm, setServiceForm] = useState({ title_ar: "", title_en: "", short_ar: "", short_en: "", full_ar: "", full_en: "", icon: "bi-briefcase" });
+  const [serviceFile, setServiceFile] = useState(null);
+  const [servicesList, setServicesList] = useState([]);
+  const [serviceLoading, setServiceLoading] = useState(false);
+  const [serviceMsg, setServiceMsg] = useState("");
+  const [serviceFileKey, setServiceFileKey] = useState(0);
+
   // ── EFFECTS ──
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
@@ -220,6 +230,7 @@ const AdminPanel = () => {
       try { const snap = await getDocs(query(collection(db, "ads"), orderBy("createdAt", "desc"))); setAdsList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const snap = await getDocs(collection(db, "admins")); setAdmins(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const snap = await getDocs(collection(db, "socialLinks")); setSocialLinks(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
+      try { const snap = await getDocs(collection(db, "services")); setServicesList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const waSnap = await getDoc(doc(db, "settings", "whatsapp")); if (waSnap.exists()) setWhatsappSettings(waSnap.data()); } catch {}
     };
     load();
@@ -408,6 +419,34 @@ const AdminPanel = () => {
   const handleWhatsappChange = (e) => { const { name, value, type, checked } = e.target; setWhatsappSettings((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value })); };
   const handleWhatsappSave = async (e) => { e.preventDefault(); setWhatsappMsg(""); if (!whatsappSettings.phone.trim()) { setWhatsappMsg("يرجى إدخال رقم الواتساب"); return; } try { setWhatsappLoading(true); await setDoc(doc(db, "settings", "whatsapp"), { phone: whatsappSettings.phone, message: whatsappSettings.message, enabled: whatsappSettings.enabled, updatedAt: serverTimestamp() }); setWhatsappMsg("تم حفظ إعدادات الواتساب بنجاح"); } catch { setWhatsappMsg("تعذر حفظ الإعدادات"); } finally { setWhatsappLoading(false); } };
 
+  // Service handlers
+  const handleServiceChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "serviceImage") { setServiceFile(files && files[0] ? files[0] : null); return; }
+    setServiceForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleServiceSave = async (e) => {
+    e.preventDefault(); setServiceMsg("");
+    try {
+      setServiceLoading(true);
+      let imageUrl = "";
+      if (serviceFile) imageUrl = await uploadToCloudinary(serviceFile);
+      await addDoc(collection(db, "services"), {
+        title: { ar: serviceForm.title_ar, en: serviceForm.title_en },
+        shortDesc: { ar: serviceForm.short_ar, en: serviceForm.short_en },
+        fullDesc: { ar: serviceForm.full_ar, en: serviceForm.full_en },
+        icon: serviceForm.icon,
+        imageUrl,
+        createdAt: serverTimestamp()
+      });
+      setServiceMsg("تم حفظ الخدمة بنجاح");
+      setServiceForm({ title_ar: "", title_en: "", short_ar: "", short_en: "", full_ar: "", full_en: "", icon: "bi-briefcase" });
+      setServiceFile(null); setServiceFileKey(k => k + 1);
+      const snap = await getDocs(collection(db, "services")); setServicesList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch { setServiceMsg("تعذر حفظ الخدمة"); } finally { setServiceLoading(false); }
+  };
+  const handleDeleteService = async (id) => { try { await deleteDoc(doc(db, "services", id)); setServicesList(prev => prev.filter(s => s.id !== id)); } catch {} };
+
   // ── GENERIC MEDIA FORM RENDERER ──
   const renderMediaForm = ({ sectionKey, titleAr, titleEn, formState, onFormChange, imagesInputName, videosInputName, onSubmit, isLoading, msgText, permKey, fileKey }) => (
     <div className="card shadow-sm border-0">
@@ -545,6 +584,36 @@ const AdminPanel = () => {
     {renderMediaList(blogPosts, "blog", handleDeleteBlog)}
   </>);
 
+  const renderServicesTab = () => (
+    <div className="card shadow-sm border-0"><div className="card-body p-4">
+      <h4 style={{ color: "var(--primary-color)" }}>إدارة الخدمات</h4>
+      {serviceMsg && <div className="alert alert-info py-1 small">{serviceMsg}</div>}
+
+      {servicesList.length > 0 && (
+        <div className="table-responsive mb-4"><table className="table align-middle"><thead><tr><th>صورة</th><th>الاسم</th><th>أيقونة</th>{can(userPermissions, "services", "delete") && <th></th>}</tr></thead>
+          <tbody>{servicesList.map((s) => (<tr key={s.id}><td>{s.imageUrl ? <img src={s.imageUrl} alt="" style={{ maxHeight: 40 }} /> : "-"}</td><td>{s.title?.ar}</td><td><i className={`bi ${s.icon} fs-4`}></i></td>{can(userPermissions, "services", "delete") && <td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteService(s.id)}>حذف</button></td>}</tr>))}</tbody></table></div>
+      )}
+
+      {can(userPermissions, "services", "add") && (
+        <form className="row g-3" onSubmit={handleServiceSave}>
+          <div className="col-12"><h6 className="text-muted">🇸🇦 العربية</h6></div>
+          <div className="col-md-12"><label className="form-label">اسم الخدمة</label><input name="title_ar" type="text" className="form-control" dir="rtl" value={serviceForm.title_ar} onChange={handleServiceChange} required /></div>
+          <div className="col-md-12"><label className="form-label">وصف قصير (للبطاقة)</label><textarea name="short_ar" className="form-control" rows="2" dir="rtl" value={serviceForm.short_ar} onChange={handleServiceChange} required></textarea></div>
+          <div className="col-md-12"><label className="form-label">وصف كامل (لصفحة التفاصيل)</label><textarea name="full_ar" className="form-control" rows="4" dir="rtl" value={serviceForm.full_ar} onChange={handleServiceChange}></textarea></div>
+
+          <div className="col-12"><h6 className="text-muted">🇬🇧 English</h6></div>
+          <div className="col-md-12"><label className="form-label">Service Name</label><input name="title_en" type="text" className="form-control" dir="ltr" value={serviceForm.title_en} onChange={handleServiceChange} /></div>
+          <div className="col-md-12"><label className="form-label">Short Description</label><textarea name="short_en" className="form-control" rows="2" dir="ltr" value={serviceForm.short_en} onChange={handleServiceChange}></textarea></div>
+          <div className="col-md-12"><label className="form-label">Full Description</label><textarea name="full_en" className="form-control" rows="4" dir="ltr" value={serviceForm.full_en} onChange={handleServiceChange}></textarea></div>
+
+          <div className="col-md-6"><label className="form-label">أيقونة (Bootstrap Class)</label><input name="icon" type="text" className="form-control" value={serviceForm.icon} onChange={handleServiceChange} placeholder="bi-truck" /></div>
+          <div className="col-md-6"><label className="form-label">صورة الغلاف</label><input key={serviceFileKey} name="serviceImage" type="file" accept="image/*" className="form-control" onChange={handleServiceChange} required /></div>
+          <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={serviceLoading}>{serviceLoading ? "جاري الحفظ..." : "حفظ الخدمة"}</button></div>
+        </form>
+      )}
+    </div></div>
+  );
+
   const renderNewsTab = () => (<>
     {renderMediaForm({ sectionKey: "news", titleAr: t('admin_news_title_ar'), titleEn: t('admin_news_title_en'), formState: newsForm, onFormChange: handleNewsChange, imagesInputName: "newsImages", videosInputName: "newsVideos", onSubmit: handleNewsSave, isLoading: newsLoading, msgText: newsMessage, permKey: "news", fileKey: newsFileKey })}
     {renderMediaList(newsItems, "news", handleDeleteNews)}
@@ -569,6 +638,7 @@ const AdminPanel = () => {
 
   const PERM_SECTIONS = [
     { key: "shipments", label: "الشحنات", actions: ["add", "edit", "delete"] },
+    { key: "services", label: "الخدمات", actions: ["add", "edit", "delete"] },
     { key: "products", label: "المنتجات", actions: ["add", "edit", "delete"] },
     { key: "clients", label: "العملاء", actions: ["add", "edit", "delete"] },
     { key: "messages", label: "الرسائل", actions: ["view", "markRead"] },
@@ -741,6 +811,7 @@ const AdminPanel = () => {
               <button className={`list-group-item list-group-item-action ${activeTab === "shipments" ? "active" : ""}`} onClick={() => setActiveTab("shipments")}><i className="bi bi-truck me-1"></i>{t('admin_tab_shipments')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "products" ? "active" : ""}`} onClick={() => setActiveTab("products")}><i className="bi bi-box-seam me-1"></i>{t('admin_tab_products')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "clients" ? "active" : ""}`} onClick={() => setActiveTab("clients")}><i className="bi bi-building me-1"></i>{t('admin_tab_clients')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "services" ? "active" : ""}`} onClick={() => setActiveTab("services")}><i className="bi bi-briefcase me-1"></i>إدارة الخدمات</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "blog" ? "active" : ""}`} onClick={() => setActiveTab("blog")}><i className="bi bi-journal-richtext me-1"></i>{t('admin_tab_blog')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}><i className="bi bi-newspaper me-1"></i>{t('admin_tab_news')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "ads" ? "active" : ""}`} onClick={() => setActiveTab("ads")}><i className="bi bi-megaphone me-1"></i>{t('admin_tab_ads')}</button>
@@ -757,6 +828,7 @@ const AdminPanel = () => {
             {activeTab === "shipments" && renderShipmentsTab()}
             {activeTab === "products" && renderProductsTab()}
             {activeTab === "clients" && renderClientsTab()}
+            {activeTab === "services" && renderServicesTab()}
             {activeTab === "blog" && renderBlogTab()}
             {activeTab === "news" && renderNewsTab()}
             {activeTab === "ads" && renderAdsTab()}

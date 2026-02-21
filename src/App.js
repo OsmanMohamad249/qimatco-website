@@ -12,6 +12,7 @@ const NoPage = lazy(() => import("./layout/NoPage"));
 const TrackShipment = lazy(() => import("./ui/TrackShipment"));
 const AdminPanel = lazy(() => import("./ui/AdminPanel"));
 const BlogPage = lazy(() => import("./ui/BlogPage"));
+const ServiceDetail = lazy(() => import("./ui/ServiceDetail"));
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="about" element={<About />} />
             <Route path="services" element={<Service />} />
+            <Route path="services/:id" element={<ServiceDetail />} />
             <Route path="careers" element={<Career />} />
             <Route path="contact" element={<Contact />} />
             <Route path="track" element={<TrackShipment />} />

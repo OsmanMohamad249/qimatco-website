@@ -7,6 +7,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
+import { Link } from "react-router-dom"; // Added for routing
 
 import InnerHeader from "../components/InnerHeader";
 import Footer from "../components/Footer";
@@ -49,45 +50,48 @@ const Home = () => {
       </Helmet>
       <InnerHeader />
       <Carousel />
-      <main id="main">
+      <main id="main" style={{ backgroundColor: "var(--bg-main)" }}>
 
-        {/* Ads Slider Section */}
+        {/* Ads Slider Section (Enterprise Promos) */}
         {ads.length > 0 && (
-          <section className="ads-section py-4" style={{ background: "var(--bg-light, #F4F7F6)" }}>
+          <section className="ads-section py-5">
             <div className="container">
-              <div className="section-header mb-3">
-                <h2>{t('home_ads_title')}</h2>
+              <div className="section-header mb-4 text-center">
+                <h2 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{t('home_ads_title')}</h2>
+                <div style={{ width: "60px", height: "4px", backgroundColor: "var(--accent-color)", margin: "10px auto", borderRadius: "var(--radius-sm)" }}></div>
               </div>
               <Swiper
                 modules={[Autoplay, Pagination]}
-                autoplay={{ delay: 4000, disableOnInteraction: false }}
+                autoplay={{ delay: 5000, disableOnInteraction: false }}
                 pagination={{ clickable: true }}
-                spaceBetween={20}
+                spaceBetween={30}
                 slidesPerView={1}
                 breakpoints={{ 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }}
+                style={{ paddingBottom: "40px" }} // Space for pagination dots
               >
                 {ads.map((ad) => (
                   <SwiperSlide key={ad.id}>
-                    <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "var(--border-radius, 12px)", overflow: "hidden" }}>
+                    <div className="enterprise-card h-100 p-0" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
                       {/* Detect video vs image */}
                       {ad.videoUrls?.length ? (
                         <video
                           autoPlay muted loop playsInline
-                          className="card-img-top"
-                          style={{ height: 220, objectFit: "cover", width: "100%" }}
+                          style={{ height: "240px", objectFit: "cover", width: "100%", borderBottom: "1px solid rgba(0,0,0,0.05)" }}
                         >
                           <source src={ad.videoUrls[0]} type="video/mp4" />
                         </video>
                       ) : ad.imageUrls?.length ? (
-                        <img src={ad.imageUrls[0]} alt={loc(ad.title)} className="card-img-top" style={{ height: 220, objectFit: "cover" }} />
+                        <img src={ad.imageUrls[0]} alt={loc(ad.title)} style={{ height: "240px", objectFit: "cover", width: "100%", borderBottom: "1px solid rgba(0,0,0,0.05)" }} />
                       ) : (
-                        <div className="card-img-top bg-light d-flex align-items-center justify-content-center" style={{ height: 220 }}>
-                          <i className="bi bi-megaphone" style={{ fontSize: 48, color: "var(--accent-color)" }}></i>
+                        <div className="bg-light d-flex align-items-center justify-content-center" style={{ height: "240px", width: "100%", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                          <i className="bi bi-megaphone" style={{ fontSize: "3rem", color: "var(--accent-color)" }}></i>
                         </div>
                       )}
-                      <div className="card-body">
-                        <h6 className="card-title" style={{ color: "var(--primary-color)" }}>{loc(ad.title)}</h6>
-                        <p className="card-text small text-muted" style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{loc(ad.body)}</p>
+                      <div className="card-body p-4 flex-grow-1 d-flex flex-column">
+                        <h5 style={{ color: "var(--primary-color)", fontWeight: "600", marginBottom: "10px" }}>{loc(ad.title)}</h5>
+                        <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", margin: 0 }}>
+                          {loc(ad.body)}
+                        </p>
                       </div>
                     </div>
                   </SwiperSlide>
@@ -101,40 +105,47 @@ const Home = () => {
         <Trading />
         <ClientList />
 
-        {/* Latest News Section */}
+        {/* Latest News Section (Enterprise Insights) */}
         {news.length > 0 && (
-          <section className="latest-news py-5">
+          <section className="latest-news py-5" style={{ backgroundColor: "#ffffff" }}>
             <div className="container" data-aos="fade-up">
-              <div className="section-header">
-                <h2>{t('home_latest_news')}</h2>
+              <div className="section-header mb-5 text-center">
+                <h2 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{t('home_latest_news')}</h2>
+                <div style={{ width: "60px", height: "4px", backgroundColor: "var(--accent-color)", margin: "10px auto", borderRadius: "var(--radius-sm)" }}></div>
               </div>
               <div className="row g-4">
                 {news.map((item) => (
-                  <div key={item.id} className="col-lg-4 col-md-6" data-aos="fade-up">
-                    <div className="card h-100 shadow-sm border-0" style={{ borderRadius: "var(--border-radius, 12px)", overflow: "hidden" }}>
+                  <div key={item.id} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div className="enterprise-card h-100 p-0" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
                       {item.imageUrls?.length ? (
-                        <img src={item.imageUrls[0]} alt={loc(item.title)} className="card-img-top" style={{ height: 200, objectFit: "cover" }} />
+                        <img src={item.imageUrls[0]} alt={loc(item.title)} style={{ height: "220px", objectFit: "cover", width: "100%" }} />
                       ) : item.videoUrls?.length ? (
-                        <video muted autoPlay loop playsInline className="card-img-top" style={{ height: 200, objectFit: "cover", width: "100%" }}>
+                        <video muted autoPlay loop playsInline style={{ height: "220px", objectFit: "cover", width: "100%" }}>
                           <source src={item.videoUrls[0]} type="video/mp4" />
                         </video>
                       ) : item.imageUrl ? (
-                        <img src={item.imageUrl} alt={loc(item.title)} className="card-img-top" style={{ height: 200, objectFit: "cover" }} />
+                        <img src={item.imageUrl} alt={loc(item.title)} style={{ height: "220px", objectFit: "cover", width: "100%" }} />
                       ) : (
-                        <div className="card-img-top bg-light d-flex align-items-center justify-content-center" style={{ height: 200 }}>
-                          <i className="bi bi-newspaper" style={{ fontSize: 48, color: "var(--secondary-color)" }}></i>
+                        <div className="bg-light d-flex align-items-center justify-content-center" style={{ height: "220px", width: "100%" }}>
+                          <i className="bi bi-newspaper" style={{ fontSize: "3rem", color: "var(--secondary-color)" }}></i>
                         </div>
                       )}
-                      <div className="card-body d-flex flex-column">
-                        <h5 className="card-title" style={{ color: "var(--primary-color)" }}>{loc(item.title)}</h5>
+                      <div className="card-body p-4 d-flex flex-column flex-grow-1">
                         {item.createdAt && (
-                          <p className="text-muted small">
-                            {new Date(item.createdAt.seconds * 1000).toLocaleDateString(language === 'ar' ? 'ar-SD' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                          </p>
+                          <span style={{ color: "var(--accent-color)", fontSize: "0.85rem", fontWeight: "600", marginBottom: "8px", display: "block" }}>
+                            <i className="bi bi-calendar3 me-1"></i>
+                            {new Date(item.createdAt.seconds * 1000).toLocaleDateString(language === 'ar' ? 'ar-SD' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                          </span>
                         )}
-                        <p className="card-text flex-grow-1" style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
+                        <h4 style={{ color: "var(--primary-color)", fontWeight: "700", fontSize: "1.25rem", marginBottom: "15px" }}>{loc(item.title)}</h4>
+                        <p style={{ color: "var(--text-secondary)", fontSize: "1rem", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", flexGrow: 1 }}>
                           {loc(item.body)}
                         </p>
+                        <Link to="/blog" style={{ color: "var(--primary-color)", fontWeight: "600", marginTop: "15px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "5px", transition: "color var(--transition-fast)" }}
+                              onMouseOver={(e) => e.target.style.color = 'var(--accent-color)'}
+                              onMouseOut={(e) => e.target.style.color = 'var(--primary-color)'}>
+                          {language === 'ar' ? 'اقرأ المزيد' : 'Read More'} <i className={`bi ${language === 'ar' ? 'bi-arrow-left-short' : 'bi-arrow-right-short'}`} style={{fontSize: "1.2rem"}}></i>
+                        </Link>
                       </div>
                     </div>
                   </div>

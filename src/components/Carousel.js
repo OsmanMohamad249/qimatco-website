@@ -1,109 +1,77 @@
-import React, { useState } from "react";
-import shapeImg from "../img/img-wave2.png";
+import React from "react";
 import { Link } from "react-router-dom";
-import '../../node_modules/react-modal-video/css/modal-video.css'
-import ModalVideo from 'react-modal-video'
 import { useLanguage } from "../context/LanguageContext";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, EffectFade, Navigation, Pagination } from "swiper/modules";
+
+// Swiper Styles
+import "swiper/css";
+import "swiper/css/effect-fade";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const Carousel = () => {
-  const { t } = useLanguage();
-  const [isOpen, setOpen] = useState(false)
-  const logisticsHero1 = "https://loremflickr.com/1280/720/container,ship/all";
-  const logisticsHero2 = "https://loremflickr.com/1280/720/warehouse/all";
-  const logisticsHero3 = "https://loremflickr.com/1280/720/airplane,cargo/all";
-  const logisticsHero4 = "https://loremflickr.com/1280/720/truck,logistics/all";
+  const { t, language } = useLanguage();
+
+  // High-quality Enterprise Imagery (Unsplash)
+  const slides = [
+    {
+      id: 1,
+      bg: "https://images.unsplash.com/photo-1494412519320-aa613dfb7738?q=80&w=2070&auto=format&fit=crop",
+      title: t('hero_title') || "Global Logistics Excellence",
+      subtitle: t('hero_subtitle') || "Delivering your cargo safely, on time, anywhere in the world.",
+    },
+    {
+      id: 2,
+      bg: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop",
+      title: language === 'ar' ? "حلول سلاسل الإمداد المتكاملة" : "Integrated Supply Chain Solutions",
+      subtitle: language === 'ar' ? "تخزين وتوزيع بأحدث التقنيات العالمية" : "State-of-the-art warehousing and distribution globally.",
+    },
+    {
+      id: 3,
+      bg: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=2070&auto=format&fit=crop",
+      title: language === 'ar' ? "شحن جوي سريع وموثوق" : "Fast & Reliable Air Freight",
+      subtitle: language === 'ar' ? "نربط أعمالك بالأسواق العالمية في وقت قياسي" : "Connecting your business to global markets in record time.",
+    }
+  ];
+
   return (
-    <>
-      <section id="hero" className="hero d-flex">
-        <img className="shape" src={shapeImg} alt="#" />
-        <div className="container">
-          <div
-            className="row align-items-center"
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
-            <div className="col-lg-7 col-md-12 col-12">
-              <h2 data-aos="fade-up">
-                {t('hero_title')}
-              </h2>
-              <blockquote data-aos="fade-up" data-aos-delay="100">
-                <p>
-                  {t('hero_subtitle')}
+    <section id="hero" className="enterprise-hero p-0">
+      <Swiper
+        modules={[Autoplay, EffectFade, Navigation, Pagination]}
+        effect="fade"
+        autoplay={{ delay: 6000, disableOnInteraction: false }}
+        navigation
+        pagination={{ clickable: true }}
+        loop={true}
+        className="hero-swiper"
+        dir="ltr" /* Force LTR for Swiper so animations don't break in Arabic */
+      >
+        {slides.map((slide) => (
+          <SwiperSlide key={slide.id}>
+            <div className="hero-slide" style={{ backgroundImage: `url(${slide.bg})` }}>
+              <div className="hero-overlay"></div>
+              <div className="container hero-content text-center" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                <h1 className="hero-title text-white mb-4 animate__animated animate__fadeInDown">
+                  {slide.title}
+                </h1>
+                <p className="hero-subtitle text-white mb-5 animate__animated animate__fadeInUp">
+                  {slide.subtitle}
                 </p>
-              </blockquote>
-              <div className="d-flex align-items-center flex-wrap gap-3">
-                <Link to="/contact" className="btn-get-started">
-                  {t('hero_cta_quote')}
-                </Link>
-                <Link to="/services" className="btn-watch-video d-flex align-items-center pointer">
-                  <i className="bi bi-truck"></i>
-                  <span>{t('hero_cta_logistics')}</span>
-                </Link>
-                 <a href="/#trading" className="btn-watch-video d-flex align-items-center pointer">
-                  <i className="bi bi-globe"></i>
-                  <span>{t('hero_cta_trading')}</span>
-                </a>
-              </div>
-            </div>
-            <div className="col-lg-5 col-md-12 col-12">
-              <div className="header-image ">
-                <div
-                  id="carouselExampleFade"
-                  className="carousel slide carousel-fade"
-                  data-bs-ride="carousel"
-                >
-                  <div className="carousel-indicators">
-                    <button
-                      type="button"
-                      data-bs-target="#carouselExampleFade"
-                      data-bs-slide-to="0"
-                      className="active"
-                      aria-current="true"
-                      aria-label="Slide 1"
-                    ></button>
-                    <button
-                      type="button"
-                      data-bs-target="#carouselExampleFade"
-                      data-bs-slide-to="1"
-                      aria-label="Slide 2"
-                    ></button>
-                    <button
-                      type="button"
-                      data-bs-target="#carouselExampleFade"
-                      data-bs-slide-to="2"
-                      aria-label="Slide 3"
-                    ></button>
-                    <button
-                      type="button"
-                      data-bs-target="#carouselExampleFade"
-                      data-bs-slide-to="3"
-                      aria-label="Slide 3"
-                    ></button>
-                  </div>
-                  <div className="carousel-inner">
-                    <div
-                      className="carousel-item active"
-                     
-                    >
-                      <img src={logisticsHero1} className="d-block w-100" alt="Shipping" />
-                    </div>
-                    <div className="carousel-item">
-                      <img src={logisticsHero2} className="d-block w-100" alt="Warehouse" />
-                    </div>
-                    <div className="carousel-item">
-                      <img src={logisticsHero3} className="d-block w-100" alt="Air Cargo" />
-                    </div>
-                    <div className="carousel-item">
-                      <img src={logisticsHero4} className="d-block w-100" alt="Trucking" />
-                    </div>
-                  </div>
+                <div className="d-flex justify-content-center flex-wrap gap-3 animate__animated animate__fadeInUp animate__delay-1s">
+                  <Link to="/contact" className="btn enterprise-cta-btn btn-lg px-4 px-md-5">
+                    {t('hero_cta_quote') || 'طلب عرض سعر'}
+                  </Link>
+                  <Link to="/track" className="btn btn-outline-light btn-lg px-4 px-md-5" style={{ borderRadius: "var(--radius-md)", fontWeight: "600", borderWidth: "2px" }}>
+                    <i className="bi bi-geo-alt me-2"></i> {language === 'ar' ? 'تتبع شحنتك' : 'Track Shipment'}
+                  </Link>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-    </>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </section>
   );
 };
 

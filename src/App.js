@@ -24,6 +24,7 @@ function App() {
             <Route path="careers" element={<Career />} />
             <Route path="contact" element={<Contact />} />
             <Route path="track" element={<TrackShipment />} />
+            <Route path="blog" element={<BlogPage />} />
             <Route path="admin" element={<AdminPanel />} />
             <Route path="*" element={<NoPage />} />
           </Routes>

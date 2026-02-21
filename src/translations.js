@@ -11,6 +11,7 @@ export const translations = {
     nav_trading: "تجارة دولية",
     nav_track_placeholder: "أدخل رقم التتبع",
     nav_track_alert: "نظام التتبع تحت الصيانة حاليا. يرجى الاتصال بخدمة العملاء.",
+    nav_blog: "المدونة",
 
     // Hero / Carousel
     hero_title: "رواد التجارة الدولية.. وخبراء الحلول اللوجستية",
@@ -134,8 +135,10 @@ export const translations = {
     admin_tab_shipments: "إدارة الشحنات",
     admin_tab_products: "إدارة المنتجات",
     admin_tab_clients: "إدارة العملاء",
-    admin_tab_articles: "إدارة المقالات",
+    admin_tab_blog: "المدونة",
+    admin_tab_articles: "المدونة",
     admin_tab_news: "إدارة الأخبار",
+    admin_tab_ads: "الإعلانات",
     admin_tab_messages: "الرسائل والطلبات",
     admin_tab_social: "السوشيال ميديا والواتساب",
     admin_tab_admins: "إدارة المشرفين",
@@ -165,13 +168,30 @@ export const translations = {
     admin_client_logo: "شعار العميل",
     admin_client_save: "حفظ العميل",
 
-    // Article form
+    // Blog form (was articles)
+    admin_blog_title_ar: "عنوان المقال (عربي)",
+    admin_blog_title_en: "عنوان المقال (إنجليزي)",
+    admin_blog_body_ar: "المحتوى (عربي)",
+    admin_blog_body_en: "المحتوى (إنجليزي)",
+    admin_blog_saved: "تم حفظ المقال بنجاح",
     admin_article_title_ar: "عنوان المقال (عربي)",
     admin_article_title_en: "عنوان المقال (إنجليزي)",
     admin_article_body_ar: "المحتوى (عربي)",
     admin_article_body_en: "المحتوى (إنجليزي)",
     admin_article_image: "صورة الغلاف (رابط)",
     admin_article_save: "حفظ المقال",
+
+    // Ads form
+    admin_ads_title_ar: "عنوان الإعلان (عربي)",
+    admin_ads_title_en: "عنوان الإعلان (إنجليزي)",
+    admin_ads_body_ar: "المحتوى (عربي)",
+    admin_ads_body_en: "المحتوى (إنجليزي)",
+    admin_ads_saved: "تم حفظ الإعلان بنجاح",
+
+    // Media labels
+    admin_media_images: "صور (متعدد)",
+    admin_media_videos: "فيديوهات (متعدد)",
+    admin_media_preview: "معاينة",
 
     // News form
     admin_news_title_ar: "عنوان الخبر (عربي)",
@@ -198,7 +218,20 @@ export const translations = {
     trading_products_subtitle: "تصفح قائمة المنتجات المستوردة والمصدرة",
     trading_loading: "جاري تحميل المنتجات...",
     trading_no_products: "لا توجد منتجات متاحة حالياً",
-    trading_no_image: "لا توجد صورة"
+    trading_no_image: "لا توجد صورة",
+
+    // Home sections
+    home_ads_title: "عروض وإعلانات",
+    home_latest_news: "آخر الأخبار",
+    home_read_more: "اقرأ المزيد",
+
+    // Blog page
+    blog_page_title: "المدونة",
+    blog_page_subtitle: "مقالات ومواضيع متنوعة",
+    blog_read_more: "اقرأ المزيد",
+    blog_no_posts: "لا توجد مقالات حالياً",
+    blog_loading: "جاري التحميل...",
+    blog_back: "العودة للمدونة",
   },
   en: {
     // Navbar
@@ -210,6 +243,7 @@ export const translations = {
     nav_careers: "Careers",
     nav_track_placeholder: "Enter Tracking ID",
     nav_track_alert: "Tracking system is currently under maintenance. Please contact customer support.",
+    nav_blog: "Blog",
 
     // Hero / Carousel
     hero_title: "Global Trade Leaders & Logistics Experts",
@@ -333,8 +367,10 @@ export const translations = {
     admin_tab_shipments: "Shipments",
     admin_tab_products: "Products",
     admin_tab_clients: "Clients",
-    admin_tab_articles: "Articles",
+    admin_tab_blog: "Blog",
+    admin_tab_articles: "Blog",
     admin_tab_news: "News",
+    admin_tab_ads: "Ads & Promotions",
     admin_tab_messages: "Messages & Requests",
     admin_tab_social: "Social Media & WhatsApp",
     admin_tab_admins: "User Management",
@@ -364,13 +400,30 @@ export const translations = {
     admin_client_logo: "Client Logo",
     admin_client_save: "Save Client",
 
-    // Article form
-    admin_article_title_ar: "Article Title (Arabic)",
-    admin_article_title_en: "Article Title (English)",
+    // Blog form (was articles)
+    admin_blog_title_ar: "Blog Title (Arabic)",
+    admin_blog_title_en: "Blog Title (English)",
+    admin_blog_body_ar: "Content (Arabic)",
+    admin_blog_body_en: "Content (English)",
+    admin_blog_saved: "Blog post saved successfully",
+    admin_article_title_ar: "Blog Title (Arabic)",
+    admin_article_title_en: "Blog Title (English)",
     admin_article_body_ar: "Content (Arabic)",
     admin_article_body_en: "Content (English)",
     admin_article_image: "Cover Image (URL)",
-    admin_article_save: "Save Article",
+    admin_article_save: "Save Blog Post",
+
+    // Ads form
+    admin_ads_title_ar: "Ad Title (Arabic)",
+    admin_ads_title_en: "Ad Title (English)",
+    admin_ads_body_ar: "Content (Arabic)",
+    admin_ads_body_en: "Content (English)",
+    admin_ads_saved: "Ad saved successfully",
+
+    // Media labels
+    admin_media_images: "Images (multiple)",
+    admin_media_videos: "Videos (multiple)",
+    admin_media_preview: "Preview",
 
     // News form
     admin_news_title_ar: "News Title (Arabic)",
@@ -397,6 +450,19 @@ export const translations = {
     trading_products_subtitle: "Browse our imported and exported products",
     trading_loading: "Loading products...",
     trading_no_products: "No products available currently",
-    trading_no_image: "No Image"
+    trading_no_image: "No Image",
+
+    // Home sections
+    home_ads_title: "Promotions & Ads",
+    home_latest_news: "Latest News",
+    home_read_more: "Read More",
+
+    // Blog page
+    blog_page_title: "Blog",
+    blog_page_subtitle: "Articles and diverse topics",
+    blog_read_more: "Read More",
+    blog_no_posts: "No blog posts available",
+    blog_loading: "Loading...",
+    blog_back: "Back to Blog",
   }
 };

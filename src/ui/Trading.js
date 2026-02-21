@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const Trading = () => {
   const { language } = useLanguage();
@@ -14,6 +16,12 @@ const Trading = () => {
     if (typeof val === "string") return val;
     return val[language] || val["ar"] || val["en"] || "";
   };
+
+  useEffect(() => {
+     if (!loading) {
+       setTimeout(() => { AOS.refresh(); }, 200);
+     }
+  }, [products, loading]);
 
   useEffect(() => {
     const fetchProducts = async () => {

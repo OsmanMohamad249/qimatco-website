@@ -3,6 +3,8 @@ import { Helmet } from "react-helmet";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
+import AOS from "aos";
+import "aos/dist/aos.css";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -21,6 +23,10 @@ const Home = () => {
   const { t, language } = useLanguage();
   const [ads, setAds] = useState([]);
   const [news, setNews] = useState([]);
+
+  useEffect(() => {
+    setTimeout(() => { AOS.refresh(); }, 200);
+  }, [ads, news]);
 
   const loc = (val) => {
     if (!val) return "";

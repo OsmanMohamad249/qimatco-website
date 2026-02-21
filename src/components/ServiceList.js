@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const ServiceList = () => {
   const { t, language } = useLanguage();
@@ -21,6 +23,12 @@ const ServiceList = () => {
     };
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setTimeout(() => { AOS.refresh(); }, 200);
+    }
+  }, [services, loading]);
 
   if (loading) return (
     <section id="services-list" className="py-5" style={{ backgroundColor: "var(--bg-main)" }}>

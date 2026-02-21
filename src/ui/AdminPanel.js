@@ -122,6 +122,7 @@ const AdminPanel = () => {
   const [blogPosts, setBlogPosts] = useState([]);
   const [blogLoading, setBlogLoading] = useState(false);
   const [blogMessage, setBlogMessage] = useState("");
+  const [blogFileKey, setBlogFileKey] = useState(0);
 
   // News
   const [newsForm, setNewsForm] = useState({ title_ar: "", title_en: "", body_ar: "", body_en: "" });
@@ -130,6 +131,7 @@ const AdminPanel = () => {
   const [newsItems, setNewsItems] = useState([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsMessage, setNewsMessage] = useState("");
+  const [newsFileKey, setNewsFileKey] = useState(0);
 
   // Ads
   const [adsForm, setAdsForm] = useState({ title_ar: "", title_en: "", body_ar: "", body_en: "" });
@@ -138,6 +140,7 @@ const AdminPanel = () => {
   const [adsList, setAdsList] = useState([]);
   const [adsLoading, setAdsLoading] = useState(false);
   const [adsMessage, setAdsMessage] = useState("");
+  const [adsFileKey, setAdsFileKey] = useState(0);
 
   // Permission / Admin management
   const [userPermissions, setUserPermissions] = useState(null);
@@ -312,7 +315,7 @@ const AdminPanel = () => {
       const imageUrls = await uploadMultiple(blogImages);
       const videoUrls = await uploadMultiple(blogVideos);
       await addDoc(collection(db, "blog"), { title: { ar: blogForm.title_ar, en: blogForm.title_en }, body: { ar: blogForm.body_ar, en: blogForm.body_en }, imageUrls, videoUrls, createdAt: serverTimestamp() });
-      setBlogForm({ title_ar: "", title_en: "", body_ar: "", body_en: "" }); setBlogImages([]); setBlogVideos([]);
+      setBlogForm({ title_ar: "", title_en: "", body_ar: "", body_en: "" }); setBlogImages([]); setBlogVideos([]); setBlogFileKey((k) => k + 1);
       const snap = await getDocs(query(collection(db, "blog"), orderBy("createdAt", "desc"))); setBlogPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setBlogMessage(t('admin_blog_saved'));
     } catch { setBlogMessage("تعذر الحفظ"); } finally { setBlogLoading(false); }
@@ -327,7 +330,7 @@ const AdminPanel = () => {
       const imageUrls = await uploadMultiple(newsImages);
       const videoUrls = await uploadMultiple(newsVideos);
       await addDoc(collection(db, "news"), { title: { ar: newsForm.title_ar, en: newsForm.title_en }, body: { ar: newsForm.body_ar, en: newsForm.body_en }, imageUrls, videoUrls, createdAt: serverTimestamp() });
-      setNewsForm({ title_ar: "", title_en: "", body_ar: "", body_en: "" }); setNewsImages([]); setNewsVideos([]);
+      setNewsForm({ title_ar: "", title_en: "", body_ar: "", body_en: "" }); setNewsImages([]); setNewsVideos([]); setNewsFileKey((k) => k + 1);
       const snap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc"))); setNewsItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setNewsMessage(t('admin_news_save'));
     } catch { setNewsMessage("تعذر الحفظ"); } finally { setNewsLoading(false); }
@@ -342,7 +345,7 @@ const AdminPanel = () => {
       const imageUrls = await uploadMultiple(adsImages);
       const videoUrls = await uploadMultiple(adsVideos);
       await addDoc(collection(db, "ads"), { title: { ar: adsForm.title_ar, en: adsForm.title_en }, body: { ar: adsForm.body_ar, en: adsForm.body_en }, imageUrls, videoUrls, createdAt: serverTimestamp() });
-      setAdsForm({ title_ar: "", title_en: "", body_ar: "", body_en: "" }); setAdsImages([]); setAdsVideos([]);
+      setAdsForm({ title_ar: "", title_en: "", body_ar: "", body_en: "" }); setAdsImages([]); setAdsVideos([]); setAdsFileKey((k) => k + 1);
       const snap = await getDocs(query(collection(db, "ads"), orderBy("createdAt", "desc"))); setAdsList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setAdsMessage(t('admin_ads_saved'));
     } catch { setAdsMessage("تعذر الحفظ"); } finally { setAdsLoading(false); }
@@ -406,7 +409,7 @@ const AdminPanel = () => {
   const handleWhatsappSave = async (e) => { e.preventDefault(); setWhatsappMsg(""); if (!whatsappSettings.phone.trim()) { setWhatsappMsg("يرجى إدخال رقم الواتساب"); return; } try { setWhatsappLoading(true); await setDoc(doc(db, "settings", "whatsapp"), { phone: whatsappSettings.phone, message: whatsappSettings.message, enabled: whatsappSettings.enabled, updatedAt: serverTimestamp() }); setWhatsappMsg("تم حفظ إعدادات الواتساب بنجاح"); } catch { setWhatsappMsg("تعذر حفظ الإعدادات"); } finally { setWhatsappLoading(false); } };
 
   // ── GENERIC MEDIA FORM RENDERER ──
-  const renderMediaForm = ({ sectionKey, titleAr, titleEn, formState, onFormChange, imagesInputName, videosInputName, onSubmit, isLoading, msgText, permKey }) => (
+  const renderMediaForm = ({ sectionKey, titleAr, titleEn, formState, onFormChange, imagesInputName, videosInputName, onSubmit, isLoading, msgText, permKey, fileKey }) => (
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
         <h4 style={{ color: "var(--primary-color)" }}>{t(`admin_tab_${sectionKey}`)}</h4>
@@ -419,8 +422,8 @@ const AdminPanel = () => {
             <div className="col-12"><h6 className="text-muted">🇬🇧 {language === 'ar' ? 'الإنجليزية' : 'English'}</h6></div>
             <div className="col-md-12"><label className="form-label">{titleEn}</label><input name="title_en" type="text" className="form-control" dir="ltr" value={formState.title_en} onChange={onFormChange} /></div>
             <div className="col-12"><label className="form-label">{t(`admin_${sectionKey}_body_en`) || 'Content (English)'}</label><textarea name="body_en" className="form-control" rows="3" dir="ltr" value={formState.body_en} onChange={onFormChange}></textarea></div>
-            <div className="col-md-6"><label className="form-label"><i className="bi bi-images me-1"></i>{t('admin_media_images')}</label><input name={imagesInputName} type="file" accept="image/*" multiple className="form-control" onChange={onFormChange} /></div>
-            <div className="col-md-6"><label className="form-label"><i className="bi bi-camera-video me-1"></i>{t('admin_media_videos')}</label><input name={videosInputName} type="file" accept="video/*" multiple className="form-control" onChange={onFormChange} /></div>
+            <div className="col-md-6"><label className="form-label"><i className="bi bi-images me-1"></i>{t('admin_media_images')}</label><input key={`img-${fileKey}`} name={imagesInputName} type="file" accept="image/*" multiple className="form-control" onChange={onFormChange} /></div>
+            <div className="col-md-6"><label className="form-label"><i className="bi bi-camera-video me-1"></i>{t('admin_media_videos')}</label><input key={`vid-${fileKey}`} name={videosInputName} type="file" accept="video/*" multiple className="form-control" onChange={onFormChange} /></div>
             <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={isLoading}>{isLoading ? t('admin_uploading') : t('admin_save')}</button></div>
           </form>
         ) : <div className="alert alert-secondary">{t('admin_no_permission')}</div>}
@@ -538,17 +541,17 @@ const AdminPanel = () => {
   );
 
   const renderBlogTab = () => (<>
-    {renderMediaForm({ sectionKey: "blog", titleAr: t('admin_blog_title_ar'), titleEn: t('admin_blog_title_en'), formState: blogForm, onFormChange: handleBlogChange, imagesInputName: "blogImages", videosInputName: "blogVideos", onSubmit: handleBlogSave, isLoading: blogLoading, msgText: blogMessage, permKey: "blog" })}
+    {renderMediaForm({ sectionKey: "blog", titleAr: t('admin_blog_title_ar'), titleEn: t('admin_blog_title_en'), formState: blogForm, onFormChange: handleBlogChange, imagesInputName: "blogImages", videosInputName: "blogVideos", onSubmit: handleBlogSave, isLoading: blogLoading, msgText: blogMessage, permKey: "blog", fileKey: blogFileKey })}
     {renderMediaList(blogPosts, "blog", handleDeleteBlog)}
   </>);
 
   const renderNewsTab = () => (<>
-    {renderMediaForm({ sectionKey: "news", titleAr: t('admin_news_title_ar'), titleEn: t('admin_news_title_en'), formState: newsForm, onFormChange: handleNewsChange, imagesInputName: "newsImages", videosInputName: "newsVideos", onSubmit: handleNewsSave, isLoading: newsLoading, msgText: newsMessage, permKey: "news" })}
+    {renderMediaForm({ sectionKey: "news", titleAr: t('admin_news_title_ar'), titleEn: t('admin_news_title_en'), formState: newsForm, onFormChange: handleNewsChange, imagesInputName: "newsImages", videosInputName: "newsVideos", onSubmit: handleNewsSave, isLoading: newsLoading, msgText: newsMessage, permKey: "news", fileKey: newsFileKey })}
     {renderMediaList(newsItems, "news", handleDeleteNews)}
   </>);
 
   const renderAdsTab = () => (<>
-    {renderMediaForm({ sectionKey: "ads", titleAr: t('admin_ads_title_ar'), titleEn: t('admin_ads_title_en'), formState: adsForm, onFormChange: handleAdsChange, imagesInputName: "adsImages", videosInputName: "adsVideos", onSubmit: handleAdsSave, isLoading: adsLoading, msgText: adsMessage, permKey: "ads" })}
+    {renderMediaForm({ sectionKey: "ads", titleAr: t('admin_ads_title_ar'), titleEn: t('admin_ads_title_en'), formState: adsForm, onFormChange: handleAdsChange, imagesInputName: "adsImages", videosInputName: "adsVideos", onSubmit: handleAdsSave, isLoading: adsLoading, msgText: adsMessage, permKey: "ads", fileKey: adsFileKey })}
     {renderMediaList(adsList, "ads", handleDeleteAd)}
   </>);
 

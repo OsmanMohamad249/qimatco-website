@@ -56,6 +56,7 @@ const InnerHeader = () => {
             <li><Link to="/about" className={splitLocation[1] === "about" ? "active" : ""}>{t('nav_about')}</Link></li>
             <li><Link to="/services" className={splitLocation[1] === "services" ? "active" : ""}>{t('nav_services')}</Link></li>
             <li><Link to="/blog" className={splitLocation[1] === "blog" ? "active" : ""}>{t('nav_blog')}</Link></li>
+            <li><Link to="/team" className={splitLocation[1] === "team" ? "active" : ""}>{t('nav_team')}</Link></li>
             <li><Link to="/career" className={splitLocation[1] === "career" ? "active" : ""}>{t('nav_careers')}</Link></li>
             <li><Link to="/request-quote" className={splitLocation[1] === "request-quote" ? "active" : ""}>{language === 'ar' ? 'طلب عرض سعر' : 'Request a Quote'}</Link></li>
 

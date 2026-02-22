@@ -31,6 +31,9 @@ const Navbar = () => {
             <Link to="/blog" className={splitLocation[1] === "blog" ? "active" : ""}>المدونة</Link>
           </li>
           <li>
+            <Link to="/team" className={splitLocation[1] === "team" ? "active" : ""}>{t('nav_team')}</Link>
+          </li>
+          <li>
             <Link to="/career" className={splitLocation[1] === "career" ? "active" : ""}>{t('nav_careers')}</Link>
           </li>
           <li>

@@ -12,6 +12,7 @@ export const translations = {
     nav_track_placeholder: "أدخل رقم التتبع",
     nav_track_alert: "نظام التتبع تحت الصيانة حاليا.",
     nav_blog: "المركز الإعلامي",
+    nav_team: "فريقنا",
 
     // Hero / Carousel
     hero_title_1: "بوابتك الموثوقة للتجارة العالمية",
@@ -187,6 +188,7 @@ export const translations = {
     nav_track_placeholder: "Tracking ID",
     nav_track_alert: "Tracking system under maintenance.",
     nav_blog: "Media Center",
+    nav_team: "Our Team",
 
     // Hero / Carousel
     hero_title_1: "Your Trusted Gateway to Global Trade",

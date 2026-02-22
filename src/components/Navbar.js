@@ -34,7 +34,7 @@ const Navbar = () => {
             <Link to="/career" className={splitLocation[1] === "career" ? "active" : ""}>{t('nav_careers')}</Link>
           </li>
           <li>
-            <Link to="/contact" className={splitLocation[1] === "contact" ? "active" : ""}>تواصل معنا</Link>
+            <Link to="/request-quote" className={splitLocation[1] === "request-quote" ? "active" : ""}>{t('nav_quote') || ("طلب عرض سعر")}</Link>
           </li>
           {/* Prominent Call-to-Action Button */}
           <li className="nav-cta-item">

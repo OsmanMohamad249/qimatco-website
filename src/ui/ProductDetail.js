@@ -38,7 +38,7 @@ const ProductDetail = () => {
 
   return (
     <>
-      <Helmet><title>{loc(product.name)} | Qimmah Al Ebtekar</title></Helmet>
+      <Helmet><title>{loc(product.name)} | Qimat AlAibtikar</title></Helmet>
       <InnerHeader />
 
       {/* Dynamic Banner */}

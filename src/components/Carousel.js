@@ -59,8 +59,8 @@ const Carousel = () => {
                   {slide.subtitle}
                 </p>
                 <div className="d-flex justify-content-center flex-wrap gap-3 animate__animated animate__fadeInUp animate__delay-1s">
-                  <Link to="/contact" className="btn enterprise-cta-btn btn-lg px-4 px-md-5">
-                    {t('hero_cta_quote') || 'طلب عرض سعر'}
+                  <Link to="/request-quote" className="btn enterprise-cta-btn btn-lg px-4 px-md-5">
+                    {language === 'ar' ? 'اطلب عرض سعر الآن' : 'Request Quote Now'}
                   </Link>
                   <Link to="/track" className="btn btn-outline-light btn-lg px-4 px-md-5" style={{ borderRadius: "var(--radius-md)", fontWeight: "600", borderWidth: "2px" }}>
                     <i className="bi bi-geo-alt me-2"></i> {language === 'ar' ? 'تتبع شحنتك' : 'Track Shipment'}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { db, auth } from "../firebase";
 import {
@@ -7,26 +7,38 @@ import {
 } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { useLanguage } from "../context/LanguageContext";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
+import logo from "../img/qimat-alaibtikar-logo.png";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmynksk5z/auto/upload";
 const CLOUDINARY_PRESET = "oiwrpbwq";
 
 const uploadToCloudinary = async (file) => {
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", CLOUDINARY_PRESET);
-  const res = await fetch(CLOUDINARY_URL, { method: "POST", body: fd });
-  const data = await res.json();
-  return data.secure_url || "";
+  if (!file) return "";
+  const data = new FormData();
+  data.append("file", file);
+  data.append("upload_preset", CLOUDINARY_PRESET);
+  const res = await fetch(CLOUDINARY_URL, { method: "POST", body: data });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json?.error?.message || "Cloudinary upload failed");
+  return json.secure_url || "";
 };
 
 const uploadMultiple = async (files) => {
-  const urls = [];
-  for (const file of files) {
-    const url = await uploadToCloudinary(file);
-    if (url) urls.push(url);
-  }
-  return urls;
+  if (!files || files.length === 0) return [];
+  const uploads = files.map((file) => uploadToCloudinary(file));
+  return await Promise.all(uploads);
+};
+
+const toDataUrl = async (src) => {
+  const res = await fetch(src);
+  const blob = await res.blob();
+  return await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
 };
 
 const initialForm = {
@@ -188,6 +200,32 @@ const AdminPanel = () => {
   const [applicationsLoading, setApplicationsLoading] = useState(false);
   const [editingJobId, setEditingJobId] = useState(null);
 
+  // Quotes
+  const [quotes, setQuotes] = useState([]);
+  const [quotesLoading, setQuotesLoading] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [quoteStatus, setQuoteStatus] = useState("pending");
+  const [quoteNotes, setQuoteNotes] = useState("");
+  const [quoteItems, setQuoteItems] = useState([]);
+  const [quoteMsg, setQuoteMsg] = useState("");
+
+  const [logoDataUrl, setLogoDataUrl] = useState("");
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [pdfQuote, setPdfQuote] = useState(null);
+  const pdfRef = useRef(null);
+
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const dataUrl = await toDataUrl(logo);
+        if (typeof dataUrl === "string") setLogoDataUrl(dataUrl);
+      } catch {
+        // Ignore logo load errors; PDF still works without logo.
+      }
+    };
+    loadLogo();
+  }, []);
+
   // ── EFFECTS ──
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
@@ -231,6 +269,8 @@ const AdminPanel = () => {
   useEffect(() => {
     if (!user || !userPermissions || accessDenied) return;
     const load = async () => {
+      setApplicationsLoading(true);
+      setQuotesLoading(true);
       try { const q = query(collection(db, "messages"), orderBy("createdAt", "desc")); const snap = await getDocs(q); setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch { setMessagesError("تعذر تحميل الرسائل حالياً"); } finally { setMessagesLoading(false); }
       try { const snap = await getDocs(collection(db, "products")); setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const snap = await getDocs(collection(db, "clients")); setClients(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
@@ -242,7 +282,8 @@ const AdminPanel = () => {
       try { const snap = await getDocs(collection(db, "services")); setServicesList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const waSnap = await getDoc(doc(db, "settings", "whatsapp")); if (waSnap.exists()) setWhatsappSettings(waSnap.data()); } catch {}
       try { const snap = await getDocs(query(collection(db, "jobs"), orderBy("createdAt", "desc"))); setJobsList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
-      try { const snap = await getDocs(query(collection(db, "applications"), orderBy("createdAt", "desc"))); setApplications(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
+      try { const snap = await getDocs(query(collection(db, "applications"), orderBy("createdAt", "desc"))); setApplications(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {} finally { setApplicationsLoading(false); }
+      try { const snap = await getDocs(query(collection(db, "quotes"), orderBy("createdAt", "desc"))); setQuotes(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {} finally { setQuotesLoading(false); }
     };
     load();
   }, [user, userPermissions, accessDenied]);
@@ -512,71 +553,78 @@ const AdminPanel = () => {
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
         <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_careers')}</h4>
-        {jobMessage && <div className="alert alert-info py-1 small">{jobMessage}</div>}
 
-        <form className="row g-3 mb-4" onSubmit={handleJobSave}>
-          <div className="col-md-6"><label className="form-label">{t('admin_job_title')}</label><input name="title" type="text" className="form-control" value={jobForm.title} onChange={handleJobChange} required /></div>
-          <div className="col-md-6"><label className="form-label">{t('admin_job_dept')}</label><input name="department" type="text" className="form-control" value={jobForm.department} onChange={handleJobChange} /></div>
-          <div className="col-md-6"><label className="form-label">{t('admin_job_type')}</label><input name="type" type="text" className="form-control" value={jobForm.type} onChange={handleJobChange} /></div>
-          <div className="col-md-6"><label className="form-label">{t('admin_job_location')}</label><input name="location" type="text" className="form-control" value={jobForm.location} onChange={handleJobChange} /></div>
-          <div className="col-md-6"><label className="form-label">{t('admin_job_deadline')}</label><input name="deadline" type="date" className="form-control" value={jobForm.deadline} onChange={handleJobChange} required /></div>
-          <div className="col-md-6"><label className="form-label">{t('admin_job_status')}</label><select name="status" className="form-select" value={jobForm.status} onChange={handleJobChange}><option value="open">open</option><option value="closed">closed</option></select></div>
-          <div className="col-12"><label className="form-label">{t('admin_job_desc')}</label><textarea name="description" className="form-control" rows="3" value={jobForm.description} onChange={handleJobChange} /></div>
-          <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={jobLoading}>{jobLoading ? t('admin_saving') : (editingJobId ? t('admin_job_update') : t('admin_job_save'))}</button></div>
-        </form>
-
-        <h5 className="mb-3" style={{ color: "var(--primary-color)" }}>{t('admin_jobs_list')}</h5>
-        {jobsList.length === 0 ? (
-          <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد وظائف منشورة' : 'No jobs posted yet'}</div>
-        ) : (
-          <div className="table-responsive mb-4">
-            <table className="table table-bordered table-striped align-middle">
-              <thead className="table-dark">
-                <tr>
-                  <th>{t('admin_job_title')}</th>
-                  <th>{t('admin_job_dept')}</th>
-                  <th>{t('admin_job_deadline')}</th>
-                  <th>{t('admin_job_status')}</th>
-                  <th>{language === 'ar' ? 'الإجراءات' : 'Actions'}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobsList.map((job) => (
-                  <tr key={job.id}>
-                    <td>{job.title}</td>
-                    <td>{job.department}</td>
-                    <td>{job.deadline || '-'}</td>
-                    <td><span className={`badge ${job.status === 'closed' ? 'bg-secondary' : 'bg-success'}`}>{job.status}</span></td>
-                    <td className="d-flex gap-2">
-                      <button className="btn btn-sm btn-outline-primary" onClick={() => handleJobEdit(job)}>{t('admin_job_edit')}</button>
-                      <button className="btn btn-sm btn-outline-warning" onClick={() => handleJobToggle(job)}>{job.status === 'closed' ? t('admin_job_open') : t('admin_job_close')}</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="row g-4 mt-2">
+          <div className="col-lg-6">
+            <h6 className="mb-3">{t('admin_jobs_list') || (language === 'ar' ? 'قائمة الوظائف المنشورة' : 'Posted Jobs List')}</h6>
+            {jobsList.length === 0 ? (
+              <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد وظائف حالياً' : 'No jobs posted yet'}</div>
+            ) : (
+              <div className="table-responsive">
+                <table className="table align-middle">
+                  <thead>
+                    <tr>
+                      <th>{t('admin_job_title')}</th>
+                      <th>{t('admin_job_dept')}</th>
+                      <th>{t('admin_job_deadline')}</th>
+                      <th>{t('admin_job_status')}</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jobsList.map((job) => (
+                      <tr key={job.id}>
+                        <td>{job.title}</td>
+                        <td>{job.department}</td>
+                        <td>{job.deadline || '-'}</td>
+                        <td>{job.status || 'open'}</td>
+                        <td className="d-flex gap-2">
+                          <button className="btn btn-sm btn-outline-warning" onClick={() => handleJobEdit(job)}>{t('admin_job_edit')}</button>
+                          <button className="btn btn-sm btn-outline-secondary" onClick={() => handleJobToggle(job)}>
+                            {job.status === "closed" ? t('admin_job_open') : t('admin_job_close')}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="col-lg-6">
+            <h6 className="mb-3">{editingJobId ? t('admin_job_update') : t('admin_job_save')}</h6>
+            <form className="row g-3" onSubmit={handleJobSave}>
+              <div className="col-12"><label className="form-label">{t('admin_job_title')}</label><input name="title" className="form-control" value={jobForm.title} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_dept')}</label><input name="department" className="form-control" value={jobForm.department} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_type')}</label><input name="type" className="form-control" value={jobForm.type} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_location')}</label><input name="location" className="form-control" value={jobForm.location} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_deadline')}</label><input name="deadline" type="date" className="form-control" value={jobForm.deadline} onChange={handleJobChange} required /></div>
+              <div className="col-12"><label className="form-label">{t('admin_job_desc')}</label><textarea name="description" rows="3" className="form-control" value={jobForm.description} onChange={handleJobChange} required></textarea></div>
+              <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={jobLoading}>{jobLoading ? t('admin_saving') : (editingJobId ? t('admin_job_update') : t('admin_job_save'))}</button></div>
+              {jobMessage && <div className="alert alert-info py-1 small">{jobMessage}</div>}
+            </form>
+          </div>
+        </div>
 
         <hr className="my-4" />
-        <h5 className="mb-3" style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'طلبات التوظيف' : 'Applications'}</h5>
+        <h6 className="mb-3">{language === 'ar' ? 'طلبات التوظيف' : 'Applications'}</h6>
         {applicationsLoading ? (
           <div className="text-center"><div className="spinner-border text-primary"></div></div>
         ) : applications.length === 0 ? (
           <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد طلبات حالياً' : 'No applications yet'}</div>
         ) : (
           <div className="table-responsive">
-            <table className="table table-bordered table-striped align-middle">
-              <thead className="table-dark">
+            <table className="table align-middle">
+              <thead>
                 <tr>
                   <th>{language === 'ar' ? 'الاسم' : 'Name'}</th>
                   <th>{language === 'ar' ? 'الهاتف' : 'Phone'}</th>
                   <th>Email</th>
-                  <th>{language === 'ar' ? 'الوظيفة' : 'Job'}</th>
                   <th>{t('career_linkedin')}</th>
                   <th>{t('career_experience')}</th>
                   <th>{t('career_education')}</th>
-                  <th>{language === 'ar' ? 'السيرة الذاتية' : 'CV'}</th>
+                  <th>CV</th>
                 </tr>
               </thead>
               <tbody>
@@ -585,15 +633,319 @@ const AdminPanel = () => {
                     <td>{app.name}</td>
                     <td>{app.phone}</td>
                     <td>{app.email}</td>
-                    <td>{app.jobTitle || app.jobId}</td>
                     <td>{app.linkedin || '-'}</td>
                     <td>{app.experience || '-'}</td>
                     <td>{app.education || '-'}</td>
-                    <td>{app.cvUrl ? <a href={app.cvUrl} target="_blank" rel="noreferrer">{language === 'ar' ? 'عرض' : 'View'}</a> : '-'}</td>
+                    <td>{app.cvUrl ? <a href={app.cvUrl} target="_blank" rel="noopener noreferrer">CV</a> : '-'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Quotes handlers
+  const handleSelectQuote = (q) => {
+    setSelectedQuote(q);
+    setQuoteStatus(q.status || "pending");
+    setQuoteNotes(q.adminNotes || "");
+    const itemsWithPricing = (q.items || []).map((it) => ({ ...it, price: it.price || "" }));
+    setQuoteItems(itemsWithPricing);
+    setQuoteMsg("");
+  };
+
+  const handleQuoteItemPriceChange = (idx, value) => {
+    setQuoteItems((prev) => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], price: value };
+      return next;
+    });
+  };
+
+  const handleSaveQuote = async () => {
+    if (!selectedQuote) return;
+    try {
+      setQuoteMsg("");
+      await updateDoc(doc(db, "quotes", selectedQuote.id), {
+        status: quoteStatus,
+        adminNotes: quoteNotes,
+        items: quoteItems,
+        updatedAt: serverTimestamp(),
+      });
+      setQuoteMsg(language === 'ar' ? 'تم حفظ عرض السعر' : 'Quote saved');
+      setQuotes((prev) => prev.map((q) => q.id === selectedQuote.id ? { ...q, status: quoteStatus, adminNotes: quoteNotes, items: quoteItems } : q));
+    } catch (err) {
+      setQuoteMsg(language === 'ar' ? 'تعذر حفظ عرض السعر' : 'Failed to save quote');
+    }
+  };
+
+  const currency = { en: "SAR", ar: "ر.س" };
+  const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ${currency.en} (${currency.ar})`;
+
+  const generatePDF = async (quote) => {
+    if (!quote || pdfGenerating) return;
+
+    const items = selectedQuote?.id === quote.id ? quoteItems : (quote.items || []);
+    const enrichedQuote = {
+      ...quote,
+      __items: items,
+      __notes: selectedQuote?.id === quote.id ? quoteNotes : (quote.adminNotes || ""),
+      __status: selectedQuote?.id === quote.id ? quoteStatus : (quote.status || "pending"),
+    };
+
+    setPdfQuote(enrichedQuote);
+    setPdfGenerating(true);
+
+    // Allow the hidden template to render before capture.
+    setTimeout(async () => {
+      try {
+        if (!pdfRef.current) return;
+        const canvas = await html2canvas(pdfRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+        });
+        const imgData = canvas.toDataURL("image/png");
+        const doc = new jsPDF({ unit: "pt", format: "a4" });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const y = imgHeight > pageHeight ? 0 : (pageHeight - imgHeight) / 2;
+        doc.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight);
+        doc.save(`quotation-${quote.id || "quote"}.pdf`);
+      } finally {
+        setPdfGenerating(false);
+        setPdfQuote(null);
+      }
+    }, 150);
+  };
+
+  const renderQuotesTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <h4 style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'عروض الأسعار' : 'Quotes'}</h4>
+
+        <div className="row g-4 mt-2">
+          <div className="col-lg-5">
+            <h6 className="mb-3">{language === 'ar' ? 'القائمة' : 'List'}</h6>
+            {quotesLoading ? (
+              <div className="text-center"><div className="spinner-border text-primary"></div></div>
+            ) : quotes.length === 0 ? (
+              <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد عروض أسعار' : 'No quotes yet'}</div>
+            ) : (
+              <div className="list-group">
+                {quotes.map((q) => (
+                  <button key={q.id} type="button" className={`list-group-item list-group-item-action ${selectedQuote?.id === q.id ? 'active' : ''}`} onClick={() => handleSelectQuote(q)}>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div className="fw-bold">{q.contactInfo?.fullName || q.entityInfo?.companyName || q.id}</div>
+                        <small className="text-muted">{q.id}</small>
+                      </div>
+                      <small>{q.createdAt?.seconds ? new Date(q.createdAt.seconds * 1000).toLocaleDateString() : ''}</small>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="col-lg-7">
+            {!selectedQuote ? (
+              <div className="alert alert-info">{language === 'ar' ? 'اختر عرض سعر لعرض التفاصيل' : 'Select a quote to view details'}</div>
+            ) : (
+              <>
+                <div className="mb-3">
+                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات العميل' : 'Client Info'}</h6>
+                  <div className="small text-muted">{selectedQuote.contactInfo?.fullName} | {selectedQuote.contactInfo?.email} | {selectedQuote.contactInfo?.phone}</div>
+                </div>
+
+                <div className="mb-3">
+                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات الجهة' : 'Entity Info'}</h6>
+                  <div className="small text-muted">{selectedQuote.entityInfo?.type} | {selectedQuote.entityInfo?.companyName} | {selectedQuote.entityInfo?.crNumber}</div>
+                  <div className="small text-muted">{selectedQuote.entityInfo?.address}</div>
+                </div>
+
+                <div className="table-responsive mb-3">
+                  <table className="table table-bordered align-middle">
+                    <thead className="table-light">
+                      <tr>
+                        <th>{language === 'ar' ? 'الخدمة / المنتج' : 'Item'}</th>
+                        <th>{language === 'ar' ? 'الكمية' : 'Qty'}</th>
+                        <th>{language === 'ar' ? 'التسليم' : 'Delivery'}</th>
+                        <th>{language === 'ar' ? 'السعر' : 'Price'}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {quoteItems.map((it, idx) => (
+                        <tr key={`qi-${idx}`}>
+                          <td>{it.serviceName}</td>
+                          <td>{it.quantity}</td>
+                          <td>{it.deliveryLocation}</td>
+                          <td><input className="form-control" value={it.price || ""} onChange={(e) => handleQuoteItemPriceChange(idx, e.target.value)} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">{language === 'ar' ? 'ملاحظات للعميل' : 'Notes for Client'}</label>
+                  <textarea className="form-control" rows="3" value={quoteNotes} onChange={(e) => setQuoteNotes(e.target.value)} />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">{language === 'ar' ? 'الحالة' : 'Status'}</label>
+                  <select className="form-select" value={quoteStatus} onChange={(e) => setQuoteStatus(e.target.value)}>
+                    <option value="pending">Pending</option>
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                  </select>
+                </div>
+
+                {quoteMsg && <div className="alert alert-info">{quoteMsg}</div>}
+                <div className="d-flex flex-wrap gap-2">
+                  <button className="btn btn-primary" style={{ background: "var(--secondary-color)", border: "none" }} onClick={handleSaveQuote}>{language === 'ar' ? 'حفظ التعديلات' : 'Save Changes'}</button>
+                  <button className="btn btn-outline-primary" onClick={() => generatePDF(selectedQuote)} disabled={pdfGenerating}>
+                    {language === 'ar' ? 'تحميل عرض السعر الرسمي (PDF)' : 'Download Official Quotation (PDF)'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {pdfQuote && (
+          <div
+            ref={pdfRef}
+            style={{
+              position: "fixed",
+              left: "-9999px",
+              top: 0,
+              width: "794px",
+              minHeight: "1123px",
+              padding: "40px 48px 110px 48px",
+              background: "#ffffff",
+              color: "#111",
+              fontFamily: "'Cairo', sans-serif",
+              direction: "rtl",
+              boxSizing: "border-box",
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ width: "160px" }}>
+                {logoDataUrl ? <img src={logoDataUrl} alt="Logo" style={{ width: "150px", height: "auto" }} /> : null}
+              </div>
+              <div style={{ textAlign: "left", direction: "ltr" }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: "#F4A900", letterSpacing: "0.5px" }}>عرض أسعار</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#0B2C5C" }}>OFFICIAL QUOTATION</div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 12, fontSize: 12, color: "#0B2C5C", textAlign: "center" }}>
+              <div style={{ fontWeight: 700 }}>Qimat AlAibtikar For Integrated Solutions Co. Ltd</div>
+              <div style={{ fontWeight: 700 }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
+            </div>
+
+            <div style={{ marginTop: 24, fontSize: 13, lineHeight: 1.9 }}>
+              <div style={{ fontWeight: 700 }}>تحية طيبة وبعد..</div>
+              <div>
+                نتشرف بتقديم عرض الأسعار أدناه حسب طلبكم، ونرجو أن ينال رضاكم. فيما يلي التفاصيل الخاصة بالخدمات/المنتجات المطلوبة.
+              </div>
+            </div>
+
+            {/* Client meta */}
+            <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 12 }}>
+              <div>
+                <div><strong>الاسم:</strong> {pdfQuote.contactInfo?.fullName || pdfQuote.entityInfo?.companyName || ""}</div>
+                <div><strong>البريد:</strong> {pdfQuote.contactInfo?.email || ""}</div>
+                <div><strong>الهاتف:</strong> {pdfQuote.contactInfo?.phone || ""}</div>
+              </div>
+              <div>
+                <div><strong>الجهة:</strong> {pdfQuote.entityInfo?.type === "company" ? "شركة" : "فرد"}</div>
+                {pdfQuote.entityInfo?.companyName && <div><strong>الشركة:</strong> {pdfQuote.entityInfo?.companyName}</div>}
+                {pdfQuote.entityInfo?.address && <div><strong>العنوان:</strong> {pdfQuote.entityInfo?.address}</div>}
+              </div>
+            </div>
+
+            {/* Items table */}
+            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 24, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: "#0B2C5C", color: "#fff" }}>
+                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "40px" }}>م / No</th>
+                  <th style={{ padding: 8, border: "1px solid #e6e6e6" }}>الصنف / Description</th>
+                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "110px" }}>السعر / Price</th>
+                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "80px" }}>الكمية / Qty</th>
+                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "120px" }}>الإجمالي / Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(pdfQuote.__items || []).map((it, idx) => {
+                  const qty = Number(it.quantity || 0);
+                  const price = Number(it.price || 0);
+                  const total = qty * price;
+                  const nameCombined = [it.serviceNameAr, it.serviceNameEn].filter(Boolean).join(" / ") || it.serviceName || "";
+                  return (
+                    <tr key={`pdf-row-${idx}`} style={{ background: "#fff" }}>
+                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{idx + 1}</td>
+                      <td style={{ padding: 8, border: "1px solid #e6e6e6" }}>{nameCombined}</td>
+                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{formatMoney(price)}</td>
+                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{it.quantity || ""}</td>
+                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{formatMoney(total)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Total box */}
+            <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-start" }}>
+              <div style={{ background: "#0B2C5C", color: "#fff", padding: "10px 14px", minWidth: "260px", borderRadius: "4px" }}>
+                <div style={{ fontSize: 12 }}>الإجمالي الكلي / Grand Total</div>
+                <div style={{ fontSize: 16, fontWeight: 700 }}>
+                  {formatMoney((pdfQuote.__items || []).reduce((sum, it) => sum + Number(it.quantity || 0) * Number(it.price || 0), 0))}
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div style={{ marginTop: 16, fontSize: 12, lineHeight: 1.8 }}>
+              <div style={{ fontWeight: 700, color: "#0B2C5C" }}>ملاحظات وشروط:</div>
+              <div>• الأسعار صالحة لمدة 7 أيام من تاريخ العرض.</div>
+              <div>• الأسعار لا تشمل ضريبة القيمة المضافة إن وجدت.</div>
+              <div>• شروط التسليم حسب الاتفاق.</div>
+            </div>
+
+            {/* Signature */}
+            <div style={{ marginTop: 22, display: "flex", justifyContent: "flex-start" }}>
+              <div style={{ borderTop: "1px solid #0B2C5C", paddingTop: 8, minWidth: "220px", textAlign: "center" }}>
+                يعتمد / Authorized Signature
+              </div>
+            </div>
+
+            {/* Footer stripe */}
+            <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "70px", background: "#0B2C5C" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 0,
+                  width: "220px",
+                  height: "70px",
+                  background: "#00B4FF",
+                  clipPath: "polygon(40% 0, 100% 0, 100% 100%, 0 100%)",
+                }}
+              />
+              <div style={{ position: "relative", zIndex: 2, color: "#fff", fontSize: 10, padding: "14px 48px" }}>
+                <div>الخرطوم، السودان</div>
+                <div>Phone: +249 XX XXX XXXX</div>
+                <div>www.qimatco.com | info@qimatco.com</div>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -704,7 +1056,7 @@ const AdminPanel = () => {
             <div className="col-md-6"><label className="form-label">{t('admin_product_video')}</label><input name="video" type="file" accept="video/*" className="form-control" onChange={handleProductChange} /></div>
             <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={productLoading}>{productLoading ? t('admin_uploading') : t('admin_product_save')}</button></div>
           </form>
-        ) : <div className="alert alert-secondary mt-2">{t('admin_no_permission')}</div>}
+        ) : <div className="alert alert-secondary">{t('admin_no_permission')}</div>}
       </div>
     </div>
   );
@@ -970,6 +1322,7 @@ const AdminPanel = () => {
               <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}><i className="bi bi-newspaper me-1"></i>{t('admin_tab_news')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "ads" ? "active" : ""}`} onClick={() => setActiveTab("ads")}><i className="bi bi-megaphone me-1"></i>{t('admin_tab_ads')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`} onClick={() => setActiveTab("messages")}><i className="bi bi-envelope me-1"></i>{t('admin_tab_messages')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "quotes" ? "active" : ""}`} onClick={() => setActiveTab("quotes")}><i className="bi bi-receipt me-1"></i>{language === 'ar' ? 'عروض الأسعار' : 'Quotes'}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "social" ? "active" : ""}`} onClick={() => setActiveTab("social")}><i className="bi bi-share me-1"></i>{t('admin_tab_social')}</button>
               {can(userPermissions, "admins", "view") && (<button className={`list-group-item list-group-item-action ${activeTab === "admins" ? "active" : ""}`} onClick={() => setActiveTab("admins")}><i className="bi bi-people-fill me-1"></i>{t('admin_tab_admins')}</button>)}
             </div>
@@ -988,6 +1341,7 @@ const AdminPanel = () => {
             {activeTab === "news" && renderNewsTab()}
             {activeTab === "ads" && renderAdsTab()}
             {activeTab === "messages" && renderMessagesTab()}
+            {activeTab === "quotes" && renderQuotesTab()}
             {activeTab === "social" && renderSocialTab()}
             {activeTab === "admins" && renderAdminsTab()}
           </div>

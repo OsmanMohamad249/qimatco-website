@@ -55,8 +55,8 @@ const Home = () => {
   return (
     <>
       <Helmet>
-        <title>Home | Qimmah Al Ebtekar Integrated Solutions</title>
-        <meta name="description" content="Qimmah Al Ebtekar: Integrated Logistics Solutions, International Shipping, Customs Clearance, and Global Trading." />
+        <title>Home | Qimat AlAibtikar Integrated Solutions</title>
+        <meta name="description" content="Qimat AlAibtikar: Integrated Logistics Solutions, International Shipping, Customs Clearance, and Global Trading." />
       </Helmet>
       <InnerHeader />
       <Carousel />

@@ -25,7 +25,7 @@ const BlogPage = () => {
 
   return (
     <>
-      <Helmet><title>{t('nav_blog')} | Qimmah Al Ebtekar</title></Helmet>
+      <Helmet><title>{t('nav_blog')} | Qimat AlAibtikar</title></Helmet>
       <InnerHeader />
 
       <div className="breadcrumbs" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1611095790444-1dfa35e37b52?q=80&w=2071&auto=format&fit=crop')", padding: "140px 0 60px 0", marginTop: "70px", position: "relative", backgroundSize: "cover", backgroundPosition: "center" }}>

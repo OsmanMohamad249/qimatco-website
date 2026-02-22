@@ -4,9 +4,9 @@
 /* --- 2. GLOBAL DESIGN VARIABLES (Design System) --- */
 :root {
   /* Corporate Colors */
-  --primary-color: #0b2c5c; /* Corporate Dark Blue */
+  --primary-color: #0B2C5C; /* Deep Professional Blue */
   --secondary-color: #25d366; /* Success/Action Green */
-  --accent-color: #fca311; /* Attention/Highlight Orange */
+  --accent-color: #00B4FF; /* Innovation Sky Blue */
 
   /* Backgrounds */
   --bg-main: #fcfcfc; /* Extremely soft off-white for main background */

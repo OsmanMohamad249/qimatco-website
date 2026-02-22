@@ -42,7 +42,7 @@ const Service = () => {
   return (
     <>
       <Helmet>
-        <title>{t('nav_services') || 'Services'} | Qimmah Al Ebtekar</title>
+        <title>{t('nav_services') || 'Services'} | Qimat AlAibtikar</title>
       </Helmet>
       <InnerHeader />
 

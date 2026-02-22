@@ -9,7 +9,7 @@ import Footer from "../components/Footer";
 
 const ServiceDetail = () => {
   const { id } = useParams();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [service, setService] = useState(null);
   const [allServices, setAllServices] = useState([]);
@@ -45,7 +45,7 @@ const ServiceDetail = () => {
 
   return (
     <>
-      <Helmet><title>{loc(service.title)} | Qimmah Al Ebtekar</title></Helmet>
+      <Helmet><title>{loc(service.title)} | Qimat AlAibtikar</title></Helmet>
       <InnerHeader />
 
       {/* Dynamic Banner */}
@@ -73,10 +73,10 @@ const ServiceDetail = () => {
                   {loc(service.fullDesc)}
                 </p>
                 <div className="mt-5 bg-light p-4 rounded" style={{ borderRight: language === 'ar' ? "4px solid var(--accent-color)" : "none", borderLeft: language !== 'ar' ? "4px solid var(--accent-color)" : "none" }}>
-                  <h4 style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'هل تحتاج إلى هذه الخدمة؟' : 'Need this service?'}</h4>
-                  <p className="mb-4">{language === 'ar' ? 'تواصل معنا الآن للحصول على استشارة مجانية وعرض سعر مخصص لأعمالك.' : 'Contact us now for a free consultation and a customized quote.'}</p>
-                  <Link to="/contact" className="btn enterprise-cta-btn px-4" style={{display: "inline-flex"}}>
-                    {t('nav_contact')} <i className="bi bi-arrow-up-right-circle ms-2"></i>
+                  <h4 style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'هل هذه الخدمة تلبي احتياجاتك؟' : 'Does this service fit your needs?'}</h4>
+                  <p className="mb-4">{language === 'ar' ? 'أضفها لطلب عرض السعر الآن وسنتواصل معك بأسرع وقت.' : 'Add it to your quote request now and we will get back to you soon.'}</p>
+                  <Link to="/request-quote" className="btn enterprise-cta-btn px-4" style={{display: "inline-flex"}}>
+                    {language === 'ar' ? 'طلب عرض سعر' : 'Request a Quote'} <i className="bi bi-arrow-up-right-circle ms-2"></i>
                   </Link>
                 </div>
               </div>

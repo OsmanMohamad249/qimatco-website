@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../img/qimmah-logo.png";
+import logo from "../img/qimat-alaibtikar-logo.png";
 import { useLanguage } from "../context/LanguageContext";
 import { collection, getDocs, query, limit } from "firebase/firestore";
 import { db } from "../firebase";
@@ -41,7 +41,7 @@ const Footer = () => {
               >
                 <img
                   src={logo}
-                  alt="Qimmah Al Ebtekar"
+                  alt="Qimat AlAibtikar"
                   style={{
                     maxHeight: "60px",
                     backgroundColor: "#fff",
@@ -62,16 +62,36 @@ const Footer = () => {
                 {t("footer_desc")}
               </p>
               <div className="social-links mt-4 d-flex gap-2">
-                <a href="#" className="social-icon">
+                <a
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-icon"
+                >
                   <i className="bi bi-twitter-x"></i>
                 </a>
-                <a href="#" className="social-icon">
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-icon"
+                >
                   <i className="bi bi-facebook"></i>
                 </a>
-                <a href="#" className="social-icon">
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-icon"
+                >
                   <i className="bi bi-instagram"></i>
                 </a>
-                <a href="#" className="social-icon">
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-icon"
+                >
                   <i className="bi bi-linkedin"></i>
                 </a>
               </div>
@@ -267,7 +287,7 @@ const Footer = () => {
                   <span>
                     {language === "ar"
                       ? "قمة الابتكار للحلول المتكاملة"
-                      : "Qimmah Al Ebtekar"}
+                      : "Qimat AlAibtikar"}
                   </span>
                 </strong>
                 .{" "}

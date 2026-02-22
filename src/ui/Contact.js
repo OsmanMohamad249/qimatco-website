@@ -27,7 +27,7 @@ const Contact = () => {
 
   return (
     <>
-      <Helmet><title>{t('nav_contact')} | Qimmah Al Ebtekar</title></Helmet>
+      <Helmet><title>{t('nav_contact')} | Qimat AlAibtikar</title></Helmet>
       <InnerHeader />
 
       <div className="breadcrumbs" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?q=80&w=2074&auto=format&fit=crop')", padding: "140px 0 60px 0", marginTop: "70px", position: "relative", backgroundSize: "cover", backgroundPosition: "center" }}>

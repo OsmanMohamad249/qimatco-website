@@ -19,7 +19,7 @@ const About = () => {
   return (
     <>
       <Helmet>
-        <title>{language === 'ar' ? 'من نحن | قمة الابتكار' : 'About Us | Qimmah Al Ebtekar'}</title>
+        <title>{language === 'ar' ? 'من نحن | قمة الابتكار' : 'About Us | Qimat AlAibtikar'}</title>
       </Helmet>
       <InnerHeader />
 
@@ -43,7 +43,7 @@ const About = () => {
           <div className="container" data-aos="fade-up">
             <div className="row gy-5 align-items-center">
               <div className="col-lg-6">
-                <h6 className="mb-2" style={{ color: "var(--accent-color)", fontWeight: "700" }}>{language === 'ar' ? 'لماذا تختار قمة الابتكار؟' : 'Why Choose Qimmah Al Ebtekar?'}</h6>
+                <h6 className="mb-2" style={{ color: "var(--accent-color)", fontWeight: "700" }}>{language === 'ar' ? 'لماذا تختار قمة الابتكار؟' : 'Why Choose Qimat AlAibtikar?'}</h6>
                 <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem", marginBottom: "30px" }}>
                   {language === 'ar' ? 'شريكك الاستراتيجي للنمو' : 'Your Strategic Partner for Growth'}
                 </h2>
@@ -78,7 +78,7 @@ const About = () => {
                 <div className="position-relative rounded-4 overflow-hidden shadow-lg">
                   <img src={img_logistics} className="img-fluid w-100" alt="Logistics" style={{ minHeight: "500px", objectFit: "cover" }} />
                   <div className="position-absolute bottom-0 start-0 w-100 p-4" style={{ background: "linear-gradient(to top, rgba(11,44,92,0.95), transparent)" }}>
-                    <h4 className="text-white fw-bold mb-1">{language === 'ar' ? 'قمة الابتكار' : 'Qimmah Al Ebtekar'}</h4>
+                    <h4 className="text-white fw-bold mb-1">{language === 'ar' ? 'قمة الابتكار' : 'Qimat AlAibtikar'}</h4>
                     <p className="text-white-50 mb-0">{language === 'ar' ? 'لحلول الإمداد والتجارة المتكاملة' : 'Integrated Supply & Trade Solutions'}</p>
                   </div>
                 </div>

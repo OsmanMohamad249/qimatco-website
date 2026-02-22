@@ -75,7 +75,7 @@ const Career = () => {
 
   return (
     <>
-      <Helmet><title>{t('nav_careers')} | Qimmah Al Ebtekar</title></Helmet>
+      <Helmet><title>{t('nav_careers')} | Qimat AlAibtikar</title></Helmet>
       <InnerHeader />
       <div className="breadcrumbs" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop')", padding: "140px 0 60px 0", marginTop: "70px", position: "relative", backgroundSize: "cover", backgroundPosition: "center" }}>
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(11, 44, 92, 0.85)" }}></div>

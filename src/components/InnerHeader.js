@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import logo from "../img/qimmah-logo.png";
+import logo from "../img/qimat-alaibtikar-logo.png";
 import { Link, useLocation } from "react-router-dom";
 import { animateScroll as scroll } from "react-scroll";
 import { useLanguage } from "../context/LanguageContext";
@@ -42,7 +42,7 @@ const InnerHeader = () => {
     <header id="header" className="header fixed-top">
       <div className="container-fluid container-xl d-flex align-items-center justify-content-between">
         <Link to="/" className="logo d-flex align-items-center" onClick={toTop}>
-          <img src={logo} alt="Qimmah Al Ebtekar" style={{ maxHeight: "60px" }} />
+          <img src={logo} alt="Qimat AlAibtikar" style={{ maxHeight: "60px" }} />
         </Link>
 
         <span onClick={mobilemenu} className="mobile-nav-toggle-wrapper d-xl-none">
@@ -57,7 +57,7 @@ const InnerHeader = () => {
             <li><Link to="/services" className={splitLocation[1] === "services" ? "active" : ""}>{t('nav_services')}</Link></li>
             <li><Link to="/blog" className={splitLocation[1] === "blog" ? "active" : ""}>{t('nav_blog')}</Link></li>
             <li><Link to="/career" className={splitLocation[1] === "career" ? "active" : ""}>{t('nav_careers')}</Link></li>
-            <li><Link to="/contact" className={splitLocation[1] === "contact" ? "active" : ""}>{t('nav_contact')}</Link></li>
+            <li><Link to="/request-quote" className={splitLocation[1] === "request-quote" ? "active" : ""}>{language === 'ar' ? 'طلب عرض سعر' : 'Request a Quote'}</Link></li>
 
             {/* Enterprise Tracking Button CTA */}
             <li className="ms-lg-4 mt-3 mt-lg-0 mb-3 mb-lg-0">

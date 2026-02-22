@@ -14,7 +14,7 @@ const About = () => {
   const img_hero = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop";
   const img_logistics = "https://images.unsplash.com/photo-1565891741441-64926e441838?q=80&w=1000&auto=format&fit=crop";
   const img_export = "https://images.unsplash.com/photo-1494412519320-aa613dfb7738?q=80&w=1000&auto=format&fit=crop";
-  const img_import = "https://images.unsplash.com/photo-1551281081-8b066266002f?q=80&w=1000&auto=format&fit=crop";
+  const img_import = "https://images.unsplash.com/photo-1494412651409-8963ce7935a7?q=80&w=1000&auto=format&fit=crop";
 
   return (
     <>

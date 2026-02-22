@@ -174,6 +174,15 @@ export const translations = {
     team_download_cv: "تحميل السيرة الذاتية",
     team_close: "إغلاق",
 
+    // CBM Calculator
+    cbm_title: "حاسبة الحجم (CBM)",
+    cbm_length: "الطول (سم)",
+    cbm_width: "العرض (سم)",
+    cbm_height: "الارتفاع (سم)",
+    cbm_qty: "العدد",
+    cbm_calc_btn: "احسب",
+    cbm_vol_weight: "الوزن الحجمي التقديري",
+
   },
   en: {
     // Navbar & Common
@@ -349,6 +358,15 @@ export const translations = {
     team_responsibilities: "Responsibilities",
     team_download_cv: "Download CV",
     team_close: "Close",
+
+    // CBM Calculator
+    cbm_title: "Volume Calculator (CBM)",
+    cbm_length: "Length (cm)",
+    cbm_width: "Width (cm)",
+    cbm_height: "Height (cm)",
+    cbm_qty: "Quantity",
+    cbm_calc_btn: "Calculate",
+    cbm_vol_weight: "Est. Volumetric Weight",
 
   }
 };

@@ -18,6 +18,7 @@ const BlogPage = lazy(() => import("./ui/BlogPage"));
 const ServiceDetail = lazy(() => import("./ui/ServiceDetail"));
 const ProductDetail = lazy(() => import("./ui/ProductDetail"));
 const RequestQuote = lazy(() => import("./ui/RequestQuote"));
+const Team = lazy(() => import("./ui/Team"));
 
 function App() {
   useEffect(() => {
@@ -45,6 +46,7 @@ function App() {
             <Route path="track" element={<TrackShipment />} />
             <Route path="blog" element={<BlogPage />} />
             <Route path="admin" element={<AdminPanel />} />
+            <Route path="team" element={<Team />} />
             <Route path="*" element={<NoPage />} />
           </Routes>
         </Suspense>

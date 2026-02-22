@@ -7,12 +7,40 @@ import {
 } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { useLanguage } from "../context/LanguageContext";
-import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import logo from "../img/qimat-alaibtikar-logo.png";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmynksk5z/auto/upload";
 const CLOUDINARY_PRESET = "oiwrpbwq";
+
+const ACTION_LABELS = {
+  add: "إضافة",
+  edit: "تعديل",
+  delete: "حذف",
+  view: "عرض",
+  markRead: "تحديد كمقروء",
+};
+
+const PERM_SECTIONS = [
+  { key: "services", label: "الخدمات", actions: ["add", "edit", "delete"] },
+  { key: "products", label: "المنتجات", actions: ["add", "edit", "delete"] },
+  { key: "clients", label: "العملاء", actions: ["add", "edit", "delete"] },
+  { key: "messages", label: "الرسائل", actions: ["view", "markRead"] },
+  { key: "news", label: "الأخبار", actions: ["add", "edit", "delete"] },
+  { key: "blog", label: "المدونة", actions: ["add", "edit", "delete"] },
+  { key: "ads", label: "الإعلانات", actions: ["add", "edit", "delete"] },
+  { key: "shipments", label: "الشحنات", actions: ["add", "edit", "delete"] },
+  { key: "admins", label: "المشرفون", actions: ["view", "add", "edit", "delete"] },
+];
+
+const SOCIAL_ICONS = [
+  { value: "bi-globe", label: "Website" },
+  { value: "bi-facebook", label: "Facebook" },
+  { value: "bi-instagram", label: "Instagram" },
+  { value: "bi-linkedin", label: "LinkedIn" },
+  { value: "bi-twitter-x", label: "X" },
+];
 
 const uploadToCloudinary = async (file) => {
   if (!file) return "";
@@ -29,16 +57,6 @@ const uploadMultiple = async (files) => {
   if (!files || files.length === 0) return [];
   const uploads = files.map((file) => uploadToCloudinary(file));
   return await Promise.all(uploads);
-};
-
-const toDataUrl = async (src) => {
-  const res = await fetch(src);
-  const blob = await res.blob();
-  return await new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.readAsDataURL(blob);
-  });
 };
 
 const initialForm = {
@@ -156,6 +174,18 @@ const AdminPanel = () => {
   const [adsMessage, setAdsMessage] = useState("");
   const [adsFileKey, setAdsFileKey] = useState(0);
 
+  // Quotes
+  const [quotes, setQuotes] = useState([]);
+  const [quotesLoading, setQuotesLoading] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [quoteItems, setQuoteItems] = useState([]);
+  const [quoteNotes, setQuoteNotes] = useState("");
+  const [quoteStatus, setQuoteStatus] = useState("pending");
+  const [quoteMsg, setQuoteMsg] = useState("");
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [pdfQuote, setPdfQuote] = useState(null);
+  const pdfRef = useRef(null);
+
   // Permission / Admin management
   const [userPermissions, setUserPermissions] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -200,31 +230,35 @@ const AdminPanel = () => {
   const [applicationsLoading, setApplicationsLoading] = useState(false);
   const [editingJobId, setEditingJobId] = useState(null);
 
-  // Quotes
-  const [quotes, setQuotes] = useState([]);
-  const [quotesLoading, setQuotesLoading] = useState(false);
-  const [selectedQuote, setSelectedQuote] = useState(null);
-  const [quoteStatus, setQuoteStatus] = useState("pending");
-  const [quoteNotes, setQuoteNotes] = useState("");
-  const [quoteItems, setQuoteItems] = useState([]);
-  const [quoteMsg, setQuoteMsg] = useState("");
+  // Team management
+  const [teamSubTab, setTeamSubTab] = useState("employees");
 
-  const [logoDataUrl, setLogoDataUrl] = useState("");
-  const [pdfGenerating, setPdfGenerating] = useState(false);
-  const [pdfQuote, setPdfQuote] = useState(null);
-  const pdfRef = useRef(null);
+  const [departments, setDepartments] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [titles, setTitles] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
-  useEffect(() => {
-    const loadLogo = async () => {
-      try {
-        const dataUrl = await toDataUrl(logo);
-        if (typeof dataUrl === "string") setLogoDataUrl(dataUrl);
-      } catch {
-        // Ignore logo load errors; PDF still works without logo.
-      }
-    };
-    loadLogo();
-  }, []);
+  const [deptForm, setDeptForm] = useState({ name_ar: "", name_en: "" });
+  const [sectionForm, setSectionForm] = useState({ name_ar: "", name_en: "", departmentId: "" });
+  const [titleForm, setTitleForm] = useState({ title_ar: "", title_en: "", sectionId: "", level: "staff" });
+  const [employeeForm, setEmployeeForm] = useState({ name_ar: "", name_en: "", bio_ar: "", bio_en: "", resp_ar: "", resp_en: "", titleId: "", managerId: "" });
+
+  const [deptModalOpen, setDeptModalOpen] = useState(false);
+  const [sectionModalOpen, setSectionModalOpen] = useState(false);
+  const [titleModalOpen, setTitleModalOpen] = useState(false);
+  const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
+
+  const [editingDeptId, setEditingDeptId] = useState(null);
+  const [editingSectionId, setEditingSectionId] = useState(null);
+  const [editingTitleId, setEditingTitleId] = useState(null);
+  const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+
+  const [employeeImageFile, setEmployeeImageFile] = useState(null);
+  const [employeeCvFile, setEmployeeCvFile] = useState(null);
+  const [employeeFileKey, setEmployeeFileKey] = useState(0);
+
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [teamMsg, setTeamMsg] = useState("");
 
   // ── EFFECTS ──
   useEffect(() => {
@@ -280,6 +314,10 @@ const AdminPanel = () => {
       try { const snap = await getDocs(collection(db, "admins")); setAdmins(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const snap = await getDocs(collection(db, "socialLinks")); setSocialLinks(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const snap = await getDocs(collection(db, "services")); setServicesList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
+      try { const snap = await getDocs(collection(db, "team_departments")); setDepartments(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
+      try { const snap = await getDocs(collection(db, "team_sections")); setSections(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
+      try { const snap = await getDocs(collection(db, "team_titles")); setTitles(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
+      try { const snap = await getDocs(collection(db, "team_employees")); setEmployees(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const waSnap = await getDoc(doc(db, "settings", "whatsapp")); if (waSnap.exists()) setWhatsappSettings(waSnap.data()); } catch {}
       try { const snap = await getDocs(query(collection(db, "jobs"), orderBy("createdAt", "desc"))); setJobsList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const snap = await getDocs(query(collection(db, "applications"), orderBy("createdAt", "desc"))); setApplications(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {} finally { setApplicationsLoading(false); }
@@ -499,33 +537,165 @@ const AdminPanel = () => {
   };
   const handleDeleteService = async (id) => { try { await deleteDoc(doc(db, "services", id)); setServicesList(prev => prev.filter(s => s.id !== id)); } catch {} };
 
+  // Team handlers
+  const confirmDelete = () => window.confirm(t("admin_team_confirm_delete"));
+
+  const resetTeamForms = () => {
+    setDeptForm({ name_ar: "", name_en: "" });
+    setSectionForm({ name_ar: "", name_en: "", departmentId: "" });
+    setTitleForm({ title_ar: "", title_en: "", sectionId: "", level: "staff" });
+    setEmployeeForm({ name_ar: "", name_en: "", bio_ar: "", bio_en: "", resp_ar: "", resp_en: "", titleId: "", managerId: "" });
+    setEmployeeImageFile(null);
+    setEmployeeCvFile(null);
+    setEmployeeFileKey((k) => k + 1);
+  };
+
+  const handleSaveDepartment = async (e) => {
+    e.preventDefault();
+    try {
+      setTeamLoading(true);
+      setTeamMsg("");
+      const payload = { name: { ar: deptForm.name_ar, en: deptForm.name_en }, updatedAt: serverTimestamp() };
+      if (editingDeptId) {
+        await updateDoc(doc(db, "team_departments", editingDeptId), payload);
+      } else {
+        await addDoc(collection(db, "team_departments"), { ...payload, createdAt: serverTimestamp() });
+      }
+      const snap = await getDocs(collection(db, "team_departments"));
+      setDepartments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setDeptModalOpen(false);
+      setEditingDeptId(null);
+      setDeptForm({ name_ar: "", name_en: "" });
+      setTeamMsg(t("admin_save"));
+    } catch {
+      setTeamMsg("تعذر الحفظ");
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const handleSaveSection = async (e) => {
+    e.preventDefault();
+    try {
+      setTeamLoading(true);
+      setTeamMsg("");
+      const payload = { name: { ar: sectionForm.name_ar, en: sectionForm.name_en }, departmentId: sectionForm.departmentId, updatedAt: serverTimestamp() };
+      if (editingSectionId) {
+        await updateDoc(doc(db, "team_sections", editingSectionId), payload);
+      } else {
+        await addDoc(collection(db, "team_sections"), { ...payload, createdAt: serverTimestamp() });
+      }
+      const snap = await getDocs(collection(db, "team_sections"));
+      setSections(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setSectionModalOpen(false);
+      setEditingSectionId(null);
+      setSectionForm({ name_ar: "", name_en: "", departmentId: "" });
+      setTeamMsg(t("admin_save"));
+    } catch {
+      setTeamMsg("تعذر الحفظ");
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const handleSaveTitle = async (e) => {
+    e.preventDefault();
+    try {
+      setTeamLoading(true);
+      setTeamMsg("");
+      const payload = { title: { ar: titleForm.title_ar, en: titleForm.title_en }, sectionId: titleForm.sectionId, level: titleForm.level, updatedAt: serverTimestamp() };
+      if (editingTitleId) {
+        await updateDoc(doc(db, "team_titles", editingTitleId), payload);
+      } else {
+        await addDoc(collection(db, "team_titles"), { ...payload, createdAt: serverTimestamp() });
+      }
+      const snap = await getDocs(collection(db, "team_titles"));
+      setTitles(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setTitleModalOpen(false);
+      setEditingTitleId(null);
+      setTitleForm({ title_ar: "", title_en: "", sectionId: "", level: "staff" });
+      setTeamMsg(t("admin_save"));
+    } catch {
+      setTeamMsg("تعذر الحفظ");
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const handleSaveEmployee = async (e) => {
+    e.preventDefault();
+    try {
+      setTeamLoading(true);
+      setTeamMsg("");
+      const imageUrl = employeeImageFile ? await uploadToCloudinary(employeeImageFile) : "";
+      const cvUrl = employeeCvFile ? await uploadToCloudinary(employeeCvFile) : "";
+      const payload = {
+        name: { ar: employeeForm.name_ar, en: employeeForm.name_en },
+        bio: { ar: employeeForm.bio_ar, en: employeeForm.bio_en },
+        responsibilities: { ar: employeeForm.resp_ar, en: employeeForm.resp_en },
+        titleId: employeeForm.titleId,
+        managerId: employeeForm.managerId || "",
+        imageUrl,
+        cvUrl,
+        updatedAt: serverTimestamp(),
+      };
+      if (editingEmployeeId) {
+        await updateDoc(doc(db, "team_employees", editingEmployeeId), payload);
+      } else {
+        await addDoc(collection(db, "team_employees"), { ...payload, createdAt: serverTimestamp() });
+      }
+      const snap = await getDocs(collection(db, "team_employees"));
+      setEmployees(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setEmployeeModalOpen(false);
+      setEditingEmployeeId(null);
+      resetTeamForms();
+      setTeamMsg(t("admin_save"));
+    } catch {
+      setTeamMsg("تعذر الحفظ");
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const handleEditDepartment = (item) => { setEditingDeptId(item.id); setDeptForm({ name_ar: item.name?.ar || "", name_en: item.name?.en || "" }); setDeptModalOpen(true); };
+  const handleEditSection = (item) => { setEditingSectionId(item.id); setSectionForm({ name_ar: item.name?.ar || "", name_en: item.name?.en || "", departmentId: item.departmentId || "" }); setSectionModalOpen(true); };
+  const handleEditTitle = (item) => { setEditingTitleId(item.id); setTitleForm({ title_ar: item.title?.ar || "", title_en: item.title?.en || "", sectionId: item.sectionId || "", level: item.level || "staff" }); setTitleModalOpen(true); };
+  const handleEditEmployee = (item) => {
+    setEditingEmployeeId(item.id);
+    setEmployeeForm({
+      name_ar: item.name?.ar || "",
+      name_en: item.name?.en || "",
+      bio_ar: item.bio?.ar || "",
+      bio_en: item.bio?.en || "",
+      resp_ar: item.responsibilities?.ar || "",
+      resp_en: item.responsibilities?.en || "",
+      titleId: item.titleId || "",
+      managerId: item.managerId || "",
+    });
+    setEmployeeModalOpen(true);
+  };
+
+  const handleDeleteDepartment = async (id) => {
+    if (!confirmDelete()) return;
+    try { await deleteDoc(doc(db, "team_departments", id)); setDepartments((prev) => prev.filter((d) => d.id !== id)); } catch {}
+  };
+  const handleDeleteSection = async (id) => {
+    if (!confirmDelete()) return;
+    try { await deleteDoc(doc(db, "team_sections", id)); setSections((prev) => prev.filter((d) => d.id !== id)); } catch {}
+  };
+  const handleDeleteTitle = async (id) => {
+    if (!confirmDelete()) return;
+    try { await deleteDoc(doc(db, "team_titles", id)); setTitles((prev) => prev.filter((d) => d.id !== id)); } catch {}
+  };
+  const handleDeleteEmployee = async (id) => {
+    if (!confirmDelete()) return;
+    try { await deleteDoc(doc(db, "team_employees", id)); setEmployees((prev) => prev.filter((d) => d.id !== id)); } catch {}
+  };
+
   // Job handlers
   const handleJobChange = (e) => {
     const { name, value } = e.target;
     setJobForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleJobSave = async (e) => {
-    e.preventDefault();
-    setJobMessage("");
-    try {
-      setJobLoading(true);
-      if (editingJobId) {
-        await updateDoc(doc(db, "jobs", editingJobId), { ...jobForm, updatedAt: serverTimestamp() });
-        setJobMessage(language === 'ar' ? 'تم تحديث الوظيفة بنجاح' : 'Job updated successfully');
-      } else {
-        await addDoc(collection(db, "jobs"), { ...jobForm, createdAt: serverTimestamp() });
-        setJobMessage(language === 'ar' ? 'تم نشر الوظيفة بنجاح' : 'Job posted successfully');
-      }
-      setJobForm({ title: "", department: "", type: "", location: "", description: "", deadline: "", status: "open" });
-      setEditingJobId(null);
-      const snap = await getDocs(query(collection(db, "jobs"), orderBy("createdAt", "desc")));
-      setJobsList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    } catch (err) {
-      setJobMessage(language === 'ar' ? 'تعذر نشر الوظيفة' : 'Failed to post job');
-    } finally {
-      setJobLoading(false);
-    }
   };
 
   const handleJobEdit = (job) => {
@@ -545,124 +715,43 @@ const AdminPanel = () => {
     try {
       const nextStatus = job.status === "closed" ? "open" : "closed";
       await updateDoc(doc(db, "jobs", job.id), { status: nextStatus, updatedAt: serverTimestamp() });
-      setJobsList((prev) => prev.map((j) => j.id === job.id ? { ...j, status: nextStatus } : j));
-    } catch { }
+      setJobsList((prev) => prev.map((j) => (j.id === job.id ? { ...j, status: nextStatus } : j)));
+    } catch {}
   };
 
-  const renderCareersTab = () => (
-    <div className="card shadow-sm border-0">
-      <div className="card-body p-4">
-        <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_careers')}</h4>
+  const handleJobSave = async (e) => {
+    e.preventDefault();
+    setJobMessage("");
+    try {
+      setJobLoading(true);
+      if (editingJobId) {
+        await updateDoc(doc(db, "jobs", editingJobId), { ...jobForm, updatedAt: serverTimestamp() });
+        setJobsList((prev) => prev.map((j) => (j.id === editingJobId ? { ...j, ...jobForm } : j)));
+      } else {
+        const docRef = await addDoc(collection(db, "jobs"), { ...jobForm, createdAt: serverTimestamp() });
+        setJobsList((prev) => [{ id: docRef.id, ...jobForm }, ...prev]);
+      }
+      setJobMessage(t("admin_save"));
+      setEditingJobId(null);
+      setJobForm({ title: "", department: "", type: "", location: "", description: "", deadline: "", status: "open" });
+    } catch {
+      setJobMessage("تعذر الحفظ");
+    } finally {
+      setJobLoading(false);
+    }
+  };
 
-        <div className="row g-4 mt-2">
-          <div className="col-lg-6">
-            <h6 className="mb-3">{t('admin_jobs_list') || (language === 'ar' ? 'قائمة الوظائف المنشورة' : 'Posted Jobs List')}</h6>
-            {jobsList.length === 0 ? (
-              <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد وظائف حالياً' : 'No jobs posted yet'}</div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table align-middle">
-                  <thead>
-                    <tr>
-                      <th>{t('admin_job_title')}</th>
-                      <th>{t('admin_job_dept')}</th>
-                      <th>{t('admin_job_deadline')}</th>
-                      <th>{t('admin_job_status')}</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {jobsList.map((job) => (
-                      <tr key={job.id}>
-                        <td>{job.title}</td>
-                        <td>{job.department}</td>
-                        <td>{job.deadline || '-'}</td>
-                        <td>{job.status || 'open'}</td>
-                        <td className="d-flex gap-2">
-                          <button className="btn btn-sm btn-outline-warning" onClick={() => handleJobEdit(job)}>{t('admin_job_edit')}</button>
-                          <button className="btn btn-sm btn-outline-secondary" onClick={() => handleJobToggle(job)}>
-                            {job.status === "closed" ? t('admin_job_open') : t('admin_job_close')}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          <div className="col-lg-6">
-            <h6 className="mb-3">{editingJobId ? t('admin_job_update') : t('admin_job_save')}</h6>
-            <form className="row g-3" onSubmit={handleJobSave}>
-              <div className="col-12"><label className="form-label">{t('admin_job_title')}</label><input name="title" className="form-control" value={jobForm.title} onChange={handleJobChange} required /></div>
-              <div className="col-md-6"><label className="form-label">{t('admin_job_dept')}</label><input name="department" className="form-control" value={jobForm.department} onChange={handleJobChange} required /></div>
-              <div className="col-md-6"><label className="form-label">{t('admin_job_type')}</label><input name="type" className="form-control" value={jobForm.type} onChange={handleJobChange} required /></div>
-              <div className="col-md-6"><label className="form-label">{t('admin_job_location')}</label><input name="location" className="form-control" value={jobForm.location} onChange={handleJobChange} required /></div>
-              <div className="col-md-6"><label className="form-label">{t('admin_job_deadline')}</label><input name="deadline" type="date" className="form-control" value={jobForm.deadline} onChange={handleJobChange} required /></div>
-              <div className="col-12"><label className="form-label">{t('admin_job_desc')}</label><textarea name="description" rows="3" className="form-control" value={jobForm.description} onChange={handleJobChange} required></textarea></div>
-              <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={jobLoading}>{jobLoading ? t('admin_saving') : (editingJobId ? t('admin_job_update') : t('admin_job_save'))}</button></div>
-              {jobMessage && <div className="alert alert-info py-1 small">{jobMessage}</div>}
-            </form>
-          </div>
-        </div>
-
-        <hr className="my-4" />
-        <h6 className="mb-3">{language === 'ar' ? 'طلبات التوظيف' : 'Applications'}</h6>
-        {applicationsLoading ? (
-          <div className="text-center"><div className="spinner-border text-primary"></div></div>
-        ) : applications.length === 0 ? (
-          <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد طلبات حالياً' : 'No applications yet'}</div>
-        ) : (
-          <div className="table-responsive">
-            <table className="table align-middle">
-              <thead>
-                <tr>
-                  <th>{language === 'ar' ? 'الاسم' : 'Name'}</th>
-                  <th>{language === 'ar' ? 'الهاتف' : 'Phone'}</th>
-                  <th>Email</th>
-                  <th>{t('career_linkedin')}</th>
-                  <th>{t('career_experience')}</th>
-                  <th>{t('career_education')}</th>
-                  <th>CV</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((app) => (
-                  <tr key={app.id}>
-                    <td>{app.name}</td>
-                    <td>{app.phone}</td>
-                    <td>{app.email}</td>
-                    <td>{app.linkedin || '-'}</td>
-                    <td>{app.experience || '-'}</td>
-                    <td>{app.education || '-'}</td>
-                    <td>{app.cvUrl ? <a href={app.cvUrl} target="_blank" rel="noopener noreferrer">CV</a> : '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // Quotes handlers
-  const handleSelectQuote = (q) => {
-    setSelectedQuote(q);
-    setQuoteStatus(q.status || "pending");
-    setQuoteNotes(q.adminNotes || "");
-    const itemsWithPricing = (q.items || []).map((it) => ({ ...it, price: it.price || "" }));
-    setQuoteItems(itemsWithPricing);
+  // Quote handlers
+  const handleSelectQuote = (quote) => {
+    setSelectedQuote(quote);
+    setQuoteItems((quote.items || []).map((item) => ({ ...item })));
+    setQuoteNotes(quote.adminNotes || "");
+    setQuoteStatus(quote.status || "pending");
     setQuoteMsg("");
   };
 
-  const handleQuoteItemPriceChange = (idx, value) => {
-    setQuoteItems((prev) => {
-      const next = [...prev];
-      next[idx] = { ...next[idx], price: value };
-      return next;
-    });
+  const handleQuoteItemPriceChange = (index, value) => {
+    setQuoteItems((prev) => prev.map((item, idx) => (idx === index ? { ...item, price: value } : item)));
   };
 
   const handleSaveQuote = async () => {
@@ -670,303 +759,44 @@ const AdminPanel = () => {
     try {
       setQuoteMsg("");
       await updateDoc(doc(db, "quotes", selectedQuote.id), {
-        status: quoteStatus,
-        adminNotes: quoteNotes,
         items: quoteItems,
+        adminNotes: quoteNotes,
+        status: quoteStatus,
         updatedAt: serverTimestamp(),
       });
-      setQuoteMsg(language === 'ar' ? 'تم حفظ عرض السعر' : 'Quote saved');
-      setQuotes((prev) => prev.map((q) => q.id === selectedQuote.id ? { ...q, status: quoteStatus, adminNotes: quoteNotes, items: quoteItems } : q));
-    } catch (err) {
-      setQuoteMsg(language === 'ar' ? 'تعذر حفظ عرض السعر' : 'Failed to save quote');
+      setQuoteMsg(language === 'ar' ? "تم حفظ عرض السعر" : "Quote saved");
+      setQuotes((prev) => prev.map((q) => (q.id === selectedQuote.id ? { ...q, items: quoteItems, adminNotes: quoteNotes, status: quoteStatus } : q)));
+    } catch {
+      setQuoteMsg(language === 'ar' ? "تعذر حفظ عرض السعر" : "Failed to save quote");
     }
   };
 
-  const currency = { en: "SAR", ar: "ر.س" };
-  const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ${currency.en} (${currency.ar})`;
-
   const generatePDF = async (quote) => {
-    if (!quote || pdfGenerating) return;
-
-    const items = selectedQuote?.id === quote.id ? quoteItems : (quote.items || []);
-    const enrichedQuote = {
-      ...quote,
-      __items: items,
-      __notes: selectedQuote?.id === quote.id ? quoteNotes : (quote.adminNotes || ""),
-      __status: selectedQuote?.id === quote.id ? quoteStatus : (quote.status || "pending"),
-    };
-
-    setPdfQuote(enrichedQuote);
-    setPdfGenerating(true);
-
-    const waitForFonts = async () => {
-      if (document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
-      }
-    };
-
-    const waitForImages = async (root) => {
-      if (!root) return;
-      const images = Array.from(root.querySelectorAll("img"));
-      await Promise.all(images.map((img) => (
-        img.complete
-          ? Promise.resolve()
-          : new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
-            })
-      )));
-    };
-
-    // Allow the hidden template to render before capture.
-    setTimeout(async () => {
-      try {
-        if (!pdfRef.current) return;
-        await waitForFonts();
-        await waitForImages(pdfRef.current);
-
-        const canvas = await html2canvas(pdfRef.current, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-        });
-        const imgData = canvas.toDataURL("image/png");
-        const doc = new jsPDF({ unit: "pt", format: "a4" });
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const imgWidth = pageWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        const y = imgHeight > pageHeight ? 0 : (pageHeight - imgHeight) / 2;
-        doc.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight);
-        doc.save(`quotation-${quote.id || "quote"}.pdf`);
-      } finally {
-        setPdfGenerating(false);
-        setPdfQuote(null);
-      }
-    }, 150);
+    if (!quote) return;
+    try {
+      setPdfGenerating(true);
+      setPdfQuote(quote);
+      await new Promise((r) => setTimeout(r, 150));
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const node = pdfRef.current;
+      if (!node) return;
+      const canvas = await html2canvas(node, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+      const imgW = canvas.width * ratio;
+      const imgH = canvas.height * ratio;
+      const x = (pageW - imgW) / 2;
+      const y = (pageH - imgH) / 2;
+      pdf.addImage(imgData, "PNG", x, y, imgW, imgH);
+      pdf.save(`quotation-${quote.id}.pdf`);
+    } finally {
+      setPdfGenerating(false);
+      setPdfQuote(null);
+    }
   };
-
-  const renderQuotesTab = () => (
-    <div className="card shadow-sm border-0">
-      <div className="card-body p-4">
-        <h4 style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'عروض الأسعار' : 'Quotes'}</h4>
-
-        <div className="row g-4 mt-2">
-          <div className="col-lg-5">
-            <h6 className="mb-3">{language === 'ar' ? 'القائمة' : 'List'}</h6>
-            {quotesLoading ? (
-              <div className="text-center"><div className="spinner-border text-primary"></div></div>
-            ) : quotes.length === 0 ? (
-              <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد عروض أسعار' : 'No quotes yet'}</div>
-            ) : (
-              <div className="list-group">
-                {quotes.map((q) => (
-                  <button key={q.id} type="button" className={`list-group-item list-group-item-action ${selectedQuote?.id === q.id ? 'active' : ''}`} onClick={() => handleSelectQuote(q)}>
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <div className="fw-bold">{q.contactInfo?.fullName || q.entityInfo?.companyName || q.id}</div>
-                        <small className="text-muted">{q.id}</small>
-                      </div>
-                      <small>{q.createdAt?.seconds ? new Date(q.createdAt.seconds * 1000).toLocaleDateString() : ''}</small>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="col-lg-7">
-            {!selectedQuote ? (
-              <div className="alert alert-info">{language === 'ar' ? 'اختر عرض سعر لعرض التفاصيل' : 'Select a quote to view details'}</div>
-            ) : (
-              <>
-                <div className="mb-3">
-                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات العميل' : 'Client Info'}</h6>
-                  <div className="small text-muted">{selectedQuote.contactInfo?.fullName} | {selectedQuote.contactInfo?.email} | {selectedQuote.contactInfo?.phone}</div>
-                </div>
-
-                <div className="mb-3">
-                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات الجهة' : 'Entity Info'}</h6>
-                  <div className="small text-muted">{selectedQuote.entityInfo?.type} | {selectedQuote.entityInfo?.companyName} | {selectedQuote.entityInfo?.crNumber}</div>
-                  <div className="small text-muted">{selectedQuote.entityInfo?.address}</div>
-                </div>
-
-                <div className="table-responsive mb-3">
-                  <table className="table table-bordered align-middle">
-                    <thead className="table-light">
-                      <tr>
-                        <th>{language === 'ar' ? 'الخدمة / المنتج' : 'Item'}</th>
-                        <th>{language === 'ar' ? 'الكمية' : 'Qty'}</th>
-                        <th>{language === 'ar' ? 'التسليم' : 'Delivery'}</th>
-                        <th>{language === 'ar' ? 'السعر' : 'Price'}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {quoteItems.map((it, idx) => (
-                        <tr key={`qi-${idx}`}>
-                          <td>{it.serviceName}</td>
-                          <td>{it.quantity}</td>
-                          <td>{it.deliveryLocation}</td>
-                          <td><input className="form-control" value={it.price || ""} onChange={(e) => handleQuoteItemPriceChange(idx, e.target.value)} /></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">{language === 'ar' ? 'ملاحظات للعميل' : 'Notes for Client'}</label>
-                  <textarea className="form-control" rows="3" value={quoteNotes} onChange={(e) => setQuoteNotes(e.target.value)} />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">{language === 'ar' ? 'الحالة' : 'Status'}</label>
-                  <select className="form-select" value={quoteStatus} onChange={(e) => setQuoteStatus(e.target.value)}>
-                    <option value="pending">Pending</option>
-                    <option value="draft">Draft</option>
-                    <option value="sent">Sent</option>
-                  </select>
-                </div>
-
-                {quoteMsg && <div className="alert alert-info">{quoteMsg}</div>}
-                <div className="d-flex flex-wrap gap-2">
-                  <button className="btn btn-primary" style={{ background: "var(--secondary-color)", border: "none" }} onClick={handleSaveQuote}>{language === 'ar' ? 'حفظ التعديلات' : 'Save Changes'}</button>
-                  <button className="btn btn-outline-primary" onClick={() => generatePDF(selectedQuote)} disabled={pdfGenerating}>
-                    {language === 'ar' ? 'تحميل عرض السعر الرسمي (PDF)' : 'Download Official Quotation (PDF)'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {pdfQuote && (
-          <div
-            ref={pdfRef}
-            style={{
-              position: "fixed",
-              left: "-9999px",
-              top: 0,
-              width: "794px",
-              minHeight: "1123px",
-              padding: "40px 48px 110px 48px",
-              background: "#ffffff",
-              color: "#111",
-              fontFamily: "'Cairo', sans-serif",
-              direction: "rtl",
-              boxSizing: "border-box",
-            }}
-          >
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              <div style={{ width: "200px" }}>
-                {logoDataUrl ? <img src={logoDataUrl} alt="Logo" style={{ width: "190px", height: "auto" }} /> : null}
-              </div>
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#0B2C5C" }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#0B2C5C" }}>QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD</div>
-                <div style={{ marginTop: 6, fontSize: 22, fontWeight: 800, color: "#F4A900" }}>عـرض سـعر رسـمي</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B2C5C" }}>OFFICIAL QUOTATION</div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 20, fontSize: 13, lineHeight: 1.9 }}>
-              <div style={{ fontWeight: 700 }}>تحية طيبة وبعد..</div>
-              <div>
-                نتشرف بتقديم عرض الأسعار أدناه حسب طلبكم، ونرجو أن ينال رضاكم. فيما يلي التفاصيل الخاصة بالخدمات/المنتجات المطلوبة.
-              </div>
-            </div>
-
-            {/* Client meta */}
-            <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 12 }}>
-              <div>
-                <div><strong>الاسم:</strong> {pdfQuote.contactInfo?.fullName || pdfQuote.entityInfo?.companyName || ""}</div>
-              </div>
-              <div>
-                <div><strong>الجهة:</strong> {pdfQuote.entityInfo?.type === "company" ? "شركة" : "فرد"}</div>
-                {pdfQuote.entityInfo?.companyName && <div><strong>الشركة:</strong> {pdfQuote.entityInfo?.companyName}</div>}
-                {pdfQuote.entityInfo?.address && <div><strong>العنوان:</strong> {pdfQuote.entityInfo?.address}</div>}
-              </div>
-            </div>
-
-            {/* Items table */}
-            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 24, fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: "#00B4FF", color: "#fff" }}>
-                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "40px" }}>م / No</th>
-                  <th style={{ padding: 8, border: "1px solid #e6e6e6" }}>الصنف / Description</th>
-                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "110px" }}>السعر / Price</th>
-                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "80px" }}>الكمية / Qty</th>
-                  <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "120px" }}>الإجمالي / Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(pdfQuote.__items || []).map((it, idx) => {
-                  const qty = Number(it.quantity || 0);
-                  const price = Number(it.price || 0);
-                  const total = qty * price;
-                  const nameCombined = [it.serviceNameAr, it.serviceNameEn].filter(Boolean).join(" / ") || it.serviceName || "";
-                  return (
-                    <tr key={`pdf-row-${idx}`} style={{ background: "#fff" }}>
-                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{idx + 1}</td>
-                      <td style={{ padding: 8, border: "1px solid #e6e6e6" }}>{nameCombined}</td>
-                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{formatMoney(price)}</td>
-                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{it.quantity || ""}</td>
-                      <td style={{ padding: 8, border: "1px solid #e6e6e6", textAlign: "center" }}>{formatMoney(total)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {/* Total box */}
-            <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-start" }}>
-              <div style={{ background: "#0B2C5C", color: "#fff", padding: "10px 14px", minWidth: "260px", borderRadius: "4px" }}>
-                <div style={{ fontSize: 12 }}>الإجمالي الكلي / Grand Total</div>
-                <div style={{ fontSize: 16, fontWeight: 700 }}>
-                  {formatMoney((pdfQuote.__items || []).reduce((sum, it) => sum + Number(it.quantity || 0) * Number(it.price || 0), 0))}
-                </div>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div style={{ marginTop: 16, fontSize: 12, lineHeight: 1.8 }}>
-              <div style={{ fontWeight: 700, color: "#0B2C5C" }}>ملاحظات وشروط:</div>
-              <div>• الأسعار صالحة لمدة 7 أيام من تاريخ العرض.</div>
-              <div>• الأسعار لا تشمل ضريبة القيمة المضافة إن وجدت.</div>
-              <div>• شروط التسليم حسب الاتفاق.</div>
-            </div>
-
-            {/* Signature */}
-            <div style={{ marginTop: 22, display: "flex", justifyContent: "flex-start" }}>
-              <div style={{ borderTop: "1px solid #0B2C5C", paddingTop: 8, minWidth: "220px", textAlign: "center" }}>
-                يعتمد / Authorized Signature
-              </div>
-            </div>
-
-            {/* Footer stripe */}
-            <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "70px", background: "#0B2C5C" }}>
-              <div
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: 0,
-                  width: "220px",
-                  height: "70px",
-                  background: "#00B4FF",
-                  clipPath: "polygon(40% 0, 100% 0, 100% 100%, 0 100%)",
-                }}
-              />
-              <div style={{ position: "relative", zIndex: 2, color: "#fff", fontSize: 10, padding: "14px 48px" }}>
-                <div>الخرطوم، السودان</div>
-                <div>www.qimatco.com</div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 
   // ── GENERIC MEDIA FORM RENDERER ──
   const renderMediaForm = ({ sectionKey, titleAr, titleEn, formState, onFormChange, imagesInputName, videosInputName, onSubmit, isLoading, msgText, permKey, fileKey }) => (
@@ -1157,26 +987,472 @@ const AdminPanel = () => {
     </div></div>
   );
 
-  const PERM_SECTIONS = [
-    { key: "shipments", label: "الشحنات", actions: ["add", "edit", "delete"] },
-    { key: "services", label: "الخدمات", actions: ["add", "edit", "delete"] },
-    { key: "products", label: "المنتجات", actions: ["add", "edit", "delete"] },
-    { key: "clients", label: "العملاء", actions: ["add", "edit", "delete"] },
-    { key: "messages", label: "الرسائل", actions: ["view", "markRead"] },
-    { key: "blog", label: "المدونة", actions: ["add", "edit", "delete"] },
-    { key: "news", label: "الأخبار", actions: ["add", "edit", "delete"] },
-    { key: "ads", label: "الإعلانات", actions: ["add", "edit", "delete"] },
-    { key: "admins", label: "المشرفين", actions: ["view", "add", "edit", "delete"] },
-  ];
-  const ACTION_LABELS = { add: "إضافة", edit: "تعديل", delete: "حذف", view: "عرض", markRead: "تعليم كمقروء" };
+  const renderTeamTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
+          <div>
+            <h4 style={{ color: "var(--primary-color)" }}>{t("admin_tab_team")}</h4>
+            <small className="text-muted">{teamMsg}</small>
+          </div>
+          <div className="btn-group">
+            <button className={`btn btn-outline-primary ${teamSubTab === "departments" ? "active" : ""}`} onClick={() => setTeamSubTab("departments")}>{t("admin_team_departments")}</button>
+            <button className={`btn btn-outline-primary ${teamSubTab === "sections" ? "active" : ""}`} onClick={() => setTeamSubTab("sections")}>{t("admin_team_sections")}</button>
+            <button className={`btn btn-outline-primary ${teamSubTab === "titles" ? "active" : ""}`} onClick={() => setTeamSubTab("titles")}>{t("admin_team_titles")}</button>
+            <button className={`btn btn-outline-primary ${teamSubTab === "employees" ? "active" : ""}`} onClick={() => setTeamSubTab("employees")}>{t("admin_tab_employees")}</button>
+          </div>
+        </div>
 
-  const SOCIAL_ICONS = [{ value: "bi-facebook", label: "Facebook" },{ value: "bi-twitter", label: "Twitter / X" },{ value: "bi-instagram", label: "Instagram" },{ value: "bi-linkedin", label: "LinkedIn" },{ value: "bi-tiktok", label: "TikTok" },{ value: "bi-youtube", label: "YouTube" },{ value: "bi-snapchat", label: "Snapchat" },{ value: "bi-telegram", label: "Telegram" },{ value: "bi-whatsapp", label: "WhatsApp" },{ value: "bi-globe", label: "Website" }];
+        {teamSubTab === "departments" && (
+          <>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h6>{t("admin_team_departments")}</h6>
+              <button className="btn btn-primary" onClick={() => { setEditingDeptId(null); setDeptModalOpen(true); }}>{t("admin_team_add")}</button>
+            </div>
+            <div className="table-responsive">
+              <table className="table align-middle">
+                <thead><tr><th>AR</th><th>EN</th><th></th></tr></thead>
+                <tbody>
+                  {departments.map((d) => (
+                    <tr key={d.id}>
+                      <td>{d.name?.ar}</td>
+                      <td>{d.name?.en}</td>
+                      <td className="d-flex gap-2">
+                        <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditDepartment(d)}>{t("admin_team_edit")}</button>
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteDepartment(d.id)}>{t("admin_team_delete")}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {teamSubTab === "sections" && (
+          <>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h6>{t("admin_team_sections")}</h6>
+              <button className="btn btn-primary" onClick={() => { setEditingSectionId(null); setSectionModalOpen(true); }}>{t("admin_team_add")}</button>
+            </div>
+            <div className="table-responsive">
+              <table className="table align-middle">
+                <thead><tr><th>AR</th><th>EN</th><th>{t("admin_team_department")}</th><th></th></tr></thead>
+                <tbody>
+                  {sections.map((s) => (
+                    <tr key={s.id}>
+                      <td>{s.name?.ar}</td>
+                      <td>{s.name?.en}</td>
+                      <td>{departments.find((d) => d.id === s.departmentId)?.name?.[language] || ""}</td>
+                      <td className="d-flex gap-2">
+                        <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditSection(s)}>{t("admin_team_edit")}</button>
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteSection(s.id)}>{t("admin_team_delete")}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {teamSubTab === "titles" && (
+          <>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h6>{t("admin_team_titles")}</h6>
+              <button className="btn btn-primary" onClick={() => { setEditingTitleId(null); setTitleModalOpen(true); }}>{t("admin_team_add")}</button>
+            </div>
+            <div className="table-responsive">
+              <table className="table align-middle">
+                <thead><tr><th>AR</th><th>EN</th><th>{t("admin_team_section")}</th><th>{t("admin_team_level")}</th><th></th></tr></thead>
+                <tbody>
+                  {titles.map((ti) => (
+                    <tr key={ti.id}>
+                      <td>{ti.title?.ar}</td>
+                      <td>{ti.title?.en}</td>
+                      <td>{sections.find((s) => s.id === ti.sectionId)?.name?.[language] || ""}</td>
+                      <td>{ti.level}</td>
+                      <td className="d-flex gap-2">
+                        <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditTitle(ti)}>{t("admin_team_edit")}</button>
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteTitle(ti.id)}>{t("admin_team_delete")}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {teamSubTab === "employees" && (
+          <>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h6>{t("admin_tab_employees")}</h6>
+              <button className="btn btn-primary" onClick={() => { setEditingEmployeeId(null); resetTeamForms(); setEmployeeModalOpen(true); }}>{t("admin_team_add")}</button>
+            </div>
+            <div className="table-responsive">
+              <table className="table align-middle">
+                <thead><tr><th>{t("admin_team_name_ar")}</th><th>{t("admin_team_title")}</th><th>{t("admin_team_manager")}</th><th></th></tr></thead>
+                <tbody>
+                  {employees.map((emp) => (
+                    <tr key={emp.id}>
+                      <td>{emp.name?.[language] || emp.name?.ar}</td>
+                      <td>{titles.find((t) => t.id === emp.titleId)?.title?.[language] || ""}</td>
+                      <td>{employees.find((m) => m.id === emp.managerId)?.name?.[language] || "-"}</td>
+                      <td className="d-flex gap-2">
+                        <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditEmployee(emp)}>{t("admin_team_edit")}</button>
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteEmployee(emp.id)}>{t("admin_team_delete")}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* Department Modal */}
+        {deptModalOpen && (
+          <div className="team-modal-backdrop" onClick={() => setDeptModalOpen(false)}>
+            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="team-modal-header"><h5>{t("admin_team_departments")}</h5><button className="btn-close" onClick={() => setDeptModalOpen(false)}></button></div>
+              <div className="team-modal-body">
+                <form className="row g-3" onSubmit={handleSaveDepartment}>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={deptForm.name_ar} onChange={(e) => setDeptForm({ ...deptForm, name_ar: e.target.value })} required /></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={deptForm.name_en} onChange={(e) => setDeptForm({ ...deptForm, name_en: e.target.value })} /></div>
+                  <div className="col-12"><button type="submit" className="btn btn-primary w-100" disabled={teamLoading}>{t("admin_save")}</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Section Modal */}
+        {sectionModalOpen && (
+          <div className="team-modal-backdrop" onClick={() => setSectionModalOpen(false)}>
+            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="team-modal-header"><h5>{t("admin_team_sections")}</h5><button className="btn-close" onClick={() => setSectionModalOpen(false)}></button></div>
+              <div className="team-modal-body">
+                <form className="row g-3" onSubmit={handleSaveSection}>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={sectionForm.name_ar} onChange={(e) => setSectionForm({ ...sectionForm, name_ar: e.target.value })} required /></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={sectionForm.name_en} onChange={(e) => setSectionForm({ ...sectionForm, name_en: e.target.value })} /></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_department")}</label><select className="form-select" value={sectionForm.departmentId} onChange={(e) => setSectionForm({ ...sectionForm, departmentId: e.target.value })} required><option value="">--</option>{departments.map((d) => (<option key={d.id} value={d.id}>{d.name?.[language] || d.name?.ar}</option>))}</select></div>
+                  <div className="col-12"><button type="submit" className="btn btn-primary w-100" disabled={teamLoading}>{t("admin_save")}</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Title Modal */}
+        {titleModalOpen && (
+          <div className="team-modal-backdrop" onClick={() => setTitleModalOpen(false)}>
+            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="team-modal-header"><h5>{t("admin_team_titles")}</h5><button className="btn-close" onClick={() => setTitleModalOpen(false)}></button></div>
+              <div className="team-modal-body">
+                <form className="row g-3" onSubmit={handleSaveTitle}>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={titleForm.title_ar} onChange={(e) => setTitleForm({ ...titleForm, title_ar: e.target.value })} required /></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={titleForm.title_en} onChange={(e) => setTitleForm({ ...titleForm, title_en: e.target.value })} /></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_section")}</label><select className="form-select" value={titleForm.sectionId} onChange={(e) => setTitleForm({ ...titleForm, sectionId: e.target.value })} required><option value="">--</option>{sections.map((s) => (<option key={s.id} value={s.id}>{s.name?.[language] || s.name?.ar}</option>))}</select></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_level")}</label><select className="form-select" value={titleForm.level} onChange={(e) => setTitleForm({ ...titleForm, level: e.target.value })}><option value="top">{t("admin_team_level_top")}</option><option value="executive">{t("admin_team_level_exec")}</option><option value="management">{t("admin_team_level_mgmt")}</option><option value="staff">{t("admin_team_level_staff")}</option></select></div>
+                  <div className="col-12"><button type="submit" className="btn btn-primary w-100" disabled={teamLoading}>{t("admin_save")}</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Employee Modal */}
+        {employeeModalOpen && (
+          <div className="team-modal-backdrop" onClick={() => setEmployeeModalOpen(false)}>
+            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="team-modal-header"><h5>{t("admin_team_employees")}</h5><button className="btn-close" onClick={() => setEmployeeModalOpen(false)}></button></div>
+              <div className="team-modal-body">
+                <form className="row g-3" onSubmit={handleSaveEmployee}>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={employeeForm.name_ar} onChange={(e) => setEmployeeForm({ ...employeeForm, name_ar: e.target.value })} required /></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={employeeForm.name_en} onChange={(e) => setEmployeeForm({ ...employeeForm, name_en: e.target.value })} /></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_bio_ar")}</label><textarea className="form-control" rows="2" value={employeeForm.bio_ar} onChange={(e) => setEmployeeForm({ ...employeeForm, bio_ar: e.target.value })}></textarea></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_bio_en")}</label><textarea className="form-control" rows="2" value={employeeForm.bio_en} onChange={(e) => setEmployeeForm({ ...employeeForm, bio_en: e.target.value })}></textarea></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_resp_ar")}</label><textarea className="form-control" rows="2" value={employeeForm.resp_ar} onChange={(e) => setEmployeeForm({ ...employeeForm, resp_ar: e.target.value })}></textarea></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_resp_en")}</label><textarea className="form-control" rows="2" value={employeeForm.resp_en} onChange={(e) => setEmployeeForm({ ...employeeForm, resp_en: e.target.value })}></textarea></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_title")}</label><select className="form-select" value={employeeForm.titleId} onChange={(e) => setEmployeeForm({ ...employeeForm, titleId: e.target.value })} required><option value="">--</option>{titles.map((ti) => (<option key={ti.id} value={ti.id}>{ti.title?.[language] || ti.title?.ar}</option>))}</select></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_manager")}</label><select className="form-select" value={employeeForm.managerId} onChange={(e) => setEmployeeForm({ ...employeeForm, managerId: e.target.value })}><option value="">--</option>{employees.map((emp) => (<option key={emp.id} value={emp.id}>{emp.name?.[language] || emp.name?.ar}</option>))}</select></div>
+                  <div className="col-md-6"><label className="form-label">{t("admin_team_image")}</label><input key={employeeFileKey} type="file" accept="image/*" className="form-control" onChange={(e) => setEmployeeImageFile(e.target.files?.[0] || null)} /></div>
+                  <div className="col-md-6"><label className="form-label">{t("admin_team_cv")}</label><input key={`cv-${employeeFileKey}`} type="file" accept="application/pdf" className="form-control" onChange={(e) => setEmployeeCvFile(e.target.files?.[0] || null)} /></div>
+                  <div className="col-12"><button type="submit" className="btn btn-primary w-100" disabled={teamLoading}>{t("admin_save")}</button></div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderCareersTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_careers')}</h4>
+        <div className="row g-4 mt-2">
+          <div className="col-lg-6">
+            <h6 className="mb-3">{t('admin_jobs_list') || (language === 'ar' ? 'قائمة الوظائف المنشورة' : 'Posted Jobs List')}</h6>
+            {jobsList.length === 0 ? (
+              <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد وظائف حالياً' : 'No jobs posted yet'}</div>
+            ) : (
+              <div className="table-responsive">
+                <table className="table align-middle">
+                  <thead>
+                    <tr>
+                      <th>{t('admin_job_title')}</th>
+                      <th>{t('admin_job_dept')}</th>
+                      <th>{t('admin_job_deadline')}</th>
+                      <th>{t('admin_job_status')}</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jobsList.map((job) => (
+                      <tr key={job.id}>
+                        <td>{job.title}</td>
+                        <td>{job.department}</td>
+                        <td>{job.deadline || '-'}</td>
+                        <td>{job.status || 'open'}</td>
+                        <td className="d-flex gap-2">
+                          <button className="btn btn-sm btn-outline-warning" onClick={() => handleJobEdit(job)}>{t('admin_job_edit')}</button>
+                          <button className="btn btn-sm btn-outline-secondary" onClick={() => handleJobToggle(job)}>
+                            {job.status === "closed" ? t('admin_job_open') : t('admin_job_close')}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="col-lg-6">
+            <h6 className="mb-3">{editingJobId ? t('admin_job_update') : t('admin_job_save')}</h6>
+            <form className="row g-3" onSubmit={handleJobSave}>
+              <div className="col-12"><label className="form-label">{t('admin_job_title')}</label><input name="title" className="form-control" value={jobForm.title} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_dept')}</label><input name="department" className="form-control" value={jobForm.department} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_type')}</label><input name="type" className="form-control" value={jobForm.type} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_location')}</label><input name="location" className="form-control" value={jobForm.location} onChange={handleJobChange} required /></div>
+              <div className="col-md-6"><label className="form-label">{t('admin_job_deadline')}</label><input name="deadline" type="date" className="form-control" value={jobForm.deadline} onChange={handleJobChange} required /></div>
+              <div className="col-12"><label className="form-label">{t('admin_job_desc')}</label><textarea name="description" rows="3" className="form-control" value={jobForm.description} onChange={handleJobChange} required></textarea></div>
+              <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={jobLoading}>{jobLoading ? t('admin_saving') : (editingJobId ? t('admin_job_update') : t('admin_job_save'))}</button></div>
+              {jobMessage && <div className="alert alert-info py-1 small">{jobMessage}</div>}
+            </form>
+          </div>
+        </div>
+
+        <hr className="my-4" />
+        <h6 className="mb-3">{language === 'ar' ? 'طلبات التوظيف' : 'Applications'}</h6>
+        {applicationsLoading ? (
+          <div className="text-center"><div className="spinner-border text-primary"></div></div>
+        ) : applications.length === 0 ? (
+          <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد طلبات حالياً' : 'No applications yet'}</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table align-middle">
+              <thead>
+                <tr>
+                  <th>{language === 'ar' ? 'الاسم' : 'Name'}</th>
+                  <th>{language === 'ar' ? 'الهاتف' : 'Phone'}</th>
+                  <th>Email</th>
+                  <th>{t('career_linkedin')}</th>
+                  <th>{t('career_experience')}</th>
+                  <th>{t('career_education')}</th>
+                  <th>CV</th>
+                </tr>
+              </thead>
+              <tbody>
+                {applications.map((app) => (
+                  <tr key={app.id}>
+                    <td>{app.name}</td>
+                    <td>{app.phone}</td>
+                    <td>{app.email}</td>
+                    <td>{app.linkedin || '-'}</td>
+                    <td>{app.experience || '-'}</td>
+                    <td>{app.education || '-'}</td>
+                    <td>{app.cvUrl ? <a href={app.cvUrl} target="_blank" rel="noopener noreferrer">CV</a> : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderQuotesTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <h4 style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'عروض الأسعار' : 'Quotes'}</h4>
+        {pdfQuote && (
+          <div
+            ref={pdfRef}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: "-10000px",
+              width: "794px",
+              background: "#ffffff",
+              color: "#0B2C5C",
+              fontFamily: "'Cairo', sans-serif",
+              padding: "32px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
+              <img src={logo} alt="Qimat AlAibtikar" style={{ height: "70px" }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "20pt", fontWeight: 800 }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
+                <div style={{ fontSize: "18pt", fontWeight: 800 }}>QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD</div>
+              </div>
+            </div>
+            <div style={{ textAlign: "center", fontSize: "18pt", fontWeight: 800, margin: "12px 0 20px" }}>عـرض سـعر رسـمي</div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "11pt" }}>
+              <div><strong>العميل:</strong> {pdfQuote.contactInfo?.fullName || pdfQuote.entityInfo?.companyName || ""}</div>
+              <div><strong>ID:</strong> {pdfQuote.id}</div>
+            </div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10.5pt" }}>
+              <thead>
+                <tr style={{ background: "#00B4FF", color: "#ffffff" }}>
+                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>م / No</th>
+                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>الصنف / Item</th>
+                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>السعر / Price</th>
+                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>الكمية / Qty</th>
+                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>الإجمالي / Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(pdfQuote.id === selectedQuote?.id ? quoteItems : pdfQuote.items || []).map((item, idx) => {
+                  const qty = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.price) || 0;
+                  const total = qty * price;
+                  return (
+                    <tr key={`pdf-item-${idx}`}>
+                      <td style={{ padding: "6px", border: "1px solid #e5e5e5", textAlign: "center" }}>{idx + 1}</td>
+                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>{item.serviceName}</td>
+                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>{price.toFixed(2)} ر.س</td>
+                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>{item.quantity}</td>
+                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>{total.toFixed(2)} ر.س</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div style={{ marginTop: "16px", fontSize: "10pt" }}>
+              <div><strong>العنوان:</strong> الخرطوم، السودان</div>
+              <div><strong>الموقع:</strong> www.qimatco.com</div>
+            </div>
+            <div style={{ marginTop: "18px", fontSize: "10pt", color: "#666" }}>هذا مستند مستخرج آلياً / This is a computer-generated document</div>
+          </div>
+        )}
+        <div className="row g-4 mt-2">
+          <div className="col-lg-5">
+            <h6 className="mb-3">{language === 'ar' ? 'القائمة' : 'List'}</h6>
+            {quotesLoading ? (
+              <div className="text-center"><div className="spinner-border text-primary"></div></div>
+            ) : quotes.length === 0 ? (
+              <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد عروض أسعار' : 'No quotes yet'}</div>
+            ) : (
+              <div className="list-group">
+                {quotes.map((q) => (
+                  <button key={q.id} type="button" className={`list-group-item list-group-item-action ${selectedQuote?.id === q.id ? 'active' : ''}`} onClick={() => handleSelectQuote(q)}>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div className="fw-bold">{q.contactInfo?.fullName || q.entityInfo?.companyName || q.id}</div>
+                        <small className="text-muted">{q.id}</small>
+                      </div>
+                      <small>{q.createdAt?.seconds ? new Date(q.createdAt.seconds * 1000).toLocaleDateString() : ''}</small>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="col-lg-7">
+            {!selectedQuote ? (
+              <div className="alert alert-info">{language === 'ar' ? 'اختر عرض سعر لعرض التفاصيل' : 'Select a quote to view details'}</div>
+            ) : (
+              <>
+                <div className="mb-3">
+                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات العميل' : 'Client Info'}</h6>
+                  <div className="small text-muted">{selectedQuote.contactInfo?.fullName} | {selectedQuote.contactInfo?.email} | {selectedQuote.contactInfo?.phone}</div>
+                </div>
+
+                <div className="mb-3">
+                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات الجهة' : 'Entity Info'}</h6>
+                  <div className="small text-muted">{selectedQuote.entityInfo?.type} | {selectedQuote.entityInfo?.companyName} | {selectedQuote.entityInfo?.crNumber}</div>
+                  <div className="small text-muted">{selectedQuote.entityInfo?.address}</div>
+                </div>
+
+                <div className="table-responsive mb-3">
+                  <table className="table table-bordered align-middle">
+                    <thead className="table-light">
+                      <tr>
+                        <th>{language === 'ar' ? 'الخدمة / المنتج' : 'Item'}</th>
+                        <th>{language === 'ar' ? 'الكمية' : 'Qty'}</th>
+                        <th>{language === 'ar' ? 'التسليم' : 'Delivery'}</th>
+                        <th>{language === 'ar' ? 'السعر' : 'Price'}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {quoteItems.map((it, idx) => {
+                        return (
+                          <tr key={`qi-${idx}`}>
+                            <td>{it.serviceName}</td>
+                            <td>{it.quantity}</td>
+                            <td>{it.deliveryLocation}</td>
+                            <td><input className="form-control" value={it.price || ""} onChange={(e) => handleQuoteItemPriceChange(idx, e.target.value)} /></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">{language === 'ar' ? 'ملاحظات للعميل' : 'Notes for Client'}</label>
+                  <textarea className="form-control" rows="3" value={quoteNotes} onChange={(e) => setQuoteNotes(e.target.value)} />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">{language === 'ar' ? 'الحالة' : 'Status'}</label>
+                  <select className="form-select" value={quoteStatus} onChange={(e) => setQuoteStatus(e.target.value)}>
+                    <option value="pending">Pending</option>
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                  </select>
+                </div>
+
+                {quoteMsg && <div className="alert alert-info">{quoteMsg}</div>}
+                <div className="d-flex flex-wrap gap-2">
+                  <button className="btn btn-primary" style={{ background: "var(--secondary-color)", border: "none" }} onClick={handleSaveQuote}>{language === 'ar' ? 'حفظ التعديلات' : 'Save Changes'}</button>
+                  <button className="btn btn-outline-primary" onClick={() => generatePDF(selectedQuote)} disabled={pdfGenerating}>
+                    {language === 'ar' ? 'تحميل عرض السعر الرسمي (PDF)' : 'Download Official Quotation (PDF)'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const renderSocialTab = () => (
     <div className="card shadow-sm border-0"><div className="card-body p-4">
       <h4 style={{ color: "var(--primary-color)" }} className="mb-3">{t('admin_tab_social')}</h4>
       {socialMsg && <div className="alert alert-info py-1 small">{socialMsg}</div>}
-      {socialLinks.length > 0 && (<div className="table-responsive mb-4"><table className="table align-middle table-bordered"><thead className="table-light"><tr><th>Icon</th><th>Name</th><th>URL</th><th></th></tr></thead><tbody>{socialLinks.map((s) => (<tr key={s.id}><td><i className={`bi ${s.icon}`} style={{ fontSize: 24, color: s.color || "#333" }}></i></td><td>{s.name}</td><td style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><a href={s.url} target="_blank" rel="noopener noreferrer">{s.url}</a></td><td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteSocial(s.id)}>{t('admin_delete')}</button></td></tr>))}</tbody></table></div>)}
+      {socialLinks.length > 0 && (
+        <div className="table-responsive mb-4"><table className="table align-middle table-bordered"><thead className="table-light"><tr><th>Icon</th><th>Name</th><th>URL</th><th></th></tr></thead><tbody>{socialLinks.map((s) => (
+          <tr key={s.id}><td><i className={`bi ${s.icon}`} style={{ fontSize: 24, color: s.color || "#333" }}></i></td><td>{s.name}</td><td style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><a href={s.url} target="_blank" rel="noopener noreferrer">{s.url}</a></td><td><button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteSocial(s.id)}>{t('admin_delete')}</button></td></tr>
+        ))}</tbody></table></div>
+      )}
       <form className="row g-3" onSubmit={handleSocialSave}>
         <div className="col-md-4"><label className="form-label">Name</label><input name="name" type="text" className="form-control" value={socialForm.name} onChange={handleSocialChange} required /></div>
         <div className="col-md-4"><label className="form-label">URL</label><input name="url" type="url" className="form-control" value={socialForm.url} onChange={handleSocialChange} required /></div>
@@ -1202,7 +1478,6 @@ const AdminPanel = () => {
       <h4 style={{ color: "var(--primary-color)" }} className="mb-3">{t('admin_tab_admins')}</h4>
       {adminSaveMsg && <div className="alert alert-info py-1 small">{adminSaveMsg}</div>}
 
-      {/* Admin List */}
       {admins.length > 0 && admins.map((a) => (
         <div key={a.id} className="border rounded p-3 mb-3" style={{ background: editingAdminId === a.id ? "#fffbe6" : "#fff" }}>
           <div className="d-flex justify-content-between align-items-center mb-2">
@@ -1225,7 +1500,6 @@ const AdminPanel = () => {
             </div>
           </div>
 
-          {/* View mode – show current permissions summary */}
           {editingAdminId !== a.id && a.permissions && (
             <div style={{ fontSize: "0.85rem" }}>
               {PERM_SECTIONS.map((s) => {
@@ -1238,7 +1512,6 @@ const AdminPanel = () => {
             </div>
           )}
 
-          {/* Edit mode – checkboxes for each permission */}
           {editingAdminId === a.id && editingAdminPerms && (
             <div className="mt-3">
               <div className="border rounded p-3" style={{ background: "#f9f9f9" }}>
@@ -1275,7 +1548,6 @@ const AdminPanel = () => {
         </div>
       ))}
 
-      {/* Add Admin Form */}
       {can(userPermissions, "admins", "add") ? (<>
         <hr className="my-4" />
         <h5 className="mb-3"><i className="bi bi-person-plus me-2"></i>{language === 'ar' ? 'إضافة مشرف جديد' : 'Add New Admin'}</h5>
@@ -1338,6 +1610,7 @@ const AdminPanel = () => {
               <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}><i className="bi bi-newspaper me-1"></i>{t('admin_tab_news')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "ads" ? "active" : ""}`} onClick={() => setActiveTab("ads")}><i className="bi bi-megaphone me-1"></i>{t('admin_tab_ads')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "messages" ? "active" : ""}`} onClick={() => setActiveTab("messages")}><i className="bi bi-envelope me-1"></i>{t('admin_tab_messages')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "team" ? "active" : ""}`} onClick={() => setActiveTab("team")}><i className="bi bi-diagram-3 me-1"></i>{t("admin_tab_team")}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "quotes" ? "active" : ""}`} onClick={() => setActiveTab("quotes")}><i className="bi bi-receipt me-1"></i>{language === 'ar' ? 'عروض الأسعار' : 'Quotes'}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "social" ? "active" : ""}`} onClick={() => setActiveTab("social")}><i className="bi bi-share me-1"></i>{t('admin_tab_social')}</button>
               {can(userPermissions, "admins", "view") && (<button className={`list-group-item list-group-item-action ${activeTab === "admins" ? "active" : ""}`} onClick={() => setActiveTab("admins")}><i className="bi bi-people-fill me-1"></i>{t('admin_tab_admins')}</button>)}
@@ -1357,6 +1630,7 @@ const AdminPanel = () => {
             {activeTab === "news" && renderNewsTab()}
             {activeTab === "ads" && renderAdsTab()}
             {activeTab === "messages" && renderMessagesTab()}
+            {activeTab === "team" && renderTeamTab()}
             {activeTab === "quotes" && renderQuotesTab()}
             {activeTab === "social" && renderSocialTab()}
             {activeTab === "admins" && renderAdminsTab()}

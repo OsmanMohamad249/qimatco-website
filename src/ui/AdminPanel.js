@@ -179,6 +179,15 @@ const AdminPanel = () => {
   const [serviceMsg, setServiceMsg] = useState("");
   const [serviceFileKey, setServiceFileKey] = useState(0);
 
+  // Careers
+  const [jobForm, setJobForm] = useState({ title: "", department: "", type: "", location: "", description: "", deadline: "", status: "open" });
+  const [jobsList, setJobsList] = useState([]);
+  const [jobLoading, setJobLoading] = useState(false);
+  const [jobMessage, setJobMessage] = useState("");
+  const [applications, setApplications] = useState([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [editingJobId, setEditingJobId] = useState(null);
+
   // ── EFFECTS ──
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
@@ -232,6 +241,8 @@ const AdminPanel = () => {
       try { const snap = await getDocs(collection(db, "socialLinks")); setSocialLinks(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const snap = await getDocs(collection(db, "services")); setServicesList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
       try { const waSnap = await getDoc(doc(db, "settings", "whatsapp")); if (waSnap.exists()) setWhatsappSettings(waSnap.data()); } catch {}
+      try { const snap = await getDocs(query(collection(db, "jobs"), orderBy("createdAt", "desc"))); setJobsList(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
+      try { const snap = await getDocs(query(collection(db, "applications"), orderBy("createdAt", "desc"))); setApplications(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); } catch {}
     };
     load();
   }, [user, userPermissions, accessDenied]);
@@ -447,6 +458,148 @@ const AdminPanel = () => {
   };
   const handleDeleteService = async (id) => { try { await deleteDoc(doc(db, "services", id)); setServicesList(prev => prev.filter(s => s.id !== id)); } catch {} };
 
+  // Job handlers
+  const handleJobChange = (e) => {
+    const { name, value } = e.target;
+    setJobForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleJobSave = async (e) => {
+    e.preventDefault();
+    setJobMessage("");
+    try {
+      setJobLoading(true);
+      if (editingJobId) {
+        await updateDoc(doc(db, "jobs", editingJobId), { ...jobForm, updatedAt: serverTimestamp() });
+        setJobMessage(language === 'ar' ? 'تم تحديث الوظيفة بنجاح' : 'Job updated successfully');
+      } else {
+        await addDoc(collection(db, "jobs"), { ...jobForm, createdAt: serverTimestamp() });
+        setJobMessage(language === 'ar' ? 'تم نشر الوظيفة بنجاح' : 'Job posted successfully');
+      }
+      setJobForm({ title: "", department: "", type: "", location: "", description: "", deadline: "", status: "open" });
+      setEditingJobId(null);
+      const snap = await getDocs(query(collection(db, "jobs"), orderBy("createdAt", "desc")));
+      setJobsList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch (err) {
+      setJobMessage(language === 'ar' ? 'تعذر نشر الوظيفة' : 'Failed to post job');
+    } finally {
+      setJobLoading(false);
+    }
+  };
+
+  const handleJobEdit = (job) => {
+    setEditingJobId(job.id);
+    setJobForm({
+      title: job.title || "",
+      department: job.department || "",
+      type: job.type || "",
+      location: job.location || "",
+      description: job.description || "",
+      deadline: job.deadline || "",
+      status: job.status || "open",
+    });
+  };
+
+  const handleJobToggle = async (job) => {
+    try {
+      const nextStatus = job.status === "closed" ? "open" : "closed";
+      await updateDoc(doc(db, "jobs", job.id), { status: nextStatus, updatedAt: serverTimestamp() });
+      setJobsList((prev) => prev.map((j) => j.id === job.id ? { ...j, status: nextStatus } : j));
+    } catch { }
+  };
+
+  const renderCareersTab = () => (
+    <div className="card shadow-sm border-0">
+      <div className="card-body p-4">
+        <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_careers')}</h4>
+        {jobMessage && <div className="alert alert-info py-1 small">{jobMessage}</div>}
+
+        <form className="row g-3 mb-4" onSubmit={handleJobSave}>
+          <div className="col-md-6"><label className="form-label">{t('admin_job_title')}</label><input name="title" type="text" className="form-control" value={jobForm.title} onChange={handleJobChange} required /></div>
+          <div className="col-md-6"><label className="form-label">{t('admin_job_dept')}</label><input name="department" type="text" className="form-control" value={jobForm.department} onChange={handleJobChange} /></div>
+          <div className="col-md-6"><label className="form-label">{t('admin_job_type')}</label><input name="type" type="text" className="form-control" value={jobForm.type} onChange={handleJobChange} /></div>
+          <div className="col-md-6"><label className="form-label">{t('admin_job_location')}</label><input name="location" type="text" className="form-control" value={jobForm.location} onChange={handleJobChange} /></div>
+          <div className="col-md-6"><label className="form-label">{t('admin_job_deadline')}</label><input name="deadline" type="date" className="form-control" value={jobForm.deadline} onChange={handleJobChange} required /></div>
+          <div className="col-md-6"><label className="form-label">{t('admin_job_status')}</label><select name="status" className="form-select" value={jobForm.status} onChange={handleJobChange}><option value="open">open</option><option value="closed">closed</option></select></div>
+          <div className="col-12"><label className="form-label">{t('admin_job_desc')}</label><textarea name="description" className="form-control" rows="3" value={jobForm.description} onChange={handleJobChange} /></div>
+          <div className="col-12"><button type="submit" className="btn btn-primary w-100" style={{ background: "var(--secondary-color)", border: "none" }} disabled={jobLoading}>{jobLoading ? t('admin_saving') : (editingJobId ? t('admin_job_update') : t('admin_job_save'))}</button></div>
+        </form>
+
+        <h5 className="mb-3" style={{ color: "var(--primary-color)" }}>{t('admin_jobs_list')}</h5>
+        {jobsList.length === 0 ? (
+          <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد وظائف منشورة' : 'No jobs posted yet'}</div>
+        ) : (
+          <div className="table-responsive mb-4">
+            <table className="table table-bordered table-striped align-middle">
+              <thead className="table-dark">
+                <tr>
+                  <th>{t('admin_job_title')}</th>
+                  <th>{t('admin_job_dept')}</th>
+                  <th>{t('admin_job_deadline')}</th>
+                  <th>{t('admin_job_status')}</th>
+                  <th>{language === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobsList.map((job) => (
+                  <tr key={job.id}>
+                    <td>{job.title}</td>
+                    <td>{job.department}</td>
+                    <td>{job.deadline || '-'}</td>
+                    <td><span className={`badge ${job.status === 'closed' ? 'bg-secondary' : 'bg-success'}`}>{job.status}</span></td>
+                    <td className="d-flex gap-2">
+                      <button className="btn btn-sm btn-outline-primary" onClick={() => handleJobEdit(job)}>{t('admin_job_edit')}</button>
+                      <button className="btn btn-sm btn-outline-warning" onClick={() => handleJobToggle(job)}>{job.status === 'closed' ? t('admin_job_open') : t('admin_job_close')}</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <hr className="my-4" />
+        <h5 className="mb-3" style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'طلبات التوظيف' : 'Applications'}</h5>
+        {applicationsLoading ? (
+          <div className="text-center"><div className="spinner-border text-primary"></div></div>
+        ) : applications.length === 0 ? (
+          <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد طلبات حالياً' : 'No applications yet'}</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table table-bordered table-striped align-middle">
+              <thead className="table-dark">
+                <tr>
+                  <th>{language === 'ar' ? 'الاسم' : 'Name'}</th>
+                  <th>{language === 'ar' ? 'الهاتف' : 'Phone'}</th>
+                  <th>Email</th>
+                  <th>{language === 'ar' ? 'الوظيفة' : 'Job'}</th>
+                  <th>{t('career_linkedin')}</th>
+                  <th>{t('career_experience')}</th>
+                  <th>{t('career_education')}</th>
+                  <th>{language === 'ar' ? 'السيرة الذاتية' : 'CV'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {applications.map((app) => (
+                  <tr key={app.id}>
+                    <td>{app.name}</td>
+                    <td>{app.phone}</td>
+                    <td>{app.email}</td>
+                    <td>{app.jobTitle || app.jobId}</td>
+                    <td>{app.linkedin || '-'}</td>
+                    <td>{app.experience || '-'}</td>
+                    <td>{app.education || '-'}</td>
+                    <td>{app.cvUrl ? <a href={app.cvUrl} target="_blank" rel="noreferrer">{language === 'ar' ? 'عرض' : 'View'}</a> : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   // ── GENERIC MEDIA FORM RENDERER ──
   const renderMediaForm = ({ sectionKey, titleAr, titleEn, formState, onFormChange, imagesInputName, videosInputName, onSubmit, isLoading, msgText, permKey, fileKey }) => (
     <div className="card shadow-sm border-0">
@@ -586,7 +739,7 @@ const AdminPanel = () => {
 
   const renderServicesTab = () => (
     <div className="card shadow-sm border-0"><div className="card-body p-4">
-      <h4 style={{ color: "var(--primary-color)" }}>إدارة الخدمات</h4>
+      <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_services')}</h4>
       {serviceMsg && <div className="alert alert-info py-1 small">{serviceMsg}</div>}
 
       {servicesList.length > 0 && (
@@ -811,7 +964,8 @@ const AdminPanel = () => {
               <button className={`list-group-item list-group-item-action ${activeTab === "shipments" ? "active" : ""}`} onClick={() => setActiveTab("shipments")}><i className="bi bi-truck me-1"></i>{t('admin_tab_shipments')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "products" ? "active" : ""}`} onClick={() => setActiveTab("products")}><i className="bi bi-box-seam me-1"></i>{t('admin_tab_products')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "clients" ? "active" : ""}`} onClick={() => setActiveTab("clients")}><i className="bi bi-building me-1"></i>{t('admin_tab_clients')}</button>
-              <button className={`list-group-item list-group-item-action ${activeTab === "services" ? "active" : ""}`} onClick={() => setActiveTab("services")}><i className="bi bi-briefcase me-1"></i>إدارة الخدمات</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "services" ? "active" : ""}`} onClick={() => setActiveTab("services")}><i className="bi bi-briefcase me-1"></i>{t('admin_tab_services')}</button>
+              <button className={`list-group-item list-group-item-action ${activeTab === "careers" ? "active" : ""}`} onClick={() => setActiveTab("careers")}><i className="bi bi-briefcase me-1"></i>{t('admin_tab_careers') || 'Careers'}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "blog" ? "active" : ""}`} onClick={() => setActiveTab("blog")}><i className="bi bi-journal-richtext me-1"></i>{t('admin_tab_blog')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "news" ? "active" : ""}`} onClick={() => setActiveTab("news")}><i className="bi bi-newspaper me-1"></i>{t('admin_tab_news')}</button>
               <button className={`list-group-item list-group-item-action ${activeTab === "ads" ? "active" : ""}`} onClick={() => setActiveTab("ads")}><i className="bi bi-megaphone me-1"></i>{t('admin_tab_ads')}</button>
@@ -829,6 +983,7 @@ const AdminPanel = () => {
             {activeTab === "products" && renderProductsTab()}
             {activeTab === "clients" && renderClientsTab()}
             {activeTab === "services" && renderServicesTab()}
+            {activeTab === "careers" && renderCareersTab()}
             {activeTab === "blog" && renderBlogTab()}
             {activeTab === "news" && renderNewsTab()}
             {activeTab === "ads" && renderAdsTab()}

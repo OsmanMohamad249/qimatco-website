@@ -123,6 +123,14 @@ const Footer = () => {
                       language === "ar" ? "bi-chevron-left" : "bi-chevron-right"
                     }`}
                   ></i>{" "}
+                  <Link to="/career">{t("nav_careers")}</Link>
+                </li>
+                <li>
+                  <i
+                    className={`bi ${
+                      language === "ar" ? "bi-chevron-left" : "bi-chevron-right"
+                    }`}
+                  ></i>{" "}
                   <Link to="/contact">{t("nav_contact")}</Link>
                 </li>
               </ul>

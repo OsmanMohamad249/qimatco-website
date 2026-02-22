@@ -116,6 +116,24 @@ const Home = () => {
         <ServiceList />
         <ClientList />
 
+        <section className="py-5" style={{ backgroundColor: "#ffffff" }}>
+          <div className="container" data-aos="fade-up">
+            <div className="enterprise-card d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+              <div>
+                <h3 style={{ color: "var(--primary-color)", fontWeight: "700", marginBottom: "8px" }}>
+                  {t('career_open_positions')}
+                </h3>
+                <p className="text-secondary mb-0" style={{ fontSize: "1rem" }}>
+                  {t('career_no_jobs')}
+                </p>
+              </div>
+              <Link to="/career" className="enterprise-cta-btn">
+                {t('nav_careers')} <i className="bi bi-briefcase"></i>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Latest News Section (Enterprise Insights) */}
         {news.length > 0 && (
           <section className="latest-news py-5" style={{ backgroundColor: "#ffffff" }}>
@@ -154,7 +172,8 @@ const Home = () => {
                         </p>
                         <Link to="/blog" style={{ color: "var(--primary-color)", fontWeight: "600", marginTop: "15px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "5px", transition: "color var(--transition-fast)" }}
                               onMouseOver={(e) => e.target.style.color = 'var(--accent-color)'}
-                              onMouseOut={(e) => e.target.style.color = 'var(--primary-color)'}>
+                              onMouseOut={(e) => e.target.style.color = 'var(--primary-color)'}
+                        >
                           {language === 'ar' ? 'اقرأ المزيد' : 'Read More'} <i className={`bi ${language === 'ar' ? 'bi-arrow-left-short' : 'bi-arrow-right-short'}`} style={{fontSize: "1.2rem"}}></i>
                         </Link>
                       </div>

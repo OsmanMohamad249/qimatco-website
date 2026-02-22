@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
 const About = () => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   useEffect(() => { AOS.init(); AOS.refresh(); }, []);
 
   const img_hero = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop";
@@ -47,29 +47,29 @@ const About = () => {
                 <h2 style={{ color: "var(--primary-color)", fontWeight: "800", fontSize: "2.5rem", marginBottom: "30px" }}>
                   {language === 'ar' ? 'شريكك الاستراتيجي للنمو' : 'Your Strategic Partner for Growth'}
                 </h2>
-                <p className="text-secondary mb-4" style={{ fontSize: "1.1rem", lineHeight: "1.8" }}>
-                  {language === 'ar'
-                    ? 'نحن لسنا مجرد شركة عادية، بل نحن إمبراطورية تجارية متكاملة تهدف إلى ربط السودان بالأسواق العالمية. نركز على الاستيراد والتصدير كنشاط أساسي، وندعم صفقاتنا بذراع لوجستي قوي لضمان تنفيذ العمليات بكفاءة.'
-                    : 'We are not just another company; we are a fully integrated trading powerhouse connecting Sudan to global markets. Trading (import/export) is our core, supported by robust logistics to execute flawlessly.'}
+                <p className="text-secondary mb-4 text-start" style={{ fontSize: "1.1rem", lineHeight: "1.8" }}>
+                  {t('about_intro')}
                 </p>
 
-                <div className="d-flex mb-4 p-3 rounded-3" style={{ backgroundColor: "#fff", boxShadow: "var(--shadow-sm)", borderRight: "4px solid var(--accent-color)" }}>
-                  <div className="me-3 ms-3">
+                <div className="d-flex mb-4 p-3 rounded-3" style={{ backgroundColor: "#fff", boxShadow: "var(--shadow-sm)", borderRight: language === 'ar' ? "4px solid var(--accent-color)" : "none", borderLeft: language === 'en' ? "4px solid var(--accent-color)" : "none" }}>
+                  <div className="me-3 ms-3 d-flex align-items-center">
                     <i className="bi bi-rocket-takeoff" style={{ fontSize: "2.5rem", color: "var(--accent-color)" }}></i>
                   </div>
                   <div>
-                    <h5 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'السرعة الدقيقة' : 'Precise Speed'}</h5>
-                    <p className="mb-0 text-secondary" style={{ fontSize: "0.95rem" }}>{language === 'ar' ? 'ندرك أن الوقت هو المال، لذا نضمن وصول شحناتك في أسرع وقت ممكن وبدقة متناهية.' : 'We understand that time is money, so we ensure your shipments arrive as quickly as possible with extreme precision.'}</p>
+                    <p className="mb-0 text-secondary" style={{ fontSize: "1rem", lineHeight: "1.7" }}>
+                      {t('about_speed')}
+                    </p>
                   </div>
                 </div>
 
-                <div className="d-flex p-3 rounded-3" style={{ backgroundColor: "#fff", boxShadow: "var(--shadow-sm)", borderRight: "4px solid var(--primary-color)" }}>
-                  <div className="me-3 ms-3">
+                <div className="d-flex p-3 rounded-3" style={{ backgroundColor: "#fff", boxShadow: "var(--shadow-sm)", borderRight: language === 'ar' ? "4px solid var(--primary-color)" : "none", borderLeft: language === 'en' ? "4px solid var(--primary-color)" : "none" }}>
+                  <div className="me-3 ms-3 d-flex align-items-center">
                     <i className="bi bi-shield-check" style={{ fontSize: "2.5rem", color: "var(--primary-color)" }}></i>
                   </div>
                   <div>
-                    <h5 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'الثقة والأمان' : 'Trust & Security'}</h5>
-                    <p className="mb-0 text-secondary" style={{ fontSize: "0.95rem" }}>{language === 'ar' ? 'نلتزم بأعلى معايير الشفافية والأمان في نقل بضائعك، مع توفير تحديثات دورية لكل مرحلة.' : 'We adhere to the highest standards of transparency and security in transporting your goods, providing periodic updates for every stage.'}</p>
+                    <p className="mb-0 text-secondary" style={{ fontSize: "1rem", lineHeight: "1.7" }}>
+                      {t('about_trust')}
+                    </p>
                   </div>
                 </div>
               </div>

@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useLanguage } from "../context/LanguageContext";
 
 const Navbar = () => {
   const location = useLocation();
   const { pathname } = location;
   const splitLocation = pathname.split("/");
+  const { t } = useLanguage();
 
   return (
     <>
@@ -27,6 +29,9 @@ const Navbar = () => {
           </li>
           <li>
             <Link to="/blog" className={splitLocation[1] === "blog" ? "active" : ""}>المدونة</Link>
+          </li>
+          <li>
+            <Link to="/career" className={splitLocation[1] === "career" ? "active" : ""}>{t('nav_careers')}</Link>
           </li>
           <li>
             <Link to="/contact" className={splitLocation[1] === "contact" ? "active" : ""}>تواصل معنا</Link>

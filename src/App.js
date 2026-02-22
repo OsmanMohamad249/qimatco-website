@@ -38,7 +38,7 @@ function App() {
             <Route path="services" element={<Service />} />
             <Route path="services/:id" element={<ServiceDetail />} />
             <Route path="products/:id" element={<ProductDetail />} />
-            <Route path="careers" element={<Career />} />
+            <Route path="career" element={<Career />} />
             <Route path="contact" element={<Contact />} />
             <Route path="track" element={<TrackShipment />} />
             <Route path="blog" element={<BlogPage />} />

@@ -59,9 +59,7 @@ const Footer = () => {
                   paddingLeft: language === "ar" ? "20px" : "0",
                 }}
               >
-                {language === "ar"
-                  ? "قمة الابتكار للحلول المتكاملة، شريكك اللوجستي الموثوق. نقدم خدمات شحن، تخليص جمركي، وتجارة دولية بمعايير عالمية لربط أعمالك بالأسواق العالمية."
-                  : "Qimmah Al Ebtekar for Integrated Solutions, your trusted logistics partner. We offer world-class shipping, customs clearance, and global trade services."}
+                {t("footer_desc")}
               </p>
               <div className="social-links mt-4 d-flex gap-2">
                 <a href="#" className="social-icon">

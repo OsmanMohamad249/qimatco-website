@@ -48,7 +48,9 @@ const About = () => {
                   {language === 'ar' ? 'شريكك الاستراتيجي للنمو' : 'Your Strategic Partner for Growth'}
                 </h2>
                 <p className="text-secondary mb-4" style={{ fontSize: "1.1rem", lineHeight: "1.8" }}>
-                  {language === 'ar' ? 'نحن لسنا مجرد شركة خدمات لوجستية، بل منظومة متكاملة تهدف إلى تسهيل أعمالك وربطك بالأسواق العالمية بكفاءة عالية.' : 'We are not just a logistics company, but an integrated system aiming to facilitate your business and connect you to global markets with high efficiency.'}
+                  {language === 'ar'
+                    ? 'نحن لسنا مجرد شركة عادية، بل نحن إمبراطورية تجارية متكاملة تهدف إلى ربط السودان بالأسواق العالمية. نركز على الاستيراد والتصدير كنشاط أساسي، وندعم صفقاتنا بذراع لوجستي قوي لضمان تنفيذ العمليات بكفاءة.'
+                    : 'We are not just another company; we are a fully integrated trading powerhouse connecting Sudan to global markets. Trading (import/export) is our core, supported by robust logistics to execute flawlessly.'}
                 </p>
 
                 <div className="d-flex mb-4 p-3 rounded-3" style={{ backgroundColor: "#fff", boxShadow: "var(--shadow-sm)", borderRight: "4px solid var(--accent-color)" }}>
@@ -97,7 +99,9 @@ const About = () => {
                     <i className="bi bi-globe-americas mb-3 d-block" style={{ fontSize: "3rem", color: "var(--primary-color)" }}></i>
                     <h3 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'شبكة استيراد عالمية' : 'Global Import Network'}</h3>
                     <p className="mt-3 text-secondary" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                      {language === 'ar' ? 'نغطي حالياً أهم أسواق المنسوجات والمنتجات العالمية لضمان تنوع وجودة تلبي احتياجاتك:' : 'We currently cover the most important textile and product markets globally to ensure variety and quality that meets your needs:'}
+                      {language === 'ar'
+                        ? 'شبكة استيراد عالمية متخصصة. نركز بشكل رئيسي على استيراد الأقمشة الفاخرة والملابس الجاهزة إلى السوق السوداني لضمان تنوع وجودة تلبي احتياجات عملائنا من أهم الأسواق العالمية:'
+                        : 'A specialized global import network. We focus on importing premium fabrics and ready-made garments to Sudan from the key global markets:'}
                     </p>
                     <ul className="list-unstyled mt-3">
                       <li className="mb-2"><i className="bi bi-check2-circle text-success ms-2 fs-5"></i> <strong>{language === 'ar' ? 'الصين:' : 'China:'}</strong> {language === 'ar' ? 'للتنوع الواسع.' : 'For wide variety.'}</li>
@@ -120,12 +124,15 @@ const About = () => {
                     <i className="bi bi-box-seam mb-3 d-block" style={{ fontSize: "3rem", color: "var(--accent-color)" }}></i>
                     <h3 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{language === 'ar' ? 'الصادرات السودانية' : 'Sudanese Exports'}</h3>
                     <p className="mt-3 text-secondary" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                      {language === 'ar' ? 'نفخر بتصدير أجود المنتجات السودانية الخالصة إلى الأسواق العالمية، ونعمل كجسر موثوق لربط خيرات أرضنا بالعالم.' : 'We proudly export the finest Sudanese products to global markets, serving as a trusted bridge connecting our homeland\'s bounty with the world.'}
+                      {language === 'ar'
+                        ? 'نفخر بتصدير أجود المنتجات السودانية الخالصة إلى الأسواق العالمية. نصدر المحاصيل الزراعية النقدية والمواشي الحية والمذبوحة، لنكون جسراً يربط خيرات أرضنا بالعالم.'
+                        : 'We proudly export the finest Sudanese products worldwide—cash crops and live/processed livestock—acting as the bridge that connects our nation’s wealth to global markets.'}
                     </p>
                     <div className="mt-4">
                       <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-droplet-fill text-warning me-2 ms-2"></i> {language === 'ar' ? 'الصمغ العربي' : 'Gum Arabic'}</span>
                       <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-flower1 text-warning me-2 ms-2"></i> {language === 'ar' ? 'السمسم السوداني' : 'Sudanese Sesame'}</span>
                       <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-cup-hot-fill text-warning me-2 ms-2"></i> {language === 'ar' ? 'الكركديه' : 'Hibiscus'}</span>
+                      <span className="badge bg-light text-dark fs-6 py-2 px-3 m-1 border border-secondary"><i className="bi bi-cow text-warning me-2 ms-2"></i> {language === 'ar' ? 'المواشي' : 'Livestock'}</span>
                     </div>
                   </div>
                 </div>
@@ -145,7 +152,9 @@ const About = () => {
                   </div>
                   <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>{language === 'ar' ? 'رؤيتنا' : 'Our Vision'}</h4>
                   <p className="text-secondary mb-0" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                    {language === 'ar' ? 'أن نكون الخيار الأول والشريك الاستراتيجي الأكثر موثوقية في مجال الخدمات اللوجستية في المنطقة.' : 'To be the first choice and the most reliable strategic partner in the logistics sector in the region.'}
+                    {language === 'ar'
+                      ? 'الريادة في قطاع التجارة الدولية والاستيراد والتصدير، وأن نكون الشريك التجاري الأقوى لربط السودان بالاقتصاد العالمي.'
+                      : 'To lead international trade and import/export, becoming the strongest commercial partner linking Sudan with the global economy.'}
                   </p>
                 </div>
               </div>
@@ -157,7 +166,9 @@ const About = () => {
                   </div>
                   <h4 style={{ color: "var(--primary-color)", fontWeight: "800", marginBottom: "15px" }}>{language === 'ar' ? 'رسالتنا' : 'Our Mission'}</h4>
                   <p className="text-secondary mb-0" style={{ fontSize: "1.05rem", lineHeight: "1.8" }}>
-                    {language === 'ar' ? 'تسهيل التجارة العالمية وربط الأسواق من خلال خدمات شحن وتخليص جمركي تتسم بالكفاءة والسرعة.' : 'Facilitating global trade and connecting markets through efficient and fast shipping and customs clearance services.'}
+                    {language === 'ar'
+                      ? 'توفير أجود المنتجات المستوردة للسوق المحلي، وتصدير ثروات السودان الزراعية والحيوانية للعالم، مع تقديم خدمات لوجستية داعمة تتسم بالسرعة والموثوقية.'
+                      : 'Provide premium imported products to the local market and export Sudan’s agricultural and livestock wealth globally, supported by fast, reliable logistics.'}
                   </p>
                 </div>
               </div>

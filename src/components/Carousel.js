@@ -18,20 +18,20 @@ const Carousel = () => {
     {
       id: 1,
       bg: "https://images.unsplash.com/photo-1494412519320-aa613dfb7738?q=80&w=2070&auto=format&fit=crop",
-      title: t('hero_title') || "Global Logistics Excellence",
-      subtitle: t('hero_subtitle') || "Delivering your cargo safely, on time, anywhere in the world.",
+      title: t('hero_title_1') || t('hero_title') || "Your Trusted Gateway to Global Trade",
+      subtitle: t('hero_desc_1') || t('hero_subtitle') || "Connecting Sudan to the world through integrated trade.",
     },
     {
       id: 2,
       bg: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop",
-      title: language === 'ar' ? "حلول سلاسل الإمداد المتكاملة" : "Integrated Supply Chain Solutions",
-      subtitle: language === 'ar' ? "تخزين وتوزيع بأحدث التقنيات العالمية" : "State-of-the-art warehousing and distribution globally.",
+      title: t('hero_title_2') || (language === 'ar' ? "تصدير ثروات السودان للعالم" : "Exporting Sudan's Wealth"),
+      subtitle: t('hero_desc_2') || (language === 'ar' ? "نفخر بتصدير أجود المحاصيل والمواشي للأسواق العالمية" : "Proudly exporting Sudanese crops and livestock"),
     },
     {
       id: 3,
       bg: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=2070&auto=format&fit=crop",
-      title: language === 'ar' ? "شحن جوي سريع وموثوق" : "Fast & Reliable Air Freight",
-      subtitle: language === 'ar' ? "نربط أعمالك بالأسواق العالمية في وقت قياسي" : "Connecting your business to global markets in record time.",
+      title: t('hero_title_3') || (language === 'ar' ? "رواد استيراد الأقمشة والملابس" : "Leaders in Fabrics & Garments Import"),
+      subtitle: t('hero_desc_3') || (language === 'ar' ? "نستورد أفضل الأقمشة والملابس من الصين وتركيا والهند ومصر" : "Importing top fabrics and garments from China, Turkey, India, and Egypt"),
     }
   ];
 

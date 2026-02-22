@@ -111,9 +111,9 @@ const Home = () => {
           </section>
         )}
 
-        <ServiceList />
-
         <Trading />
+
+        <ServiceList />
         <ClientList />
 
         {/* Latest News Section (Enterprise Insights) */}

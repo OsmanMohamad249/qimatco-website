@@ -699,10 +699,32 @@ const AdminPanel = () => {
     setPdfQuote(enrichedQuote);
     setPdfGenerating(true);
 
+    const waitForFonts = async () => {
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+    };
+
+    const waitForImages = async (root) => {
+      if (!root) return;
+      const images = Array.from(root.querySelectorAll("img"));
+      await Promise.all(images.map((img) => (
+        img.complete
+          ? Promise.resolve()
+          : new Promise((resolve) => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            })
+      )));
+    };
+
     // Allow the hidden template to render before capture.
     setTimeout(async () => {
       try {
         if (!pdfRef.current) return;
+        await waitForFonts();
+        await waitForImages(pdfRef.current);
+
         const canvas = await html2canvas(pdfRef.current, {
           scale: 2,
           useCORS: true,
@@ -836,22 +858,19 @@ const AdminPanel = () => {
             }}
           >
             {/* Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ width: "160px" }}>
-                {logoDataUrl ? <img src={logoDataUrl} alt="Logo" style={{ width: "150px", height: "auto" }} /> : null}
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <div style={{ width: "200px" }}>
+                {logoDataUrl ? <img src={logoDataUrl} alt="Logo" style={{ width: "190px", height: "auto" }} /> : null}
               </div>
-              <div style={{ textAlign: "left", direction: "ltr" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: "#F4A900", letterSpacing: "0.5px" }}>عرض أسعار</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#0B2C5C" }}>OFFICIAL QUOTATION</div>
+              <div style={{ flex: 1, textAlign: "center" }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#0B2C5C" }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#0B2C5C" }}>QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD</div>
+                <div style={{ marginTop: 6, fontSize: 22, fontWeight: 800, color: "#F4A900" }}>عـرض سـعر رسـمي</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0B2C5C" }}>OFFICIAL QUOTATION</div>
               </div>
             </div>
 
-            <div style={{ marginTop: 12, fontSize: 12, color: "#0B2C5C", textAlign: "center" }}>
-              <div style={{ fontWeight: 700 }}>Qimat AlAibtikar For Integrated Solutions Co. Ltd</div>
-              <div style={{ fontWeight: 700 }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
-            </div>
-
-            <div style={{ marginTop: 24, fontSize: 13, lineHeight: 1.9 }}>
+            <div style={{ marginTop: 20, fontSize: 13, lineHeight: 1.9 }}>
               <div style={{ fontWeight: 700 }}>تحية طيبة وبعد..</div>
               <div>
                 نتشرف بتقديم عرض الأسعار أدناه حسب طلبكم، ونرجو أن ينال رضاكم. فيما يلي التفاصيل الخاصة بالخدمات/المنتجات المطلوبة.
@@ -862,8 +881,6 @@ const AdminPanel = () => {
             <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 12 }}>
               <div>
                 <div><strong>الاسم:</strong> {pdfQuote.contactInfo?.fullName || pdfQuote.entityInfo?.companyName || ""}</div>
-                <div><strong>البريد:</strong> {pdfQuote.contactInfo?.email || ""}</div>
-                <div><strong>الهاتف:</strong> {pdfQuote.contactInfo?.phone || ""}</div>
               </div>
               <div>
                 <div><strong>الجهة:</strong> {pdfQuote.entityInfo?.type === "company" ? "شركة" : "فرد"}</div>
@@ -875,7 +892,7 @@ const AdminPanel = () => {
             {/* Items table */}
             <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 24, fontSize: 12 }}>
               <thead>
-                <tr style={{ background: "#0B2C5C", color: "#fff" }}>
+                <tr style={{ background: "#00B4FF", color: "#fff" }}>
                   <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "40px" }}>م / No</th>
                   <th style={{ padding: 8, border: "1px solid #e6e6e6" }}>الصنف / Description</th>
                   <th style={{ padding: 8, border: "1px solid #e6e6e6", width: "110px" }}>السعر / Price</th>
@@ -942,8 +959,7 @@ const AdminPanel = () => {
               />
               <div style={{ position: "relative", zIndex: 2, color: "#fff", fontSize: 10, padding: "14px 48px" }}>
                 <div>الخرطوم، السودان</div>
-                <div>Phone: +249 XX XXX XXXX</div>
-                <div>www.qimatco.com | info@qimatco.com</div>
+                <div>www.qimatco.com</div>
               </div>
             </div>
           </div>

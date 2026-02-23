@@ -111,6 +111,7 @@ const mergePerms = (saved, base) => {
 const AdminPanel = () => {
   const { t, language, toggleLanguage } = useLanguage();
   const isRTL = language === 'ar';
+  const getLabel = (obj) => { if (!obj) return "---"; if (typeof obj === "string") return obj; const lang = (language || "ar").toLowerCase(); return obj[lang] || obj.ar || obj.en || "---"; };
 
   // ── STATE ──
   const [form, setForm] = useState(initialForm);
@@ -966,7 +967,7 @@ const AdminPanel = () => {
   );
 
   const renderNewsTab = () => (<>
-    {renderMediaForm({ sectionKey: "news", titleAr: t('admin_news_title_ar'), titleEn: t('admin_news_title_en'), formState: newsForm, onFormChange: handleNewsChange, imagesInputName: "newsImages", videosInputName: "newsVideos", onSubmit: handleNewsSave, isLoading: newsLoading, msgText: newsMessage, permKey: "news", fileKey: newsFileKey })}
+    {renderMediaForm({ sectionKey: "news", titleAr: t('admin_news_title_ar'), titleEn: t('admin_news_title_en'), formState: newsForm, onFormChange: handleNewsChange, imagesInputName: "newsImages", videosInputName: "adsVideos", onSubmit: handleNewsSave, isLoading: newsLoading, msgText: newsMessage, permKey: "news", fileKey: newsFileKey })}
     {renderMediaList(newsItems, "news", handleDeleteNews)}
   </>);
 
@@ -1043,7 +1044,7 @@ const AdminPanel = () => {
                     <tr key={s.id}>
                       <td>{s.name?.ar}</td>
                       <td>{s.name?.en}</td>
-                      <td>{departments.find((d) => d.id === s.departmentId)?.name?.[language] || ""}</td>
+                      <td>{getLabel(departments.find((d) => d.id === s.departmentId)?.name)}</td>
                       <td className="d-flex gap-2">
                         <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditSection(s)}>{t("admin_team_edit")}</button>
                         <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteSection(s.id)}>{t("admin_team_delete")}</button>
@@ -1070,7 +1071,7 @@ const AdminPanel = () => {
                     <tr key={ti.id}>
                       <td>{ti.title?.ar}</td>
                       <td>{ti.title?.en}</td>
-                      <td>{sections.find((s) => s.id === ti.sectionId)?.name?.[language] || ""}</td>
+                      <td>{getLabel(sections.find((s) => s.id === ti.sectionId)?.name)}</td>
                       <td>{ti.level}</td>
                       <td className="d-flex gap-2">
                         <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditTitle(ti)}>{t("admin_team_edit")}</button>
@@ -1096,9 +1097,9 @@ const AdminPanel = () => {
                 <tbody>
                   {employees.map((emp) => (
                     <tr key={emp.id}>
-                      <td>{emp.name?.[language] || emp.name?.ar}</td>
-                      <td>{titles.find((t) => t.id === emp.titleId)?.title?.[language] || ""}</td>
-                      <td>{employees.find((m) => m.id === emp.managerId)?.name?.[language] || "-"}</td>
+                      <td>{getLabel(emp.name)}</td>
+                      <td>{getLabel(titles.find((t) => t.id === emp.titleId)?.title)}</td>
+                      <td>{getLabel(employees.find((m) => m.id === emp.managerId)?.name)}</td>
                       <td className="d-flex gap-2">
                         <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditEmployee(emp)}>{t("admin_team_edit")}</button>
                         <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteEmployee(emp.id)}>{t("admin_team_delete")}</button>
@@ -1113,10 +1114,20 @@ const AdminPanel = () => {
 
         {/* Department Modal */}
         {deptModalOpen && (
-          <div className="team-modal-backdrop" onClick={() => setDeptModalOpen(false)}>
-            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="team-modal-header"><h5>{t("admin_team_departments")}</h5><button className="btn-close" onClick={() => setDeptModalOpen(false)}></button></div>
-              <div className="team-modal-body">
+          <div
+            onClick={() => setDeptModalOpen(false)}
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
+              <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h5 style={{ margin: 0 }}>{t("admin_team_departments")}</h5>
+                <button className="btn-close" onClick={() => setDeptModalOpen(false)}></button>
+              </div>
+              <div style={{ padding: '20px', overflowY: 'auto' }}>
                 <form className="row g-3" onSubmit={handleSaveDepartment}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={deptForm.name_ar} onChange={(e) => setDeptForm({ ...deptForm, name_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={deptForm.name_en} onChange={(e) => setDeptForm({ ...deptForm, name_en: e.target.value })} /></div>
@@ -1129,14 +1140,24 @@ const AdminPanel = () => {
 
         {/* Section Modal */}
         {sectionModalOpen && (
-          <div className="team-modal-backdrop" onClick={() => setSectionModalOpen(false)}>
-            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="team-modal-header"><h5>{t("admin_team_sections")}</h5><button className="btn-close" onClick={() => setSectionModalOpen(false)}></button></div>
-              <div className="team-modal-body">
+          <div
+            onClick={() => setSectionModalOpen(false)}
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
+              <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h5 style={{ margin: 0 }}>{t("admin_team_sections")}</h5>
+                <button className="btn-close" onClick={() => setSectionModalOpen(false)}></button>
+              </div>
+              <div style={{ padding: '20px', overflowY: 'auto' }}>
                 <form className="row g-3" onSubmit={handleSaveSection}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={sectionForm.name_ar} onChange={(e) => setSectionForm({ ...sectionForm, name_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={sectionForm.name_en} onChange={(e) => setSectionForm({ ...sectionForm, name_en: e.target.value })} /></div>
-                  <div className="col-12"><label className="form-label">{t("admin_team_department")}</label><select className="form-select" value={sectionForm.departmentId} onChange={(e) => setSectionForm({ ...sectionForm, departmentId: e.target.value })} required><option value="">--</option>{departments.map((d) => (<option key={d.id} value={d.id}>{d.name?.[language] || d.name?.ar}</option>))}</select></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_department")}</label><select className="form-select" value={sectionForm.departmentId} onChange={(e) => setSectionForm({ ...sectionForm, departmentId: e.target.value })} required><option value="">--</option>{departments.map((d) => (<option key={d.id} value={d.id}>{getLabel(d.name)}</option>))}</select></div>
                   <div className="col-12"><button type="submit" className="btn btn-primary w-100" disabled={teamLoading}>{t("admin_save")}</button></div>
                 </form>
               </div>
@@ -1146,14 +1167,24 @@ const AdminPanel = () => {
 
         {/* Title Modal */}
         {titleModalOpen && (
-          <div className="team-modal-backdrop" onClick={() => setTitleModalOpen(false)}>
-            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="team-modal-header"><h5>{t("admin_team_titles")}</h5><button className="btn-close" onClick={() => setTitleModalOpen(false)}></button></div>
-              <div className="team-modal-body">
+          <div
+            onClick={() => setTitleModalOpen(false)}
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
+              <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h5 style={{ margin: 0 }}>{t("admin_team_titles")}</h5>
+                <button className="btn-close" onClick={() => setTitleModalOpen(false)}></button>
+              </div>
+              <div style={{ padding: '20px', overflowY: 'auto' }}>
                 <form className="row g-3" onSubmit={handleSaveTitle}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={titleForm.title_ar} onChange={(e) => setTitleForm({ ...titleForm, title_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={titleForm.title_en} onChange={(e) => setTitleForm({ ...titleForm, title_en: e.target.value })} /></div>
-                  <div className="col-12"><label className="form-label">{t("admin_team_section")}</label><select className="form-select" value={titleForm.sectionId} onChange={(e) => setTitleForm({ ...titleForm, sectionId: e.target.value })} required><option value="">--</option>{sections.map((s) => (<option key={s.id} value={s.id}>{s.name?.[language] || s.name?.ar}</option>))}</select></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_section")}</label><select className="form-select" value={titleForm.sectionId} onChange={(e) => setTitleForm({ ...titleForm, sectionId: e.target.value })} required><option value="">--</option>{sections.map((s) => (<option key={s.id} value={s.id}>{getLabel(s.name)}</option>))}</select></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_level")}</label><select className="form-select" value={titleForm.level} onChange={(e) => setTitleForm({ ...titleForm, level: e.target.value })}><option value="top">{t("admin_team_level_top")}</option><option value="executive">{t("admin_team_level_exec")}</option><option value="management">{t("admin_team_level_mgmt")}</option><option value="staff">{t("admin_team_level_staff")}</option></select></div>
                   <div className="col-12"><button type="submit" className="btn btn-primary w-100" disabled={teamLoading}>{t("admin_save")}</button></div>
                 </form>
@@ -1164,10 +1195,20 @@ const AdminPanel = () => {
 
         {/* Employee Modal */}
         {employeeModalOpen && (
-          <div className="team-modal-backdrop" onClick={() => setEmployeeModalOpen(false)}>
-            <div className="team-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="team-modal-header"><h5>{t("admin_team_employees")}</h5><button className="btn-close" onClick={() => setEmployeeModalOpen(false)}></button></div>
-              <div className="team-modal-body">
+          <div
+            onClick={() => setEmployeeModalOpen(false)}
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
+              <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h5 style={{ margin: 0 }}>{t("admin_team_employees")}</h5>
+                <button className="btn-close" onClick={() => setEmployeeModalOpen(false)}></button>
+              </div>
+              <div style={{ padding: '20px', overflowY: 'auto' }}>
                 <form className="row g-3" onSubmit={handleSaveEmployee}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={employeeForm.name_ar} onChange={(e) => setEmployeeForm({ ...employeeForm, name_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={employeeForm.name_en} onChange={(e) => setEmployeeForm({ ...employeeForm, name_en: e.target.value })} /></div>
@@ -1175,8 +1216,8 @@ const AdminPanel = () => {
                   <div className="col-12"><label className="form-label">{t("admin_team_bio_en")}</label><textarea className="form-control" rows="2" value={employeeForm.bio_en} onChange={(e) => setEmployeeForm({ ...employeeForm, bio_en: e.target.value })}></textarea></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_resp_ar")}</label><textarea className="form-control" rows="2" value={employeeForm.resp_ar} onChange={(e) => setEmployeeForm({ ...employeeForm, resp_ar: e.target.value })}></textarea></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_resp_en")}</label><textarea className="form-control" rows="2" value={employeeForm.resp_en} onChange={(e) => setEmployeeForm({ ...employeeForm, resp_en: e.target.value })}></textarea></div>
-                  <div className="col-12"><label className="form-label">{t("admin_team_title")}</label><select className="form-select" value={employeeForm.titleId} onChange={(e) => setEmployeeForm({ ...employeeForm, titleId: e.target.value })} required><option value="">--</option>{titles.map((ti) => (<option key={ti.id} value={ti.id}>{ti.title?.[language] || ti.title?.ar}</option>))}</select></div>
-                  <div className="col-12"><label className="form-label">{t("admin_team_manager")}</label><select className="form-select" value={employeeForm.managerId} onChange={(e) => setEmployeeForm({ ...employeeForm, managerId: e.target.value })}><option value="">--</option>{employees.map((emp) => (<option key={emp.id} value={emp.id}>{emp.name?.[language] || emp.name?.ar}</option>))}</select></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_title")}</label><select className="form-select" value={employeeForm.titleId} onChange={(e) => setEmployeeForm({ ...employeeForm, titleId: e.target.value })} required><option value="">--</option>{titles.map((ti) => (<option key={ti.id} value={ti.id}>{getLabel(ti.title)}</option>))}</select></div>
+                  <div className="col-12"><label className="form-label">{t("admin_team_manager")}</label><select className="form-select" value={employeeForm.managerId} onChange={(e) => setEmployeeForm({ ...employeeForm, managerId: e.target.value })}><option value="">--</option>{employees.map((emp) => (<option key={emp.id} value={emp.id}>{getLabel(emp.name)}</option>))}</select></div>
                   <div className="col-md-6"><label className="form-label">{t("admin_team_image")}</label><input key={employeeFileKey} type="file" accept="image/*" className="form-control" onChange={(e) => setEmployeeImageFile(e.target.files?.[0] || null)} /></div>
                   <div className="col-md-6"><label className="form-label">{t("admin_team_cv")}</label><input key={`cv-${employeeFileKey}`} type="file" accept="application/pdf" className="form-control" onChange={(e) => setEmployeeCvFile(e.target.files?.[0] || null)} /></div>
                   <div className="col-12"><button type="submit" className="btn btn-primary w-100" disabled={teamLoading}>{t("admin_save")}</button></div>

@@ -1116,18 +1116,18 @@ const AdminPanel = () => {
         {deptModalOpen && (
           <div
             onClick={() => setDeptModalOpen(false)}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              style={{ backgroundColor: '#fff', width: '100%', maxWidth: '600px', maxHeight: '100%', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h5 style={{ margin: 0 }}>{t("admin_team_departments")}</h5>
                 <button className="btn-close" onClick={() => setDeptModalOpen(false)}></button>
               </div>
-              <div style={{ padding: '20px', overflowY: 'auto' }}>
+              <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                 <form className="row g-3" onSubmit={handleSaveDepartment}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={deptForm.name_ar} onChange={(e) => setDeptForm({ ...deptForm, name_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={deptForm.name_en} onChange={(e) => setDeptForm({ ...deptForm, name_en: e.target.value })} /></div>
@@ -1142,18 +1142,18 @@ const AdminPanel = () => {
         {sectionModalOpen && (
           <div
             onClick={() => setSectionModalOpen(false)}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              style={{ backgroundColor: '#fff', width: '100%', maxWidth: '600px', maxHeight: '100%', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h5 style={{ margin: 0 }}>{t("admin_team_sections")}</h5>
                 <button className="btn-close" onClick={() => setSectionModalOpen(false)}></button>
               </div>
-              <div style={{ padding: '20px', overflowY: 'auto' }}>
+              <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                 <form className="row g-3" onSubmit={handleSaveSection}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={sectionForm.name_ar} onChange={(e) => setSectionForm({ ...sectionForm, name_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={sectionForm.name_en} onChange={(e) => setSectionForm({ ...sectionForm, name_en: e.target.value })} /></div>
@@ -1169,18 +1169,18 @@ const AdminPanel = () => {
         {titleModalOpen && (
           <div
             onClick={() => setTitleModalOpen(false)}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              style={{ backgroundColor: '#fff', width: '100%', maxWidth: '600px', maxHeight: '100%', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h5 style={{ margin: 0 }}>{t("admin_team_titles")}</h5>
                 <button className="btn-close" onClick={() => setTitleModalOpen(false)}></button>
               </div>
-              <div style={{ padding: '20px', overflowY: 'auto' }}>
+              <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                 <form className="row g-3" onSubmit={handleSaveTitle}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={titleForm.title_ar} onChange={(e) => setTitleForm({ ...titleForm, title_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={titleForm.title_en} onChange={(e) => setTitleForm({ ...titleForm, title_en: e.target.value })} /></div>
@@ -1197,18 +1197,18 @@ const AdminPanel = () => {
         {employeeModalOpen && (
           <div
             onClick={() => setEmployeeModalOpen(false)}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ backgroundColor: '#fff', width: '95%', maxWidth: '600px', maxHeight: '90vh', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
+              style={{ backgroundColor: '#fff', width: '100%', maxWidth: '600px', maxHeight: '100%', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <div style={{ padding: '16px', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h5 style={{ margin: 0 }}>{t("admin_team_employees")}</h5>
                 <button className="btn-close" onClick={() => setEmployeeModalOpen(false)}></button>
               </div>
-              <div style={{ padding: '20px', overflowY: 'auto' }}>
+              <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                 <form className="row g-3" onSubmit={handleSaveEmployee}>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_ar")}</label><input className="form-control" value={employeeForm.name_ar} onChange={(e) => setEmployeeForm({ ...employeeForm, name_ar: e.target.value })} required /></div>
                   <div className="col-12"><label className="form-label">{t("admin_team_name_en")}</label><input className="form-control" value={employeeForm.name_en} onChange={(e) => setEmployeeForm({ ...employeeForm, name_en: e.target.value })} /></div>

@@ -119,7 +119,8 @@ const RequestQuote = () => {
       };
 
       const docRef = await addDoc(collection(db, "quotes"), quoteDoc);
-      setRequestId(docRef.id);
+      const formattedId = `Q-${new Date().getFullYear()}-${docRef.id.substring(0, 5).toUpperCase()}`;
+      setRequestId(formattedId);
     } catch (err) {
       setStatusMsg(err.message || "Error");
     } finally {

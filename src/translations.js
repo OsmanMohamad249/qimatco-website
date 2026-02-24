@@ -104,6 +104,15 @@ export const translations = {
     career_form_cv: "السيرة الذاتية (PDF)",
     career_submit: "إرسال الطلب",
     career_success: "تم استلام طلبك بنجاح! سنتواصل معك قريباً.",
+    career_deadline: "الموعد النهائي",
+    career_linkedin: "رابط لينكد إن",
+    career_experience: "سنوات الخبرة",
+    career_education: "المؤهل العلمي",
+    career_high_school: "ثانوي",
+    career_bachelor: "بكالوريوس",
+    career_master: "ماجستير",
+    career_phd: "دكتوراه",
+    career_email: "البريد الإلكتروني",
 
     // Admin Panel
     admin_panel_title: "لوحة التحكم",
@@ -440,6 +449,15 @@ export const translations = {
     career_form_cv: "Upload CV (PDF)",
     career_submit: "Submit Application",
     career_success: "Application received successfully! We will contact you soon.",
+    career_deadline: "Deadline",
+    career_linkedin: "LinkedIn Profile",
+    career_experience: "Years of Experience",
+    career_education: "Education Level",
+    career_high_school: "High School",
+    career_bachelor: "Bachelor's",
+    career_master: "Master's",
+    career_phd: "PhD",
+    career_email: "Email",
 
     // Admin Panel
     admin_panel_title: "Admin Panel",

@@ -92,6 +92,14 @@ const can = (perms, section, action) => {
   return !!perms[section][action];
 };
 
+// Generate standardized quotation ID like Q-2026-0001
+const formatQuoteID = (createdAt, index) => {
+  if (!createdAt) return `Q-${new Date().getFullYear()}-${String(index + 1).padStart(4, '0')}`;
+  const date = createdAt.seconds ? new Date(createdAt.seconds * 1000) : new Date(createdAt);
+  const year = date.getFullYear();
+  return `Q-${year}-${String(index + 1).padStart(4, '0')}`;
+};
+
 // Merge saved permissions with defaults so new keys are always present
 const mergePerms = (saved, base) => {
   const merged = JSON.parse(JSON.stringify(base));
@@ -1343,7 +1351,11 @@ const AdminPanel = () => {
             <div style={{ textAlign: "center", fontSize: "18pt", fontWeight: 800, margin: "12px 0 20px" }}>عـرض سـعر رسـمي / OFFICIAL QUOTATION</div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "11pt" }}>
               <div><strong>العميل:</strong> {pdfQuote.contactInfo?.fullName || pdfQuote.entityInfo?.companyName || ""}</div>
-              <div><strong>ID:</strong> {`Q-${new Date(pdfQuote.createdAt.seconds * 1000).getFullYear()}-${String(pdfQuote.createdAt.seconds).slice(-4)}`}</div>
+              <div><strong>{t('quote_ref_number')}:</strong> {formatQuoteID(pdfQuote.createdAt, quotes.findIndex(q => q.id === pdfQuote.id))}</div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "10pt" }}>
+              <div><strong>{t('quote_date')}:</strong> {pdfQuote.createdAt?.seconds ? new Date(pdfQuote.createdAt.seconds * 1000).toLocaleDateString('ar-SA') : ''}</div>
+              <div><strong>{t('quote_entity_type')}:</strong> {pdfQuote.entityInfo?.type === 'company' ? t('quote_company') : t('quote_individual')}</div>
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10.5pt" }}>
               <thead>
@@ -1388,12 +1400,12 @@ const AdminPanel = () => {
               <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد عروض أسعار' : 'No quotes yet'}</div>
             ) : (
               <div className="list-group">
-                {quotes.map((q) => (
+                {quotes.map((q, idx) => (
                   <button key={q.id} type="button" className={`list-group-item list-group-item-action ${selectedQuote?.id === q.id ? 'active' : ''}`} onClick={() => handleSelectQuote(q)}>
                     <div className="d-flex justify-content-between align-items-center">
                       <div>
                         <div className="fw-bold">{q.contactInfo?.fullName || q.entityInfo?.companyName || q.id}</div>
-                        <small className="text-muted">{`Q-${new Date(q.createdAt.seconds * 1000).getFullYear()}-${String(q.createdAt.seconds).slice(-4)}`}</small>
+                        <small className="text-muted">{formatQuoteID(q.createdAt, idx)}</small>
                       </div>
                       <small>{q.createdAt?.seconds ? new Date(q.createdAt.seconds * 1000).toLocaleDateString() : ''}</small>
                     </div>

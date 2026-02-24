@@ -140,19 +140,18 @@ const Team = () => {
             </div>
             <div className="team-modal-body">
               <div className="d-flex flex-column flex-md-row gap-3">
-                {selectedEmployee.imageUrl ? (
-                  <img src={selectedEmployee.imageUrl} alt={loc(selectedEmployee.name)} className="team-modal-avatar" />
-                ) : (
-                  <div className="team-modal-avatar team-modal-avatar-placeholder">
-                    <i className="bi bi-person-fill"></i>
-                  </div>
-                )}
+                <img
+                  src={selectedEmployee.image || "assets/img/team/no-image.jpg"}
+                  alt={loc(selectedEmployee.name)}
+                  className="img-fluid rounded-circle shadow-sm mb-3 mx-auto d-block"
+                  style={{ width: '150px', height: '150px', objectFit: 'cover', border: '4px solid #f8f9fa' }}
+                />
                 <div className="flex-grow-1">
                   <div className="mb-2"><strong>{t("team_job_title")}:</strong> {resolveTitleName(selectedEmployee)}</div>
                   <div className="mb-2"><strong>{t("team_department")}:</strong> {resolveDeptName(selectedEmployee)}</div>
                   <div className="mb-2"><strong>{t("team_section")}:</strong> {resolveSectionName(selectedEmployee)}</div>
                   {selectedEmployee.managerId && (
-                    <div className="mb-2"><strong>{t("team_manager")}:</strong> {loc((employees.find((e) => e.id === selectedEmployee.managerId) || {}).name)}</div>
+                    <div className="mb-2"><strong>{t("team_direct_manager")}:</strong> {loc((employees.find((e) => e.id === selectedEmployee.managerId) || {}).name)}</div>
                   )}
                 </div>
               </div>
@@ -192,4 +191,3 @@ const Team = () => {
 };
 
 export default Team;
-

@@ -158,14 +158,28 @@ const Team = () => {
               <button className="btn-close" onClick={() => setSelectedEmployee(null)}></button>
             </div>
             <div className="team-modal-body">
-              <div className="d-flex flex-column flex-md-row gap-3">
-                <img
-                  src={selectedEmployee.image || "assets/img/team/no-image.jpg"}
-                  alt={loc(selectedEmployee.name)}
-                  className="img-fluid rounded-circle shadow-sm mb-3 mx-auto d-block"
-                  style={{ width: '150px', height: '150px', objectFit: 'cover', border: '4px solid #f8f9fa' }}
-                />
-                <div className="flex-grow-1">
+              <div className="d-flex flex-column align-items-center text-center gap-3 mb-4">
+                {/* Image or Placeholder container */}
+                <div className="avatar-wrapper">
+                  {selectedEmployee.imageUrl ? (
+                    <img
+                      src={selectedEmployee.imageUrl}
+                      alt={loc(selectedEmployee.name)}
+                      className="img-fluid rounded-circle shadow-sm"
+                      style={{ width: '150px', height: '150px', objectFit: 'cover', border: '4px solid var(--primary-color)' }}
+                    />
+                  ) : (
+                    <div
+                      className="rounded-circle d-flex align-items-center justify-content-center shadow-sm mx-auto"
+                      style={{ width: '150px', height: '150px', backgroundColor: '#e9ecef', border: '4px solid var(--primary-color)' }}
+                    >
+                      <i className="bi bi-person-fill text-secondary" style={{ fontSize: '4rem' }}></i>
+                    </div>
+                  )}
+                </div>
+
+                {/* Employee Basic Info */}
+                <div className="flex-grow-1 w-100">
                   <div className="mb-2"><strong>{t("team_job_title")}:</strong> {resolveTitleName(selectedEmployee)}</div>
                   <div className="mb-2"><strong>{t("team_department")}:</strong> {resolveDeptName(selectedEmployee)}</div>
                   <div className="mb-2"><strong>{t("team_section")}:</strong> {resolveSectionName(selectedEmployee)}</div>

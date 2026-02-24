@@ -49,13 +49,32 @@ const Team = () => {
 
   const employeesByManager = useMemo(() => {
     const map = {};
+    // 1. Map valid IDs to prevent orphaned children from disappearing
+    const validIds = new Set(employees.map((e) => e.id));
+
+    // 2. Rank dictionary to enforce agreed hierarchy
+    const LEVEL_RANK = { top: 1, executive: 2, management: 3, staff: 4 };
+
+    const getRank = (emp) => {
+      const title = titleById[emp.titleId];
+      return title && title.level ? (LEVEL_RANK[title.level] || 5) : 5;
+    };
+
+    // 3. Build the Tree
     employees.forEach((emp) => {
-      const key = emp.managerId || "root";
+      // CRITICAL FIX: If managerId is invalid, force them to "root" so they don't vanish
+      const key = (emp.managerId && validIds.has(emp.managerId)) ? emp.managerId : "root";
       if (!map[key]) map[key] = [];
       map[key].push(emp);
     });
+
+    // 4. Sort every branch by Management Level
+    Object.keys(map).forEach((key) => {
+      map[key].sort((a, b) => getRank(a) - getRank(b));
+    });
+
     return map;
-  }, [employees]);
+  }, [employees, titleById]);
 
   const resolveDeptName = (emp) => {
     const title = titleById[emp.titleId];

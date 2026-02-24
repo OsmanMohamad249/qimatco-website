@@ -801,31 +801,62 @@ const AdminPanel = () => {
       pdf.setFillColor(...navyBlue);
       pdf.rect(0, 0, pageW, 100, 'F');
 
-      // Company Names - Bilingual Header
+      // Company Names - Based on Language Direction
       pdf.setTextColor(...white);
-      pdf.setFontSize(14);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD", 40, 35);
-      pdf.setFontSize(12);
-      pdf.text("Trading - Import - Export - Logistics", 40, 52);
 
-      // Arabic Company Name (Right side)
-      pdf.setFontSize(13);
-      pdf.text("شركة قمة الابتكار للحلول المتكاملة المحدودة", pageW - 40, 35, { align: "right" });
-      pdf.setFontSize(11);
-      pdf.text("تجارة - استيراد - تصدير - لوجستيات", pageW - 40, 52, { align: "right" });
+      if (isRTL) {
+        // Arabic Primary (Right to Left)
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD", pageW - 40, 35, { align: "right" });
+        pdf.setFontSize(11);
+        pdf.text("Trading - Import - Export - Logistics", pageW - 40, 50, { align: "right" });
+        pdf.setFontSize(10);
+        pdf.text("CR: 1010XXXXXX | VAT: 3XXXXXXXXXX003", pageW - 40, 65, { align: "right" });
+
+        // English Sub (Left)
+        pdf.setFontSize(12);
+        pdf.text("Qimat AlAibtikar Co.", 40, 40);
+        pdf.setFontSize(9);
+        pdf.text("Riyadh, Saudi Arabia", 40, 55);
+      } else {
+        // English Primary (Left to Right)
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD", 40, 35);
+        pdf.setFontSize(11);
+        pdf.text("Trading - Import - Export - Logistics", 40, 50);
+        pdf.setFontSize(10);
+        pdf.text("CR: 1010XXXXXX | VAT: 3XXXXXXXXXX003", 40, 65);
+
+        // Arabic Sub (Right) - Using transliteration for compatibility
+        pdf.setFontSize(12);
+        pdf.text("Qimat AlAibtikar Co.", pageW - 40, 40, { align: "right" });
+        pdf.setFontSize(9);
+        pdf.text("Riyadh, KSA", pageW - 40, 55, { align: "right" });
+      }
 
       // Cyan Separator Line
       pdf.setFillColor(...cyanAccent);
       pdf.rect(0, 100, pageW, 6, 'F');
 
-      // Title: OFFICIAL QUOTATION
-      pdf.setFontSize(20);
+      // Title: OFFICIAL QUOTATION - Bilingual
+      pdf.setFontSize(22);
       pdf.setTextColor(...navyBlue);
       pdf.setFont("helvetica", "bold");
-      pdf.text("OFFICIAL QUOTATION", pageW / 2, 135, { align: "center" });
-      pdf.setFontSize(16);
-      pdf.text("عرض سعر رسمي", pageW / 2, 155, { align: "center" });
+
+      const titleEN = "OFFICIAL QUOTATION";
+      const titleAR = t('quote_title') || "Official Quotation";
+
+      if (isRTL) {
+        pdf.text(titleEN, pageW / 2, 135, { align: "center" });
+        pdf.setFontSize(14);
+        pdf.text(titleAR, pageW / 2, 155, { align: "center" });
+      } else {
+        pdf.text(titleEN, pageW / 2, 135, { align: "center" });
+        pdf.setFontSize(14);
+        pdf.text("Official Price Quotation", pageW / 2, 155, { align: "center" });
+      }
 
       // Quote Info Box
       pdf.setFontSize(10);
@@ -833,42 +864,81 @@ const AdminPanel = () => {
       pdf.setFont("helvetica", "normal");
 
       const infoY = 180;
+      const clientLabel = isRTL ? "Client:" : "Client:";
+      const phoneLabel = isRTL ? "Phone:" : "Phone:";
+      const emailLabel = isRTL ? "Email:" : "Email:";
+      const refLabel = isRTL ? "Ref No.:" : "Ref No.:";
+      const dateLabel = isRTL ? "Date:" : "Date:";
+      const entityLabel = isRTL ? "Entity:" : "Entity:";
+
       // Left Side - Client Info
-      pdf.text(`Client / العميل: ${quote.contactInfo?.fullName || quote.entityInfo?.companyName || "N/A"}`, 40, infoY);
-      pdf.text(`Phone / الهاتف: ${quote.contactInfo?.phone || "N/A"}`, 40, infoY + 15);
-      pdf.text(`Email / البريد: ${quote.contactInfo?.email || "N/A"}`, 40, infoY + 30);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(clientLabel, 40, infoY);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(quote.contactInfo?.fullName || quote.entityInfo?.companyName || "N/A", 90, infoY);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text(phoneLabel, 40, infoY + 15);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(quote.contactInfo?.phone || "N/A", 90, infoY + 15);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text(emailLabel, 40, infoY + 30);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(quote.contactInfo?.email || "N/A", 90, infoY + 30);
 
       // Right Side - Quote Info
-      pdf.text(`Ref No. / رقم المرجع: ${refNumber}`, pageW - 40, infoY, { align: "right" });
-      const dateStr = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
-      pdf.text(`Date / التاريخ: ${dateStr}`, pageW - 40, infoY + 15, { align: "right" });
-      pdf.text(`Entity / الجهة: ${quote.entityInfo?.type === 'company' ? 'Company / شركة' : 'Individual / فرد'}`, pageW - 40, infoY + 30, { align: "right" });
+      const dateStr = quote.createdAt?.seconds
+        ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString(isRTL ? 'ar-SA' : 'en-GB')
+        : new Date().toLocaleDateString(isRTL ? 'ar-SA' : 'en-GB');
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text(refLabel, pageW - 180, infoY);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(refNumber, pageW - 40, infoY, { align: "right" });
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text(dateLabel, pageW - 180, infoY + 15);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(dateStr, pageW - 40, infoY + 15, { align: "right" });
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text(entityLabel, pageW - 180, infoY + 30);
+      pdf.setFont("helvetica", "normal");
+      const entityType = quote.entityInfo?.type === 'company' ? (isRTL ? 'Company' : 'Company') : (isRTL ? 'Individual' : 'Individual');
+      pdf.text(entityType, pageW - 40, infoY + 30, { align: "right" });
 
       // Items Table
       const tableY = 240;
       const items = quote.id === selectedQuote?.id ? quoteItems : (quote.items || []);
 
-      // Table Headers
-      const colWidths = [35, 200, 80, 60, 100];
-      const headers = ["No", "Description / الصنف", "Price / السعر", "Qty / الكمية", "Total / الإجمالي"];
+      // Table Headers - Bilingual
+      const colWidths = [40, 195, 85, 65, 100];
+      const headers = [
+        "No.",
+        "Description",
+        "Unit Price",
+        "Qty",
+        "Total"
+      ];
 
       // Header Row
       pdf.setFillColor(...navyBlue);
-      pdf.rect(40, tableY, pageW - 80, 25, 'F');
+      pdf.rect(40, tableY, pageW - 80, 28, 'F');
       pdf.setTextColor(...white);
-      pdf.setFontSize(9);
+      pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
 
       let xPos = 45;
       headers.forEach((header, i) => {
-        pdf.text(header, xPos + 2, tableY + 16);
+        pdf.text(header, xPos + 5, tableY + 18);
         xPos += colWidths[i];
       });
 
       // Table Rows
       pdf.setTextColor(30, 30, 30);
       pdf.setFont("helvetica", "normal");
-      let rowY = tableY + 25;
+      let rowY = tableY + 28;
       let grandTotal = 0;
 
       items.forEach((item, idx) => {
@@ -879,72 +949,88 @@ const AdminPanel = () => {
 
         // Alternate row colors
         if (idx % 2 === 0) {
-          pdf.setFillColor(245, 245, 245);
-          pdf.rect(40, rowY, pageW - 80, 22, 'F');
+          pdf.setFillColor(248, 249, 250);
+          pdf.rect(40, rowY, pageW - 80, 24, 'F');
         }
 
         // Row border
-        pdf.setDrawColor(200, 200, 200);
-        pdf.rect(40, rowY, pageW - 80, 22, 'S');
+        pdf.setDrawColor(220, 220, 220);
+        pdf.rect(40, rowY, pageW - 80, 24, 'S');
 
+        pdf.setFontSize(9);
         xPos = 45;
-        pdf.text(String(idx + 1), xPos + 10, rowY + 14);
+        pdf.text(String(idx + 1), xPos + 12, rowY + 16);
         xPos += colWidths[0];
-        pdf.text(item.serviceName || "N/A", xPos + 2, rowY + 14);
-        xPos += colWidths[1];
-        pdf.text(`SAR ${price.toFixed(2)}`, xPos + 2, rowY + 14);
-        xPos += colWidths[2];
-        pdf.text(String(item.quantity || 0), xPos + 10, rowY + 14);
-        xPos += colWidths[3];
-        pdf.text(`SAR ${total.toFixed(2)}`, xPos + 2, rowY + 14);
 
-        rowY += 22;
+        // Truncate long service names
+        const serviceName = (item.serviceName || "N/A").substring(0, 35);
+        pdf.text(serviceName, xPos + 5, rowY + 16);
+        xPos += colWidths[1];
+
+        pdf.text(`SAR ${price.toFixed(2)}`, xPos + 5, rowY + 16);
+        xPos += colWidths[2];
+        pdf.text(String(item.quantity || 0), xPos + 15, rowY + 16);
+        xPos += colWidths[3];
+        pdf.text(`SAR ${total.toFixed(2)}`, xPos + 5, rowY + 16);
+
+        rowY += 24;
       });
 
       // Grand Total Row
       pdf.setFillColor(...cyanAccent);
-      pdf.rect(40, rowY, pageW - 80, 28, 'F');
+      pdf.rect(40, rowY, pageW - 80, 32, 'F');
       pdf.setTextColor(...white);
-      pdf.setFontSize(11);
+      pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
-      pdf.text("GRAND TOTAL / الإجمالي الكلي", 50, rowY + 18);
-      pdf.text(`SAR ${grandTotal.toFixed(2)}`, pageW - 50, rowY + 18, { align: "right" });
+      const totalLabel = isRTL ? "GRAND TOTAL" : "GRAND TOTAL";
+      pdf.text(totalLabel, 55, rowY + 21);
+      pdf.text(`SAR ${grandTotal.toFixed(2)}`, pageW - 55, rowY + 21, { align: "right" });
 
       // Notes Section
-      const notesY = rowY + 50;
+      const notesY = rowY + 55;
       pdf.setTextColor(60, 60, 60);
-      pdf.setFontSize(10);
+      pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Notes / ملاحظات:", 40, notesY);
+      pdf.text(isRTL ? "Notes:" : "Notes:", 40, notesY);
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(9);
-      pdf.text(quote.adminNotes || "N/A", 40, notesY + 15);
+      const notesText = quote.adminNotes || "No additional notes.";
+      pdf.text(notesText.substring(0, 100), 40, notesY + 15);
 
       // Terms & Conditions
-      const termsY = notesY + 50;
-      pdf.setFontSize(9);
+      const termsY = notesY + 45;
+      pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Terms & Conditions / الشروط والأحكام:", 40, termsY);
+      pdf.text("Terms & Conditions:", 40, termsY);
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(8);
-      pdf.text("1. Prices are valid for 15 days from the date of issue. / الأسعار صالحة لمدة 15 يوماً من تاريخ الإصدار", 40, termsY + 12);
-      pdf.text("2. Payment: 50% advance, 50% upon delivery. / الدفع: 50% مقدماً، 50% عند التسليم", 40, termsY + 24);
-      pdf.text("3. Delivery time will be confirmed upon order confirmation. / وقت التسليم يتم تأكيده عند تأكيد الطلب", 40, termsY + 36);
+      pdf.text("1. Prices are valid for 15 days from the date of issue.", 40, termsY + 14);
+      pdf.text("2. Payment: 50% advance, 50% upon delivery.", 40, termsY + 26);
+      pdf.text("3. Delivery time will be confirmed upon order confirmation.", 40, termsY + 38);
+      pdf.text("4. All prices are in Saudi Riyals (SAR) and exclude VAT unless stated.", 40, termsY + 50);
 
       // Footer
       pdf.setFillColor(...navyBlue);
-      pdf.rect(0, pageH - 60, pageW, 60, 'F');
-      pdf.setTextColor(...white);
-      pdf.setFontSize(9);
-      pdf.text("Riyadh, Saudi Arabia | الرياض، المملكة العربية السعودية", pageW / 2, pageH - 40, { align: "center" });
-      pdf.text("www.qimatco.com | info@qimatco.com | +966 XX XXX XXXX", pageW / 2, pageH - 25, { align: "center" });
+      pdf.rect(0, pageH - 55, pageW, 55, 'F');
 
       // Cyan accent line above footer
       pdf.setFillColor(...cyanAccent);
-      pdf.rect(0, pageH - 60, pageW, 4, 'F');
+      pdf.rect(0, pageH - 55, pageW, 4, 'F');
+
+      pdf.setTextColor(...white);
+      pdf.setFontSize(9);
+      pdf.text("Riyadh, Saudi Arabia", pageW / 2, pageH - 35, { align: "center" });
+      pdf.setFontSize(8);
+      pdf.text("www.qimatco.com | info@qimatco.com | +966 XX XXX XXXX", pageW / 2, pageH - 20, { align: "center" });
+
+      // Watermark / Document ID
+      pdf.setTextColor(200, 200, 200);
+      pdf.setFontSize(7);
+      pdf.text(`Document ID: ${quote.id}`, 40, pageH - 65);
+      pdf.text("This is a computer-generated document.", pageW - 40, pageH - 65, { align: "right" });
 
       // Save PDF
-      pdf.save(`quotation-${refNumber}.pdf`);
+      pdf.save(`Quotation-${refNumber}.pdf`);
     } finally {
       setPdfGenerating(false);
       setPdfQuote(null);

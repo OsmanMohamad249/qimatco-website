@@ -144,7 +144,7 @@ const Career = () => {
                 </div>
                 <div className="row mb-3">
                   <div className="col-md-6">
-                    <label className="form-label text-secondary">Email</label>
+                    <label className="form-label text-secondary">{t('career_email')}</label>
                     <input type="email" className="form-control bg-light border-0" required onChange={e => setFormData({ ...formData, email: e.target.value })} />
                   </div>
                   <div className="col-md-6 mt-3 mt-md-0">
@@ -166,10 +166,10 @@ const Career = () => {
                   <label className="form-label text-secondary">{t('career_education')}</label>
                   <select className="form-select bg-light border-0" onChange={e => setFormData({ ...formData, education: e.target.value })}>
                     <option value="">{language === 'ar' ? 'اختر' : 'Select'}</option>
-                    <option value="high_school">{language === 'ar' ? 'ثانوي' : 'High School'}</option>
-                    <option value="bachelor">{language === 'ar' ? 'بكالوريوس' : 'Bachelor'}</option>
-                    <option value="master">{language === 'ar' ? 'ماجستير' : 'Master'}</option>
-                    <option value="phd">{language === 'ar' ? 'دكتوراه' : 'PhD'}</option>
+                    <option value="high_school">{t('career_high_school')}</option>
+                    <option value="bachelor">{t('career_bachelor')}</option>
+                    <option value="master">{t('career_master')}</option>
+                    <option value="phd">{t('career_phd')}</option>
                   </select>
                 </div>
                 <div className="mb-4">

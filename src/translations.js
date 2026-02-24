@@ -113,6 +113,7 @@ export const translations = {
     career_master: "ماجستير",
     career_phd: "دكتوراه",
     career_email: "البريد الإلكتروني",
+    career_closed: "التقديم مغلق",
 
     // Admin Panel
     admin_panel_title: "لوحة التحكم",
@@ -458,6 +459,7 @@ export const translations = {
     career_master: "Master's",
     career_phd: "PhD",
     career_email: "Email",
+    career_closed: "Applications Closed",
 
     // Admin Panel
     admin_panel_title: "Admin Panel",

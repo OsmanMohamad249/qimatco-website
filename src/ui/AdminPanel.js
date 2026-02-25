@@ -93,8 +93,6 @@ const can = (perms, section, action) => {
   return !!perms[section][action];
 };
 
-const isRTL_Global = (lang) => lang === 'ar';
-
 // Merge saved permissions with defaults so new keys are always present
 const mergePerms = (saved, base) => {
   const merged = JSON.parse(JSON.stringify(base));
@@ -784,10 +782,6 @@ const AdminPanel = () => {
         throw new Error("Print template not found");
       }
 
-      // Temporarily show the template for capturing
-      const originalDisplay = element.style.display;
-      // element.style.display = "block"; // Already handled by wrapper position/display
-
       const canvas = await html2canvas(element, {
         scale: 2, // higher resolution
         useCORS: true,
@@ -795,8 +789,6 @@ const AdminPanel = () => {
         backgroundColor: "#ffffff",
         windowWidth: 794, // 210mm in pixels at 96dpi approx
       });
-
-      // element.style.display = originalDisplay;
 
       const imgData = canvas.toDataURL("image/jpeg", 1.0);
       const pdf = new jsPDF("p", "mm", "a4");

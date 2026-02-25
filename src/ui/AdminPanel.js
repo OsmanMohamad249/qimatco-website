@@ -1338,66 +1338,6 @@ const AdminPanel = () => {
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
         <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_quotes')}</h4>
-        {pdfQuote && (
-          <div
-            ref={pdfRef}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: "-10000px",
-              width: "794px",
-              background: "#ffffff",
-              color: "#0B2C5C",
-              fontFamily: "'Cairo', sans-serif",
-              padding: "32px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
-              <img src={logo} alt="Qimat AlAibtikar" style={{ height: "70px" }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "20pt", fontWeight: 800 }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
-                <div style={{ fontSize: "18pt", fontWeight: 800 }}>QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD</div>
-              </div>
-            </div>
-            <div style={{ textAlign: "center", fontSize: "18pt", fontWeight: 800, margin: "12px 0 20px" }}>عـرض سـعر رسـمي / OFFICIAL QUOTATION</div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "11pt" }}>
-              <div><strong>العميل:</strong> {pdfQuote.contactInfo?.fullName || pdfQuote.entityInfo?.companyName || ""}</div>
-              <div><strong>ID:</strong> {`Q-${new Date(pdfQuote.createdAt.seconds * 1000).getFullYear()}-${String(pdfQuote.createdAt.seconds).slice(-4)}`}</div>
-            </div>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10.5pt" }}>
-              <thead>
-                <tr style={{ background: "#00B4FF", color: "#ffffff" }}>
-                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>No</th>
-                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>Description / الصنف</th>
-                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>Price / السعر</th>
-                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>Qty / الكمية</th>
-                  <th style={{ padding: "8px", border: "1px solid #e5e5e5" }}>Total / الإجمالي</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(pdfQuote.id === selectedQuote?.id ? quoteItems : pdfQuote.items || []).map((item, idx) => {
-                  const qty = parseFloat(item.quantity) || 0;
-                  const price = parseFloat(item.price) || 0;
-                  const total = qty * price;
-                  return (
-                    <tr key={`pdf-item-${idx}`}>
-                      <td style={{ padding: "6px", border: "1px solid #e5e5e5", textAlign: "center" }}>{idx + 1}</td>
-                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>{item.serviceName}</td>
-                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>SAR {price.toFixed(2)} (ر.س)</td>
-                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>{item.quantity}</td>
-                      <td style={{ padding: "6px", border: "1px solid #e5e5e5" }}>SAR {total.toFixed(2)} (ر.س)</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <div style={{ marginTop: "16px", fontSize: "10pt" }}>
-              <div><strong>ملاحظات وشروط:</strong> {pdfQuote.adminNotes}</div>
-              <div><strong>العنوان:</strong> Riyadh, Saudi Arabia</div>
-            </div>
-            <div style={{ marginTop: "18px", fontSize: "10pt", color: "#666" }}>هذا مستند مستخرج آلياً / This is a computer-generated document</div>
-          </div>
-        )}
         <div className="row g-4 mt-2">
           <div className="col-lg-5">
             <h6 className="mb-3">{t('admin_quote_list')}</h6>

@@ -7,8 +7,10 @@ import {
 } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { useLanguage } from "../context/LanguageContext";
+import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import logo from "../img/qimat-alaibtikar-logo.png";
+import { AmiriFont } from "../fonts/Amiri-Regular-VFS";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmynksk5z/auto/upload";
 const CLOUDINARY_PRESET = "oiwrpbwq";
@@ -91,14 +93,6 @@ const can = (perms, section, action) => {
   return !!perms[section][action];
 };
 
-// Generate standardized quotation ID like Q-2026-0001
-const formatQuoteID = (createdAt, index) => {
-  if (!createdAt) return `Q-${new Date().getFullYear()}-${String(index + 1).padStart(4, '0')}`;
-  const date = createdAt.seconds ? new Date(createdAt.seconds * 1000) : new Date(createdAt);
-  const year = date.getFullYear();
-  return `Q-${year}-${String(index + 1).padStart(4, '0')}`;
-};
-
 // Merge saved permissions with defaults so new keys are always present
 const mergePerms = (saved, base) => {
   const merged = JSON.parse(JSON.stringify(base));
@@ -116,7 +110,7 @@ const mergePerms = (saved, base) => {
 };
 
 const AdminPanel = () => {
-  const { t, language, toggleLanguage } = useLanguage();
+  const { t, language } = useLanguage();
   const isRTL = language === 'ar';
   const getLabel = (obj) => { if (!obj) return "---"; if (typeof obj === "string") return obj; const lang = (language || "ar").toLowerCase(); return obj[lang] || obj.ar || obj.en || "---"; };
 
@@ -781,260 +775,88 @@ const AdminPanel = () => {
 
   const generatePDF = async (quote) => {
     if (!quote) return;
-    try {
-      setPdfGenerating(true);
 
-      // Calculate Quote Reference ID
-      const quoteIndex = quotes.findIndex(q => q.id === quote.id);
-      const refNumber = formatQuoteID(quote.createdAt, quoteIndex);
+    const doc = new jsPDF();
 
-      const pdf = new jsPDF({ unit: "pt", format: "a4" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
+    // Add Amiri font
+    doc.addFileToVFS("Amiri-Regular.ttf", AmiriFont);
+    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+    doc.setFont("Amiri");
 
-      // Colors
-      const navyBlue = [0, 28, 61];
-      const cyanAccent = [0, 184, 176];
-      const white = [255, 255, 255];
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    let y = margin;
 
-      // Header Background
-      pdf.setFillColor(...navyBlue);
-      pdf.rect(0, 0, pageW, 100, 'F');
+    // Header
+    doc.setFontSize(10);
+    doc.text("شركة قمة الابتكار للحلول المتكاملة المحدودة", pageWidth - margin, y, { align: 'right' });
+    doc.text("QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD", margin, y);
+    y += 20;
 
-      // Company Names - Based on Language Direction
-      pdf.setTextColor(...white);
+    doc.setFontSize(18);
+    doc.setFont("Amiri", "bold");
+    doc.text("OFFICIAL QUOTATION / عرض سعر رسمي", pageWidth / 2, y, { align: 'center' });
+    y += 20;
+    doc.setFont("Amiri", "normal");
 
-      if (isRTL) {
-        // Arabic Primary (Right to Left)
-        pdf.setFontSize(14);
-        pdf.setFont("helvetica", "bold");
-        pdf.text("QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD", pageW - 40, 35, { align: "right" });
-        pdf.setFontSize(11);
-        pdf.text("Trading - Import - Export - Logistics", pageW - 40, 50, { align: "right" });
-        pdf.setFontSize(10);
-        pdf.text("CR: 1010XXXXXX | VAT: 3XXXXXXXXXX003", pageW - 40, 65, { align: "right" });
+    // Info
+    const quoteDate = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+    const quoteRef = `Q-${new Date(quote.createdAt.seconds * 1000).getFullYear()}-${String(quote.createdAt.seconds).slice(-4)}`;
+    doc.setFontSize(10);
+    doc.text(`${t('quote_client')}: ${quote.contactInfo?.fullName || quote.entityInfo?.companyName || ""}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`${t('quote_date')}: ${quoteDate}`, margin, y);
+    y += 15;
+    doc.text(`${t('quote_ref_no')}: ${quoteRef}`, margin, y);
+    y += 25;
 
-        // English Sub (Left)
-        pdf.setFontSize(12);
-        pdf.text("Qimat AlAibtikar Co.", 40, 40);
-        pdf.setFontSize(9);
-        pdf.text("Riyadh, Saudi Arabia", 40, 55);
-      } else {
-        // English Primary (Left to Right)
-        pdf.setFontSize(14);
-        pdf.setFont("helvetica", "bold");
-        pdf.text("QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD", 40, 35);
-        pdf.setFontSize(11);
-        pdf.text("Trading - Import - Export - Logistics", 40, 50);
-        pdf.setFontSize(10);
-        pdf.text("CR: 1010XXXXXX | VAT: 3XXXXXXXXXX003", 40, 65);
-
-        // Arabic Sub (Right) - Using transliteration for compatibility
-        pdf.setFontSize(12);
-        pdf.text("Qimat AlAibtikar Co.", pageW - 40, 40, { align: "right" });
-        pdf.setFontSize(9);
-        pdf.text("Riyadh, KSA", pageW - 40, 55, { align: "right" });
-      }
-
-      // Cyan Separator Line
-      pdf.setFillColor(...cyanAccent);
-      pdf.rect(0, 100, pageW, 6, 'F');
-
-      // Title: OFFICIAL QUOTATION - Bilingual
-      pdf.setFontSize(22);
-      pdf.setTextColor(...navyBlue);
-      pdf.setFont("helvetica", "bold");
-
-      const titleEN = "OFFICIAL QUOTATION";
-      const titleAR = t('quote_title') || "Official Quotation";
-
-      if (isRTL) {
-        pdf.text(titleEN, pageW / 2, 135, { align: "center" });
-        pdf.setFontSize(14);
-        pdf.text(titleAR, pageW / 2, 155, { align: "center" });
-      } else {
-        pdf.text(titleEN, pageW / 2, 135, { align: "center" });
-        pdf.setFontSize(14);
-        pdf.text("Official Price Quotation", pageW / 2, 155, { align: "center" });
-      }
-
-      // Quote Info Box
-      pdf.setFontSize(10);
-      pdf.setTextColor(60, 60, 60);
-      pdf.setFont("helvetica", "normal");
-
-      const infoY = 180;
-      const clientLabel = isRTL ? "Client:" : "Client:";
-      const phoneLabel = isRTL ? "Phone:" : "Phone:";
-      const emailLabel = isRTL ? "Email:" : "Email:";
-      const refLabel = isRTL ? "Ref No.:" : "Ref No.:";
-      const dateLabel = isRTL ? "Date:" : "Date:";
-      const entityLabel = isRTL ? "Entity:" : "Entity:";
-
-      // Left Side - Client Info
-      pdf.setFont("helvetica", "bold");
-      pdf.text(clientLabel, 40, infoY);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(quote.contactInfo?.fullName || quote.entityInfo?.companyName || "N/A", 90, infoY);
-
-      pdf.setFont("helvetica", "bold");
-      pdf.text(phoneLabel, 40, infoY + 15);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(quote.contactInfo?.phone || "N/A", 90, infoY + 15);
-
-      pdf.setFont("helvetica", "bold");
-      pdf.text(emailLabel, 40, infoY + 30);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(quote.contactInfo?.email || "N/A", 90, infoY + 30);
-
-      // Right Side - Quote Info
-      const dateStr = quote.createdAt?.seconds
-        ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString(isRTL ? 'ar-SA' : 'en-GB')
-        : new Date().toLocaleDateString(isRTL ? 'ar-SA' : 'en-GB');
-
-      pdf.setFont("helvetica", "bold");
-      pdf.text(refLabel, pageW - 180, infoY);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(refNumber, pageW - 40, infoY, { align: "right" });
-
-      pdf.setFont("helvetica", "bold");
-      pdf.text(dateLabel, pageW - 180, infoY + 15);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(dateStr, pageW - 40, infoY + 15, { align: "right" });
-
-      pdf.setFont("helvetica", "bold");
-      pdf.text(entityLabel, pageW - 180, infoY + 30);
-      pdf.setFont("helvetica", "normal");
-      const entityType = quote.entityInfo?.type === 'company' ? (isRTL ? 'Company' : 'Company') : (isRTL ? 'Individual' : 'Individual');
-      pdf.text(entityType, pageW - 40, infoY + 30, { align: "right" });
-
-      // Items Table
-      const tableY = 240;
-      const items = quote.id === selectedQuote?.id ? quoteItems : (quote.items || []);
-
-      // Table Headers - Bilingual
-      const colWidths = [40, 195, 85, 65, 100];
-      const headers = [
-        "No.",
-        "Description",
-        "Unit Price",
-        "Qty",
-        "Total"
+    // Table
+    const tableHeaders = [
+      ["No", "Description / الصنف", "Price / السعر", "Qty / الكمية", "Total / الإجمالي"]
+    ];
+    const tableBody = (quote.id === selectedQuote?.id ? quoteItems : quote.items || []).map((item, idx) => {
+      const qty = parseFloat(item.quantity) || 0;
+      const price = parseFloat(item.price) || 0;
+      const total = qty * price;
+      return [
+        idx + 1,
+        item.serviceName,
+        `SAR ${price.toFixed(2)} (ر.س)`,
+        item.quantity,
+        `SAR ${total.toFixed(2)} (ر.س)`
       ];
+    });
 
-      // Header Row
-      pdf.setFillColor(...navyBlue);
-      pdf.rect(40, tableY, pageW - 80, 28, 'F');
-      pdf.setTextColor(...white);
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
+    doc.autoTable({
+      startY: y,
+      head: tableHeaders,
+      body: tableBody,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [0, 28, 61], // Navy Blue
+        textColor: [255, 255, 255],
+        font: 'Amiri',
+        halign: 'center'
+      },
+      styles: {
+        font: 'Amiri',
+        halign: 'center'
+      },
+      columnStyles: {
+        1: { halign: isRTL ? 'right' : 'left' }
+      }
+    });
 
-      let xPos = 45;
-      headers.forEach((header, i) => {
-        pdf.text(header, xPos + 5, tableY + 18);
-        xPos += colWidths[i];
-      });
+    y = doc.autoTable.previous.finalY + 20;
 
-      // Table Rows
-      pdf.setTextColor(30, 30, 30);
-      pdf.setFont("helvetica", "normal");
-      let rowY = tableY + 28;
-      let grandTotal = 0;
+    // Footer
+    doc.setFontSize(10);
+    doc.text(`${t('quote_notes')}: ${quote.adminNotes || ''}`, margin, y, { align: 'left' });
+    y += 15;
+    doc.text("Riyadh, Saudi Arabia", margin, y, { align: 'left' });
 
-      items.forEach((item, idx) => {
-        const qty = parseFloat(item.quantity) || 0;
-        const price = parseFloat(item.price) || 0;
-        const total = qty * price;
-        grandTotal += total;
 
-        // Alternate row colors
-        if (idx % 2 === 0) {
-          pdf.setFillColor(248, 249, 250);
-          pdf.rect(40, rowY, pageW - 80, 24, 'F');
-        }
-
-        // Row border
-        pdf.setDrawColor(220, 220, 220);
-        pdf.rect(40, rowY, pageW - 80, 24, 'S');
-
-        pdf.setFontSize(9);
-        xPos = 45;
-        pdf.text(String(idx + 1), xPos + 12, rowY + 16);
-        xPos += colWidths[0];
-
-        // Truncate long service names
-        const serviceName = (item.serviceName || "N/A").substring(0, 35);
-        pdf.text(serviceName, xPos + 5, rowY + 16);
-        xPos += colWidths[1];
-
-        pdf.text(`SAR ${price.toFixed(2)}`, xPos + 5, rowY + 16);
-        xPos += colWidths[2];
-        pdf.text(String(item.quantity || 0), xPos + 15, rowY + 16);
-        xPos += colWidths[3];
-        pdf.text(`SAR ${total.toFixed(2)}`, xPos + 5, rowY + 16);
-
-        rowY += 24;
-      });
-
-      // Grand Total Row
-      pdf.setFillColor(...cyanAccent);
-      pdf.rect(40, rowY, pageW - 80, 32, 'F');
-      pdf.setTextColor(...white);
-      pdf.setFontSize(12);
-      pdf.setFont("helvetica", "bold");
-      const totalLabel = isRTL ? "GRAND TOTAL" : "GRAND TOTAL";
-      pdf.text(totalLabel, 55, rowY + 21);
-      pdf.text(`SAR ${grandTotal.toFixed(2)}`, pageW - 55, rowY + 21, { align: "right" });
-
-      // Notes Section
-      const notesY = rowY + 55;
-      pdf.setTextColor(60, 60, 60);
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(isRTL ? "Notes:" : "Notes:", 40, notesY);
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(9);
-      const notesText = quote.adminNotes || "No additional notes.";
-      pdf.text(notesText.substring(0, 100), 40, notesY + 15);
-
-      // Terms & Conditions
-      const termsY = notesY + 45;
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Terms & Conditions:", 40, termsY);
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(8);
-      pdf.text("1. Prices are valid for 15 days from the date of issue.", 40, termsY + 14);
-      pdf.text("2. Payment: 50% advance, 50% upon delivery.", 40, termsY + 26);
-      pdf.text("3. Delivery time will be confirmed upon order confirmation.", 40, termsY + 38);
-      pdf.text("4. All prices are in Saudi Riyals (SAR) and exclude VAT unless stated.", 40, termsY + 50);
-
-      // Footer
-      pdf.setFillColor(...navyBlue);
-      pdf.rect(0, pageH - 55, pageW, 55, 'F');
-
-      // Cyan accent line above footer
-      pdf.setFillColor(...cyanAccent);
-      pdf.rect(0, pageH - 55, pageW, 4, 'F');
-
-      pdf.setTextColor(...white);
-      pdf.setFontSize(9);
-      pdf.text("Riyadh, Saudi Arabia", pageW / 2, pageH - 35, { align: "center" });
-      pdf.setFontSize(8);
-      pdf.text("www.qimatco.com | info@qimatco.com | +966 XX XXX XXXX", pageW / 2, pageH - 20, { align: "center" });
-
-      // Watermark / Document ID
-      pdf.setTextColor(200, 200, 200);
-      pdf.setFontSize(7);
-      pdf.text(`Document ID: ${quote.id}`, 40, pageH - 65);
-      pdf.text("This is a computer-generated document.", pageW - 40, pageH - 65, { align: "right" });
-
-      // Save PDF
-      pdf.save(`Quotation-${refNumber}.pdf`);
-    } finally {
-      setPdfGenerating(false);
-      setPdfQuote(null);
-    }
+    doc.save(`quotation-${quoteRef}.pdf`);
   };
 
   // ── GENERIC MEDIA FORM RENDERER ──
@@ -1556,7 +1378,7 @@ const AdminPanel = () => {
   const renderQuotesTab = () => (
     <div className="card shadow-sm border-0">
       <div className="card-body p-4">
-        <h4 style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'عروض الأسعار' : 'Quotes'}</h4>
+        <h4 style={{ color: "var(--primary-color)" }}>{t('admin_tab_quotes')}</h4>
         {pdfQuote && (
           <div
             ref={pdfRef}
@@ -1581,11 +1403,7 @@ const AdminPanel = () => {
             <div style={{ textAlign: "center", fontSize: "18pt", fontWeight: 800, margin: "12px 0 20px" }}>عـرض سـعر رسـمي / OFFICIAL QUOTATION</div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "11pt" }}>
               <div><strong>العميل:</strong> {pdfQuote.contactInfo?.fullName || pdfQuote.entityInfo?.companyName || ""}</div>
-              <div><strong>{t('quote_ref_number')}:</strong> {formatQuoteID(pdfQuote.createdAt, quotes.findIndex(q => q.id === pdfQuote.id))}</div>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "10pt" }}>
-              <div><strong>{t('quote_date')}:</strong> {pdfQuote.createdAt?.seconds ? new Date(pdfQuote.createdAt.seconds * 1000).toLocaleDateString('ar-SA') : ''}</div>
-              <div><strong>{t('quote_entity_type')}:</strong> {pdfQuote.entityInfo?.type === 'company' ? t('quote_company') : t('quote_individual')}</div>
+              <div><strong>ID:</strong> {`Q-${new Date(pdfQuote.createdAt.seconds * 1000).getFullYear()}-${String(pdfQuote.createdAt.seconds).slice(-4)}`}</div>
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10.5pt" }}>
               <thead>
@@ -1623,19 +1441,19 @@ const AdminPanel = () => {
         )}
         <div className="row g-4 mt-2">
           <div className="col-lg-5">
-            <h6 className="mb-3">{language === 'ar' ? 'القائمة' : 'List'}</h6>
+            <h6 className="mb-3">{t('admin_quote_list')}</h6>
             {quotesLoading ? (
               <div className="text-center"><div className="spinner-border text-primary"></div></div>
             ) : quotes.length === 0 ? (
-              <div className="alert alert-secondary">{language === 'ar' ? 'لا توجد عروض أسعار' : 'No quotes yet'}</div>
+              <div className="alert alert-secondary">{t('admin_msg_empty')}</div>
             ) : (
               <div className="list-group">
-                {quotes.map((q, idx) => (
+                {quotes.map((q) => (
                   <button key={q.id} type="button" className={`list-group-item list-group-item-action ${selectedQuote?.id === q.id ? 'active' : ''}`} onClick={() => handleSelectQuote(q)}>
                     <div className="d-flex justify-content-between align-items-center">
                       <div>
                         <div className="fw-bold">{q.contactInfo?.fullName || q.entityInfo?.companyName || q.id}</div>
-                        <small className="text-muted">{formatQuoteID(q.createdAt, idx)}</small>
+                        <small className="text-muted">{`Q-${new Date(q.createdAt.seconds * 1000).getFullYear()}-${String(q.createdAt.seconds).slice(-4)}`}</small>
                       </div>
                       <small>{q.createdAt?.seconds ? new Date(q.createdAt.seconds * 1000).toLocaleDateString() : ''}</small>
                     </div>
@@ -1647,16 +1465,16 @@ const AdminPanel = () => {
 
           <div className="col-lg-7">
             {!selectedQuote ? (
-              <div className="alert alert-info">{language === 'ar' ? 'اختر عرض سعر لعرض التفاصيل' : 'Select a quote to view details'}</div>
+              <div className="alert alert-info">{t('admin_quote_select_to_view')}</div>
             ) : (
               <>
                 <div className="mb-3">
-                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات العميل' : 'Client Info'}</h6>
+                  <h6 className="fw-bold">{t('quote_client')}</h6>
                   <div className="small text-muted">{selectedQuote.contactInfo?.fullName} | {selectedQuote.contactInfo?.email} | {selectedQuote.contactInfo?.phone}</div>
                 </div>
 
                 <div className="mb-3">
-                  <h6 className="fw-bold">{language === 'ar' ? 'بيانات الجهة' : 'Entity Info'}</h6>
+                  <h6 className="fw-bold">{t('quote_company')}</h6>
                   <div className="small text-muted">{selectedQuote.entityInfo?.type} | {selectedQuote.entityInfo?.companyName} | {selectedQuote.entityInfo?.crNumber}</div>
                   <div className="small text-muted">{selectedQuote.entityInfo?.address}</div>
                 </div>
@@ -1665,10 +1483,10 @@ const AdminPanel = () => {
                   <table className="table table-bordered align-middle">
                     <thead className="table-light">
                       <tr>
-                        <th>{language === 'ar' ? 'الخدمة / المنتج' : 'Item'}</th>
-                        <th>{language === 'ar' ? 'الكمية' : 'Qty'}</th>
-                        <th>{language === 'ar' ? 'التسليم' : 'Delivery'}</th>
-                        <th>{language === 'ar' ? 'السعر' : 'Price'}</th>
+                        <th>{t('quote_service')}</th>
+                        <th>{t('quote_quantity')}</th>
+                        <th>{t('quote_delivery')}</th>
+                        <th>{t('quote_price')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1687,24 +1505,24 @@ const AdminPanel = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">{language === 'ar' ? 'ملاحظات للعميل' : 'Notes for Client'}</label>
+                  <label className="form-label">{t('quote_notes')}</label>
                   <textarea className="form-control" rows="3" value={quoteNotes} onChange={(e) => setQuoteNotes(e.target.value)} />
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">{language === 'ar' ? 'الحالة' : 'Status'}</label>
+                  <label className="form-label">{t('quote_status')}</label>
                   <select className="form-select" value={quoteStatus} onChange={(e) => setQuoteStatus(e.target.value)}>
-                    <option value="pending">Pending</option>
-                    <option value="draft">Draft</option>
-                    <option value="sent">Sent</option>
+                    <option value="pending">{t('quote_status_pending')}</option>
+                    <option value="draft">{t('quote_status_approved')}</option>
+                    <option value="sent">{t('quote_status_rejected')}</option>
                   </select>
                 </div>
 
                 {quoteMsg && <div className="alert alert-info">{quoteMsg}</div>}
                 <div className="d-flex flex-wrap gap-2">
-                  <button className="btn btn-primary" style={{ background: "var(--secondary-color)", border: "none" }} onClick={handleSaveQuote}>{language === 'ar' ? 'حفظ التعديلات' : 'Save Changes'}</button>
+                  <button className="btn btn-primary" style={{ background: "var(--secondary-color)", border: "none" }} onClick={handleSaveQuote}>{t('admin_save')}</button>
                   <button className="btn btn-outline-primary" onClick={() => generatePDF(selectedQuote)} disabled={pdfGenerating}>
-                    {language === 'ar' ? 'تحميل عرض السعر الرسمي (PDF)' : 'Download Official Quotation (PDF)'}
+                    {t('quote_download_pdf')}
                   </button>
                 </div>
               </>

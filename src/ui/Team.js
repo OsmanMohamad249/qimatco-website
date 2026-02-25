@@ -30,6 +30,7 @@ const Team = () => {
           getDocs(collection(db, "team_titles")),
           getDocs(collection(db, "team_employees")),
         ]);
+
         setDepartments(depSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setSections(secSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setTitles(titleSnap.docs.map((d) => ({ id: d.id, ...d.data() })));

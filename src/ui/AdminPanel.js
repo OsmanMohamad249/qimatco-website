@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../translations";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import logo from "../img/qimat-alaibtikar-logo.png";
@@ -1506,17 +1507,21 @@ const AdminPanel = () => {
 
   const QuotePrintTemplate = ({ quote, currentCurrency }) => {
     if (!quote) return null;
-    const isRTL = language === 'ar';
+    const isRTL = language === 'ar' || quote.language === 'ar';
     const currency = currentCurrency || quote.currency || quoteCurrency || 'SAR';
     const quoteRef = quote.createdAt?.seconds ? `Q-${new Date(quote.createdAt.seconds * 1000).getFullYear()}-${String(quote.createdAt.seconds).slice(-4)}` : 'N/A';
-    const quoteDate = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+    const quoteDate = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US') : 'N/A';
     const items = quote.id === selectedQuote?.id ? quoteItems : (quote.items || []);
+
+    const t_pdf = (key) => {
+      return translations[isRTL ? 'ar' : 'en'][key] || key;
+    };
 
     return (
       <div
         ref={pdfRef}
-        lang="ar"
-        dir="rtl"
+        lang={isRTL ? "ar" : "en"}
+        dir={isRTL ? "rtl" : "ltr"}
         data-pdf-content
         style={{
           width: "210mm",
@@ -1525,34 +1530,34 @@ const AdminPanel = () => {
           background: "#fff",
           color: "#333",
           fontFamily: "'Cairo', sans-serif",
-          direction: "rtl",
+          direction: isRTL ? "rtl" : "ltr",
           display: "block", 
           position: "relative",
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", borderBottom: "2px solid #001c3d", paddingBottom: "10px", flexDirection: 'row' }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", borderBottom: "2px solid #001c3d", paddingBottom: "10px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
           <img src={logo} alt="Logo" style={{ height: "60px" }} />
-          <div style={{ textAlign: "left", fontSize: "12px" }}>
-            <div style={{ fontWeight: "bold", fontSize: "16px", color: "#001c3d" }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
-            <div>QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD</div>
+          <div style={{ textAlign: isRTL ? "left" : "right", fontSize: "12px" }}>
+            <div style={{ fontWeight: "bold", fontSize: "16px", color: "#001c3d" }}>{isRTL ? "شركة قمة الابتكار للحلول المتكاملة المحدودة" : "QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD"}</div>
+            <div>{isRTL ? "QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD" : "شركة قمة الابتكار للحلول المتكاملة المحدودة"}</div>
           </div>
         </div>
 
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <h2 style={{ color: "#001c3d", borderBottom: "1px solid #ddd", display: "inline-block", paddingBottom: "5px", fontWeight: 'bold', letterSpacing: 'normal' }}>
-            OFFICIAL QUOTATION / عرض سعر رسمي
+            {isRTL ? "عرض سعر رسمي / OFFICIAL QUOTATION" : "OFFICIAL QUOTATION / عرض سعر رسمي"}
           </h2>
         </div>
 
         {/* Info */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px", background: "#f8f9fa", padding: "15px", borderRadius: "8px", flexDirection: 'row' }}>
-          <div style={{ textAlign: "right" }}>
-            <div><strong>{t('quote_client')}:</strong> {quote.contactInfo?.fullName || quote.entityInfo?.companyName || ""}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px", background: "#f8f9fa", padding: "15px", borderRadius: "8px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
+          <div style={{ textAlign: isRTL ? "right" : "left" }}>
+            <div><strong>{t_pdf('quote_client')}:</strong> {quote.contactInfo?.fullName || quote.entityInfo?.companyName || ""}</div>
           </div>
-          <div style={{ textAlign: "left" }}>
-            <div><strong>{t('quote_date')}:</strong> {quoteDate}</div>
-            <div><strong>{t('quote_ref_no')}:</strong> {quoteRef}</div>
+          <div style={{ textAlign: isRTL ? "left" : "right" }}>
+            <div><strong>{t_pdf('quote_date')}:</strong> {quoteDate}</div>
+            <div><strong>{t_pdf('quote_ref_no')}:</strong> {quoteRef}</div>
           </div>
         </div>
 
@@ -1561,7 +1566,7 @@ const AdminPanel = () => {
           <thead>
             <tr style={{ background: "#001c3d", color: "#fff" }}>
               <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>No</th>
-              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "right" }}>{isRTL ? "الصنف / Description" : "Description / الصنف"}</th>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "right" : "left" }}>{isRTL ? "الصنف / Description" : "Description / الصنف"}</th>
               <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "السعر / Price" : "Price / السعر"}</th>
               <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "الكمية والوحدة / Qty & Unit" : "Qty & Unit / الكمية والوحدة"}</th>
               <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "الإجمالي / Total" : "Total / الإجمالي"}</th>
@@ -1576,7 +1581,7 @@ const AdminPanel = () => {
               return (
                 <tr key={idx}>
                   <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{idx + 1}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "right" }}>{item.serviceName}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "right" : "left" }}>{item.serviceName}</td>
                   <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{currency} {price.toFixed(2)}</td>
                   <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{item.quantity} {unit}</td>
                   <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{currency} {total.toFixed(2)}</td>
@@ -1586,7 +1591,7 @@ const AdminPanel = () => {
           </tbody>
           <tfoot>
             <tr style={{ fontWeight: "bold", background: "#f8f9fa" }}>
-              <td colSpan="4" style={{ border: "1px solid #ddd", padding: "10px", textAlign: "left" }}>{isRTL ? "الإجمالي / Total" : "Total / الإجمالي"}:</td>
+              <td colSpan="4" style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "left" : "right" }}>{t_pdf('quote_total_label') || (isRTL ? "الإجمالي / Total" : "Total / الإجمالي")}:</td>
               <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>
                 {currency} {items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0), 0).toFixed(2)}
               </td>
@@ -1596,16 +1601,16 @@ const AdminPanel = () => {
 
         {/* Footer */}
         <div style={{ marginTop: "40px" }}>
-          <div style={{ marginBottom: "10px" }}><strong>{t('quote_notes')}:</strong></div>
-          <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "5px", minHeight: "80px", marginBottom: "20px" }}>
+          <div style={{ marginBottom: "10px", textAlign: isRTL ? 'right' : 'left' }}><strong>{t_pdf('quote_notes')}:</strong></div>
+          <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "5px", minHeight: "80px", marginBottom: "20px", textAlign: isRTL ? 'right' : 'left' }}>
             {quote.adminNotes || '---'}
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", flexDirection: 'row' }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
             <div style={{ textAlign: "center" }}>
-              <div style={{ marginBottom: "40px" }}>التوقيع / Signature</div>
+              <div style={{ marginBottom: "40px" }}>{isRTL ? "التوقيع / Signature" : "Signature / التوقيع"}</div>
               <div style={{ borderTop: "1px solid #333", width: "150px", margin: "0 auto" }}></div>
             </div>
-            <div style={{ textAlign: "right" }}>
+            <div style={{ textAlign: isRTL ? "left" : "right" }}>
               <div>Riyadh, Saudi Arabia</div>
               <div>www.qimatco.com</div>
             </div>

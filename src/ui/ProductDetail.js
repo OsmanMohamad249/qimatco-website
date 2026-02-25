@@ -86,7 +86,9 @@ const ProductDetail = () => {
 
                 <div className="mt-5 bg-light p-4 rounded" style={{ borderRight: language === 'ar' ? "4px solid var(--accent-color)" : "none", borderLeft: language !== 'ar' ? "4px solid var(--accent-color)" : "none" }}>
                   <h4 style={{ color: "var(--primary-color)" }}>{language === 'ar' ? 'هل أنت مهتم بهذا المنتج؟' : 'Interested in this product?'}</h4>
-                  <Link to="/contact" className="btn enterprise-cta-btn px-4 mt-3 d-inline-flex">{t('nav_contact')} <i className="bi bi-arrow-up-right-circle ms-2"></i></Link>
+                  <Link to={`/request-quote?productId=${product.id}`} className="btn enterprise-cta-btn px-4 mt-3 d-inline-flex">
+                    {t('nav_quote')} <i className="bi bi-arrow-up-right-circle ms-2 ms-2"></i>
+                  </Link>
                 </div>
               </div>
             </div>

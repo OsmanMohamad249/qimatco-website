@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
@@ -8,6 +9,7 @@ import Footer from "../components/Footer";
 
 const RequestQuote = () => {
   const { t, language } = useLanguage();
+  const location = useLocation();
   const [inventory, setInventory] = useState([]);
   const [entityType, setEntityType] = useState("individual");
   const [entityInfo, setEntityInfo] = useState({
@@ -38,13 +40,32 @@ const RequestQuote = () => {
         ]);
         const svc = servicesSnap.docs.map((d) => ({ id: d.id, type: "service", ...d.data() }));
         const prd = productsSnap.docs.map((d) => ({ id: d.id, type: "product", ...d.data() }));
-        setInventory([...svc, ...prd]);
+        const allItems = [...svc, ...prd];
+        setInventory(allItems);
+
+        // Handle pre-selected product from URL
+        const params = new URLSearchParams(location.search);
+        const productId = params.get('productId');
+        if (productId) {
+          const selected = allItems.find(i => i.id === productId);
+          if (selected) {
+            const title = selected.title || selected.name || "";
+            const localized = typeof title === "object" ? (title[language] || title.ar || title.en || "") : title;
+            setItems([{
+              serviceId: selected.id,
+              serviceName: localized,
+              itemType: selected.type || "product",
+              quantity: "1",
+              deliveryLocation: ""
+            }]);
+          }
+        }
       } catch {
         setInventory([]);
       }
     };
     loadInventory();
-  }, []);
+  }, [location.search, language]);
 
   const handleEntityTypeChange = (type) => {
     setEntityType(type);
@@ -115,6 +136,8 @@ const RequestQuote = () => {
         })),
         status: "pending",
         adminNotes: "",
+        currency: "SAR",
+        language: language,
         createdAt: serverTimestamp(),
       };
 

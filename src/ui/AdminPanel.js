@@ -10,7 +10,7 @@ import { useLanguage } from "../context/LanguageContext";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import logo from "../img/qimat-alaibtikar-logo.png";
-import { AmiriFont } from "../fonts/Amiri-Regular-VFS";
+// import { AmiriFont } from "../fonts/Amiri-Regular-VFS";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmynksk5z/auto/upload";
 const CLOUDINARY_PRESET = "oiwrpbwq";
@@ -110,7 +110,7 @@ const mergePerms = (saved, base) => {
 };
 
 const AdminPanel = () => {
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const isRTL = language === 'ar';
   const getLabel = (obj) => { if (!obj) return "---"; if (typeof obj === "string") return obj; const lang = (language || "ar").toLowerCase(); return obj[lang] || obj.ar || obj.en || "---"; };
 
@@ -779,9 +779,9 @@ const AdminPanel = () => {
     const doc = new jsPDF();
 
     // Add Amiri font
-    doc.addFileToVFS("Amiri-Regular.ttf", AmiriFont);
-    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
-    doc.setFont("Amiri");
+    // doc.addFileToVFS("Amiri-Regular.ttf", AmiriFont);
+    // doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+    // doc.setFont("Amiri");
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -1708,7 +1708,7 @@ const AdminPanel = () => {
           <div className="col-lg-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div><h3 style={{ color: "var(--primary-color)" }}>{t('admin_panel_title')}</h3><p className="text-muted small mb-0">{t('admin_panel_subtitle')}</p></div>
-              <div className="d-flex align-items-center gap-2"><span className="text-muted small">{user.email}</span><button className="btn btn-outline-primary btn-sm" onClick={toggleLanguage} style={{ direction: 'ltr' }}>{language === 'ar' ? 'English' : 'العربية'}</button><button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>{t('admin_logout')}</button></div>
+              <div className="d-flex align-items-center gap-2"><span className="text-muted small">{user.email}</span><button className="btn btn-outline-primary btn-sm" onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} style={{ direction: 'ltr' }}>{language === 'ar' ? 'English' : 'العربية'}</button><button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>{t('admin_logout')}</button></div>
             </div>
             {activeTab === "shipments" && renderShipmentsTab()}
             {activeTab === "products" && renderProductsTab()}

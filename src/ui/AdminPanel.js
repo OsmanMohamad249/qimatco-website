@@ -183,6 +183,7 @@ const AdminPanel = () => {
   const [quoteItems, setQuoteItems] = useState([]);
   const [quoteNotes, setQuoteNotes] = useState("");
   const [quoteStatus, setQuoteStatus] = useState("pending");
+  const [quoteCurrency, setQuoteCurrency] = useState("SAR");
   const [quoteMsg, setQuoteMsg] = useState("");
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const pdfRef = useRef(null);
@@ -745,14 +746,22 @@ const AdminPanel = () => {
   // Quote handlers
   const handleSelectQuote = (quote) => {
     setSelectedQuote(quote);
-    setQuoteItems((quote.items || []).map((item) => ({ ...item })));
+    setQuoteItems((quote.items || []).map((item) => ({ 
+      ...item, 
+      unit: item.unit || (language === 'ar' ? 'وحدة' : 'Unit') 
+    })));
     setQuoteNotes(quote.adminNotes || "");
     setQuoteStatus(quote.status || "pending");
+    setQuoteCurrency(quote.currency || "SAR");
     setQuoteMsg("");
   };
 
   const handleQuoteItemPriceChange = (index, value) => {
     setQuoteItems((prev) => prev.map((item, idx) => (idx === index ? { ...item, price: value } : item)));
+  };
+
+  const handleQuoteItemUnitChange = (index, value) => {
+    setQuoteItems((prev) => prev.map((item, idx) => (idx === index ? { ...item, unit: value } : item)));
   };
 
   const handleSaveQuote = async () => {
@@ -763,10 +772,11 @@ const AdminPanel = () => {
         items: quoteItems,
         adminNotes: quoteNotes,
         status: quoteStatus,
+        currency: quoteCurrency,
         updatedAt: serverTimestamp(),
       });
       setQuoteMsg(language === 'ar' ? "تم حفظ عرض السعر" : "Quote saved");
-      setQuotes((prev) => prev.map((q) => (q.id === selectedQuote.id ? { ...q, items: quoteItems, adminNotes: quoteNotes, status: quoteStatus } : q)));
+      setQuotes((prev) => prev.map((q) => (q.id === selectedQuote.id ? { ...q, items: quoteItems, adminNotes: quoteNotes, status: quoteStatus, currency: quoteCurrency } : q)));
     } catch {
       setQuoteMsg(language === 'ar' ? "تعذر حفظ عرض السعر" : "Failed to save quote");
     }
@@ -777,6 +787,11 @@ const AdminPanel = () => {
     setPdfGenerating(true);
 
     try {
+      // Wait for fonts to be ready
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+
       const element = pdfRef.current;
       if (!element) {
         throw new Error("Print template not found");
@@ -1375,6 +1390,7 @@ const AdminPanel = () => {
                     <thead className="table-light">
                       <tr>
                         <th>{t('quote_service')}</th>
+                        <th>{language === 'ar' ? 'الوحدة' : 'Unit'}</th>
                         <th>{t('quote_quantity')}</th>
                         <th>{t('quote_delivery')}</th>
                         <th>{t('quote_price')}</th>
@@ -1385,6 +1401,7 @@ const AdminPanel = () => {
                         return (
                           <tr key={`qi-${idx}`}>
                             <td>{it.serviceName}</td>
+                            <td><input className="form-control" value={it.unit || ""} onChange={(e) => handleQuoteItemUnitChange(idx, e.target.value)} list="unitOptions" /></td>
                             <td>{it.quantity}</td>
                             <td>{it.deliveryLocation}</td>
                             <td><input className="form-control" value={it.price || ""} onChange={(e) => handleQuoteItemPriceChange(idx, e.target.value)} /></td>
@@ -1393,20 +1410,47 @@ const AdminPanel = () => {
                       })}
                     </tbody>
                   </table>
+                  <datalist id="unitOptions">
+                    <option value="وحدة" />
+                    <option value="طن" />
+                    <option value="كجم" />
+                    <option value="متر" />
+                    <option value="كيلومتر" />
+                    <option value="حبة" />
+                    <option value="كرتون" />
+                    <option value="Unit" />
+                    <option value="Ton" />
+                    <option value="KG" />
+                    <option value="Meter" />
+                    <option value="Piece" />
+                  </datalist>
+                </div>
+
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label className="form-label">{language === 'ar' ? 'العملة' : 'Currency'}</label>
+                    <select className="form-select" value={quoteCurrency} onChange={(e) => setQuoteCurrency(e.target.value)}>
+                      <option value="SAR">SAR (ريال سعودي)</option>
+                      <option value="SDG">SDG (جنيه سوداني)</option>
+                      <option value="AED">AED (درهم إماراتي)</option>
+                      <option value="EGP">EGP (جنيه مصري)</option>
+                      <option value="CNY">CNY (يوان صيني)</option>
+                      <option value="USD">USD (دولار أمريكي)</option>
+                    </select>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">{t('quote_status')}</label>
+                    <select className="form-select" value={quoteStatus} onChange={(e) => setQuoteStatus(e.target.value)}>
+                      <option value="pending">{t('quote_status_pending')}</option>
+                      <option value="draft">{t('quote_status_approved')}</option>
+                      <option value="sent">{t('quote_status_rejected')}</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label">{t('quote_notes')}</label>
                   <textarea className="form-control" rows="3" value={quoteNotes} onChange={(e) => setQuoteNotes(e.target.value)} />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">{t('quote_status')}</label>
-                  <select className="form-select" value={quoteStatus} onChange={(e) => setQuoteStatus(e.target.value)}>
-                    <option value="pending">{t('quote_status_pending')}</option>
-                    <option value="draft">{t('quote_status_approved')}</option>
-                    <option value="sent">{t('quote_status_rejected')}</option>
-                  </select>
                 </div>
 
                 {quoteMsg && <div className="alert alert-info">{quoteMsg}</div>}
@@ -1456,6 +1500,7 @@ const AdminPanel = () => {
   const QuotePrintTemplate = ({ quote }) => {
     if (!quote) return null;
     const isRTL = language === 'ar';
+    const currency = quote.currency || quoteCurrency || 'SAR';
     const quoteRef = quote.createdAt?.seconds ? `Q-${new Date(quote.createdAt.seconds * 1000).getFullYear()}-${String(quote.createdAt.seconds).slice(-4)}` : 'N/A';
     const quoteDate = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
     const items = quote.id === selectedQuote?.id ? quoteItems : (quote.items || []);
@@ -1463,6 +1508,8 @@ const AdminPanel = () => {
     return (
       <div
         ref={pdfRef}
+        lang="ar"
+        dir="rtl"
         style={{
           width: "210mm",
           minHeight: "297mm",
@@ -1470,32 +1517,32 @@ const AdminPanel = () => {
           background: "#fff",
           color: "#333",
           fontFamily: "'Cairo', sans-serif",
-          direction: isRTL ? "rtl" : "ltr",
+          direction: "rtl",
           display: "block", 
           position: "relative",
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", borderBottom: "2px solid #001c3d", paddingBottom: "10px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", borderBottom: "2px solid #001c3d", paddingBottom: "10px", flexDirection: 'row' }}>
           <img src={logo} alt="Logo" style={{ height: "60px" }} />
-          <div style={{ textAlign: isRTL ? "left" : "right", fontSize: "12px" }}>
+          <div style={{ textAlign: "left", fontSize: "12px" }}>
             <div style={{ fontWeight: "bold", fontSize: "16px", color: "#001c3d" }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
             <div>QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD</div>
           </div>
         </div>
 
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <h2 style={{ color: "#001c3d", borderBottom: "1px solid #ddd", display: "inline-block", paddingBottom: "5px" }}>
-            {isRTL ? "عرض سعر رسمي" : "OFFICIAL QUOTATION"} / {isRTL ? "OFFICIAL QUOTATION" : "عرض سعر رسمي"}
+          <h2 style={{ color: "#001c3d", borderBottom: "1px solid #ddd", display: "inline-block", paddingBottom: "5px", fontWeight: 'bold' }}>
+            OFFICIAL QUOTATION / عرض سعر رسمي
           </h2>
         </div>
 
         {/* Info */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px", background: "#f8f9fa", padding: "15px", borderRadius: "8px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
-          <div style={{ textAlign: isRTL ? "right" : "left" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px", background: "#f8f9fa", padding: "15px", borderRadius: "8px", flexDirection: 'row' }}>
+          <div style={{ textAlign: "right" }}>
             <div><strong>{t('quote_client')}:</strong> {quote.contactInfo?.fullName || quote.entityInfo?.companyName || ""}</div>
           </div>
-          <div style={{ textAlign: isRTL ? "left" : "right" }}>
+          <div style={{ textAlign: "left" }}>
             <div><strong>{t('quote_date')}:</strong> {quoteDate}</div>
             <div><strong>{t('quote_ref_no')}:</strong> {quoteRef}</div>
           </div>
@@ -1506,9 +1553,9 @@ const AdminPanel = () => {
           <thead>
             <tr style={{ background: "#001c3d", color: "#fff" }}>
               <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>No</th>
-              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "right" : "left" }}>{isRTL ? "الصنف / Description" : "Description / الصنف"}</th>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "right" }}>{isRTL ? "الصنف / Description" : "Description / الصنف"}</th>
               <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "السعر / Price" : "Price / السعر"}</th>
-              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "الكمية / Qty" : "Qty / الكمية"}</th>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "الكمية والوحدة / Qty & Unit" : "Qty & Unit / الكمية والوحدة"}</th>
               <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "الإجمالي / Total" : "Total / الإجمالي"}</th>
             </tr>
           </thead>
@@ -1517,22 +1564,23 @@ const AdminPanel = () => {
               const qty = parseFloat(item.quantity) || 0;
               const price = parseFloat(item.price) || 0;
               const total = qty * price;
+              const unit = item.unit || "";
               return (
                 <tr key={idx}>
                   <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{idx + 1}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "right" : "left" }}>{item.serviceName}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>SAR {price.toFixed(2)}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{item.quantity}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>SAR {total.toFixed(2)}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "right" }}>{item.serviceName}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{currency} {price.toFixed(2)}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{item.quantity} {unit}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{currency} {total.toFixed(2)}</td>
                 </tr>
               );
             })}
           </tbody>
           <tfoot>
             <tr style={{ fontWeight: "bold", background: "#f8f9fa" }}>
-              <td colSpan="4" style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "left" : "right" }}>{isRTL ? "الإجمالي / Total" : "Total / الإجمالي"}:</td>
+              <td colSpan="4" style={{ border: "1px solid #ddd", padding: "10px", textAlign: "left" }}>{isRTL ? "الإجمالي / Total" : "Total / الإجمالي"}:</td>
               <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>
-                SAR {items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0), 0).toFixed(2)}
+                {currency} {items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0), 0).toFixed(2)}
               </td>
             </tr>
           </tfoot>
@@ -1544,12 +1592,12 @@ const AdminPanel = () => {
           <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "5px", minHeight: "80px", marginBottom: "20px" }}>
             {quote.adminNotes || '---'}
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", flexDirection: 'row' }}>
             <div style={{ textAlign: "center" }}>
-              <div style={{ marginBottom: "40px" }}>{isRTL ? "التوقيع / Signature" : "Signature / التوقيع"}</div>
+              <div style={{ marginBottom: "40px" }}>التوقيع / Signature</div>
               <div style={{ borderTop: "1px solid #333", width: "150px", margin: "0 auto" }}></div>
             </div>
-            <div style={{ textAlign: isRTL ? "right" : "left" }}>
+            <div style={{ textAlign: "right" }}>
               <div>Riyadh, Saudi Arabia</div>
               <div>www.qimatco.com</div>
             </div>

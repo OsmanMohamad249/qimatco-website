@@ -802,7 +802,14 @@ const AdminPanel = () => {
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
-        windowWidth: 794, // 210mm in pixels at 96dpi approx
+        windowWidth: 794, 
+        onclone: (clonedDoc) => {
+          const el = clonedDoc.querySelector('[data-pdf-content]');
+          if (el) {
+            el.style.display = 'block';
+            el.style.fontFamily = "'Cairo', sans-serif";
+          }
+        }
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 1.0);
@@ -1510,6 +1517,7 @@ const AdminPanel = () => {
         ref={pdfRef}
         lang="ar"
         dir="rtl"
+        data-pdf-content
         style={{
           width: "210mm",
           minHeight: "297mm",
@@ -1532,7 +1540,7 @@ const AdminPanel = () => {
         </div>
 
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <h2 style={{ color: "#001c3d", borderBottom: "1px solid #ddd", display: "inline-block", paddingBottom: "5px", fontWeight: 'bold' }}>
+          <h2 style={{ color: "#001c3d", borderBottom: "1px solid #ddd", display: "inline-block", paddingBottom: "5px", fontWeight: 'bold', letterSpacing: 'normal' }}>
             OFFICIAL QUOTATION / عرض سعر رسمي
           </h2>
         </div>

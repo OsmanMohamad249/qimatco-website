@@ -93,6 +93,8 @@ const can = (perms, section, action) => {
   return !!perms[section][action];
 };
 
+const isRTL_Global = (lang) => lang === 'ar';
+
 // Merge saved permissions with defaults so new keys are always present
 const mergePerms = (saved, base) => {
   const merged = JSON.parse(JSON.stringify(base));
@@ -185,7 +187,6 @@ const AdminPanel = () => {
   const [quoteStatus, setQuoteStatus] = useState("pending");
   const [quoteMsg, setQuoteMsg] = useState("");
   const [pdfGenerating, setPdfGenerating] = useState(false);
-  const [pdfQuote, setPdfQuote] = useState(null);
   const pdfRef = useRef(null);
 
   // Permission / Admin management
@@ -775,88 +776,46 @@ const AdminPanel = () => {
 
   const generatePDF = async (quote) => {
     if (!quote) return;
+    setPdfGenerating(true);
 
-    const doc = new jsPDF();
-
-    // Add Amiri font
-    // doc.addFileToVFS("Amiri-Regular.ttf", AmiriFont);
-    // doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
-    // doc.setFont("Amiri");
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    let y = margin;
-
-    // Header
-    doc.setFontSize(10);
-    doc.text("شركة قمة الابتكار للحلول المتكاملة المحدودة", pageWidth - margin, y, { align: 'right' });
-    doc.text("QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD", margin, y);
-    y += 20;
-
-    doc.setFontSize(18);
-    doc.setFont("Amiri", "bold");
-    doc.text("OFFICIAL QUOTATION / عرض سعر رسمي", pageWidth / 2, y, { align: 'center' });
-    y += 20;
-    doc.setFont("Amiri", "normal");
-
-    // Info
-    const quoteDate = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
-    const quoteRef = `Q-${new Date(quote.createdAt.seconds * 1000).getFullYear()}-${String(quote.createdAt.seconds).slice(-4)}`;
-    doc.setFontSize(10);
-    doc.text(`${t('quote_client')}: ${quote.contactInfo?.fullName || quote.entityInfo?.companyName || ""}`, pageWidth - margin, y, { align: 'right' });
-    doc.text(`${t('quote_date')}: ${quoteDate}`, margin, y);
-    y += 15;
-    doc.text(`${t('quote_ref_no')}: ${quoteRef}`, margin, y);
-    y += 25;
-
-    // Table
-    const tableHeaders = [
-      ["No", "Description / الصنف", "Price / السعر", "Qty / الكمية", "Total / الإجمالي"]
-    ];
-    const tableBody = (quote.id === selectedQuote?.id ? quoteItems : quote.items || []).map((item, idx) => {
-      const qty = parseFloat(item.quantity) || 0;
-      const price = parseFloat(item.price) || 0;
-      const total = qty * price;
-      return [
-        idx + 1,
-        item.serviceName,
-        `SAR ${price.toFixed(2)} (ر.س)`,
-        item.quantity,
-        `SAR ${total.toFixed(2)} (ر.س)`
-      ];
-    });
-
-    doc.autoTable({
-      startY: y,
-      head: tableHeaders,
-      body: tableBody,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [0, 28, 61], // Navy Blue
-        textColor: [255, 255, 255],
-        font: 'Amiri',
-        halign: 'center'
-      },
-      styles: {
-        font: 'Amiri',
-        halign: 'center'
-      },
-      columnStyles: {
-        1: { halign: isRTL ? 'right' : 'left' }
+    try {
+      const element = pdfRef.current;
+      if (!element) {
+        throw new Error("Print template not found");
       }
-    });
 
-    y = doc.autoTable.previous.finalY + 20;
+      // Temporarily show the template for capturing
+      const originalDisplay = element.style.display;
+      // element.style.display = "block"; // Already handled by wrapper position/display
 
-    // Footer
-    doc.setFontSize(10);
-    doc.text(`${t('quote_notes')}: ${quote.adminNotes || ''}`, margin, y, { align: 'left' });
-    y += 15;
-    doc.text("Riyadh, Saudi Arabia", margin, y, { align: 'left' });
+      const canvas = await html2canvas(element, {
+        scale: 2, // higher resolution
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: 794, // 210mm in pixels at 96dpi approx
+      });
 
+      // element.style.display = originalDisplay;
 
-    doc.save(`quotation-${quoteRef}.pdf`);
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      
+      const quoteRef = quote.createdAt?.seconds 
+        ? `Q-${new Date(quote.createdAt.seconds * 1000).getFullYear()}-${String(quote.createdAt.seconds).slice(-4)}`
+        : 'quotation';
+        
+      pdf.save(`${quoteRef}.pdf`);
+    } catch (error) {
+      console.error("PDF Generation Error:", error);
+      alert(language === 'ar' ? "حدث خطأ أثناء إنشاء ملف PDF" : "Error generating PDF");
+    } finally {
+      setPdfGenerating(false);
+    }
   };
 
   // ── GENERIC MEDIA FORM RENDERER ──
@@ -1562,6 +1521,112 @@ const AdminPanel = () => {
     </div></div>
   );
 
+  const QuotePrintTemplate = ({ quote }) => {
+    if (!quote) return null;
+    const isRTL = language === 'ar';
+    const quoteRef = quote.createdAt?.seconds ? `Q-${new Date(quote.createdAt.seconds * 1000).getFullYear()}-${String(quote.createdAt.seconds).slice(-4)}` : 'N/A';
+    const quoteDate = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+    const items = quote.id === selectedQuote?.id ? quoteItems : (quote.items || []);
+
+    return (
+      <div
+        ref={pdfRef}
+        style={{
+          width: "210mm",
+          minHeight: "297mm",
+          padding: "20mm",
+          background: "#fff",
+          color: "#333",
+          fontFamily: "'Cairo', sans-serif",
+          direction: isRTL ? "rtl" : "ltr",
+          display: "block", 
+          position: "relative",
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", borderBottom: "2px solid #001c3d", paddingBottom: "10px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
+          <img src={logo} alt="Logo" style={{ height: "60px" }} />
+          <div style={{ textAlign: isRTL ? "left" : "right", fontSize: "12px" }}>
+            <div style={{ fontWeight: "bold", fontSize: "16px", color: "#001c3d" }}>شركة قمة الابتكار للحلول المتكاملة المحدودة</div>
+            <div>QIMAT ALAIBTIKAR FOR INTEGRATED SOLUTIONS CO. LTD</div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <h2 style={{ color: "#001c3d", borderBottom: "1px solid #ddd", display: "inline-block", paddingBottom: "5px" }}>
+            {isRTL ? "عرض سعر رسمي" : "OFFICIAL QUOTATION"} / {isRTL ? "OFFICIAL QUOTATION" : "عرض سعر رسمي"}
+          </h2>
+        </div>
+
+        {/* Info */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px", background: "#f8f9fa", padding: "15px", borderRadius: "8px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
+          <div style={{ textAlign: isRTL ? "right" : "left" }}>
+            <div><strong>{t('quote_client')}:</strong> {quote.contactInfo?.fullName || quote.entityInfo?.companyName || ""}</div>
+          </div>
+          <div style={{ textAlign: isRTL ? "left" : "right" }}>
+            <div><strong>{t('quote_date')}:</strong> {quoteDate}</div>
+            <div><strong>{t('quote_ref_no')}:</strong> {quoteRef}</div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px" }}>
+          <thead>
+            <tr style={{ background: "#001c3d", color: "#fff" }}>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>No</th>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "right" : "left" }}>{isRTL ? "الصنف / Description" : "Description / الصنف"}</th>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "السعر / Price" : "Price / السعر"}</th>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "الكمية / Qty" : "Qty / الكمية"}</th>
+              <th style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{isRTL ? "الإجمالي / Total" : "Total / الإجمالي"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, idx) => {
+              const qty = parseFloat(item.quantity) || 0;
+              const price = parseFloat(item.price) || 0;
+              const total = qty * price;
+              return (
+                <tr key={idx}>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{idx + 1}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "right" : "left" }}>{item.serviceName}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>SAR {price.toFixed(2)}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>{item.quantity}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>SAR {total.toFixed(2)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr style={{ fontWeight: "bold", background: "#f8f9fa" }}>
+              <td colSpan="4" style={{ border: "1px solid #ddd", padding: "10px", textAlign: isRTL ? "left" : "right" }}>{isRTL ? "الإجمالي / Total" : "Total / الإجمالي"}:</td>
+              <td style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center" }}>
+                SAR {items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0), 0).toFixed(2)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        {/* Footer */}
+        <div style={{ marginTop: "40px" }}>
+          <div style={{ marginBottom: "10px" }}><strong>{t('quote_notes')}:</strong></div>
+          <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "5px", minHeight: "80px", marginBottom: "20px" }}>
+            {quote.adminNotes || '---'}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", flexDirection: isRTL ? 'row' : 'row-reverse' }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ marginBottom: "40px" }}>{isRTL ? "التوقيع / Signature" : "Signature / التوقيع"}</div>
+              <div style={{ borderTop: "1px solid #333", width: "150px", margin: "0 auto" }}></div>
+            </div>
+            <div style={{ textAlign: isRTL ? "right" : "left" }}>
+              <div>Riyadh, Saudi Arabia</div>
+              <div>www.qimatco.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderAdminsTab = () => (
     <div className="card shadow-sm border-0"><div className="card-body p-4">
       <h4 style={{ color: "var(--primary-color)" }} className="mb-3">{t('admin_tab_admins')}</h4>
@@ -1686,6 +1751,9 @@ const AdminPanel = () => {
   return (
     <main id="main" className="py-5" dir={isRTL ? 'rtl' : 'ltr'}>
       <Helmet><title>{t('admin_panel_title')} | Qimmah</title></Helmet>
+      <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+        <QuotePrintTemplate quote={selectedQuote} />
+      </div>
       <div className="container" data-aos="fade-up">
         <div className="row">
           <div className="col-lg-3 mb-3 mb-lg-0">

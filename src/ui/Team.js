@@ -62,8 +62,9 @@ const Team = () => {
 
     // 3. Build the Tree
     employees.forEach((emp) => {
-      // CRITICAL FIX: If managerId is invalid, force them to "root" so they don't vanish
-      const key = (emp.managerId && validIds.has(emp.managerId)) ? emp.managerId : "root";
+      // CRITICAL FIX: If managerId is missing or invalid, force them to "root" so they don't vanish
+      const isInvalidManager = !emp.managerId || !validIds.has(emp.managerId);
+      const key = isInvalidManager ? "root" : emp.managerId;
       if (!map[key]) map[key] = [];
       map[key].push(emp);
     });
@@ -80,18 +81,18 @@ const Team = () => {
     const title = titleById[emp.titleId];
     const section = title ? sectionById[title.sectionId] : null;
     const dept = section ? deptById[section.departmentId] : null;
-    return dept ? loc(dept.name) : "";
+    return dept ? loc(dept.name) : (t('nav_team') || "Team");
   };
 
   const resolveSectionName = (emp) => {
     const title = titleById[emp.titleId];
     const section = title ? sectionById[title.sectionId] : null;
-    return section ? loc(section.name) : "";
+    return section ? loc(section.name) : (t('about_title') || "Department");
   };
 
   const resolveTitleName = (emp) => {
     const title = titleById[emp.titleId];
-    return title ? loc(title.title) : "";
+    return title ? loc(title.title) : (t('career_form_name') || "Member");
   };
 
   const renderNode = (emp) => {

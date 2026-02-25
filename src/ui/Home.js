@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { useLanguage } from "../context/LanguageContext";
 import AOS from "aos";
@@ -23,10 +23,13 @@ const Home = () => {
   const { t, language } = useLanguage();
   const [ads, setAds] = useState([]);
   const [news, setNews] = useState([]);
+  const [team, setTeam] = useState([]);
+  const [titles, setTitles] = useState([]);
+  const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
     setTimeout(() => { AOS.refresh(); }, 200);
-  }, [ads, news]);
+  }, [ads, news, team, jobs]);
 
   const loc = (val) => {
     if (!val) return "";
@@ -48,9 +51,39 @@ const Home = () => {
         catch { snap = await getDocs(query(collection(db, "news"), limit(3))); }
         setNews(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch {}
+
+      // Fetch Team (Employees + Titles)
+      try {
+        const [empSnap, titleSnap] = await Promise.all([
+          getDocs(query(collection(db, "team_employees"), limit(8))),
+          getDocs(collection(db, "team_titles"))
+        ]);
+        setTeam(empSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setTitles(titleSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch {}
+
+      // Fetch Jobs
+      try {
+        const q = query(collection(db, "jobs"), where("status", "==", "open"), limit(3));
+        const snap = await getDocs(q);
+        setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch {
+        // Fallback if index isn't ready
+        try {
+          const snap = await getDocs(collection(db, "jobs"));
+          setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter(j => j.status === 'open').slice(0, 3));
+        } catch {}
+      }
     };
     loadData();
   }, []);
+
+  const titleById = titles.reduce((acc, t) => { acc[t.id] = t; return acc; }, {});
+
+  const resolveTitleName = (emp) => {
+    const title = titleById[emp.titleId];
+    return title ? loc(title.title) : (t('career_form_name') || "Member");
+  };
 
   return (
     <>
@@ -112,24 +145,77 @@ const Home = () => {
         )}
 
         <Trading />
-
         <ServiceList />
+
+        {/* Our Team Section */}
+        {team.length > 0 && (
+          <section className="py-5 bg-white">
+            <div className="container" data-aos="fade-up">
+              <div className="section-header mb-5 text-center">
+                <h2 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{t('nav_team')}</h2>
+                <div style={{ width: "60px", height: "4px", backgroundColor: "var(--accent-color)", margin: "10px auto", borderRadius: "var(--radius-sm)" }}></div>
+              </div>
+              <div className="row g-4">
+                {team.map((emp) => (
+                  <div key={emp.id} className="col-lg-3 col-md-6" data-aos="fade-up">
+                    <div className="enterprise-card text-center p-4">
+                      <div className="mb-3">
+                        {emp.imageUrl ? (
+                          <img src={emp.imageUrl} alt={loc(emp.name)} className="rounded-circle shadow-sm" style={{ width: "120px", height: "120px", objectFit: "cover", border: "3px solid var(--accent-color)" }} />
+                        ) : (
+                          <div className="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style={{ width: "120px", height: "120px", border: "3px solid var(--accent-color)" }}>
+                            <i className="bi bi-person-fill text-secondary" style={{ fontSize: "3rem" }}></i>
+                          </div>
+                        )}
+                      </div>
+                      <h5 style={{ color: "var(--primary-color)", fontWeight: "700" }}>{loc(emp.name)}</h5>
+                      <p className="text-muted small mb-0">{resolveTitleName(emp)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center mt-4">
+                <Link to="/team" className="btn btn-outline-primary px-4 fw-bold">{language === 'ar' ? 'عرض كامل الفريق' : 'View Full Team'}</Link>
+              </div>
+            </div>
+          </section>
+        )}
+
         <ClientList />
 
         <section className="py-5" style={{ backgroundColor: "#ffffff" }}>
           <div className="container" data-aos="fade-up">
-            <div className="enterprise-card d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-              <div>
-                <h3 style={{ color: "var(--primary-color)", fontWeight: "700", marginBottom: "8px" }}>
-                  {t('career_open_positions')}
-                </h3>
-                <p className="text-secondary mb-0" style={{ fontSize: "1rem" }}>
-                  {t('career_no_jobs')}
-                </p>
+            <div className="enterprise-card p-4 p-md-5" style={{ borderLeft: "5px solid var(--accent-color)" }}>
+              <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+                <div className="text-center text-md-start">
+                  <h3 style={{ color: "var(--primary-color)", fontWeight: "700", marginBottom: "10px" }}>
+                    {t('career_open_positions')}
+                  </h3>
+                  <p className="text-secondary mb-0" style={{ fontSize: "1.1rem" }}>
+                    {jobs.length > 0 
+                      ? (language === 'ar' ? `لدينا حالياً ${jobs.length} وظائف شاغرة بانتظارك!` : `We currently have ${jobs.length} open positions waiting for you!`)
+                      : t('career_no_jobs')}
+                  </p>
+                </div>
+                <Link to="/career" className="enterprise-cta-btn shadow-sm">
+                  {t('nav_careers')} <i className="bi bi-briefcase ms-1 me-1"></i>
+                </Link>
               </div>
-              <Link to="/career" className="enterprise-cta-btn">
-                {t('nav_careers')} <i className="bi bi-briefcase"></i>
-              </Link>
+
+              {jobs.length > 0 && (
+                <div className="row g-3 mt-4">
+                  {jobs.map(job => (
+                    <div key={job.id} className="col-md-4">
+                      <div className="p-3 rounded bg-light border-start border-warning border-3 h-100">
+                        <h6 className="fw-bold mb-1" style={{ color: "var(--primary-color)" }}>{job.title}</h6>
+                        <div className="small text-muted">
+                          <i className="bi bi-geo-alt me-1 ms-1"></i>{job.location}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>

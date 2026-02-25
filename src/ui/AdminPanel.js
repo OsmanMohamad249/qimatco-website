@@ -1504,10 +1504,10 @@ const AdminPanel = () => {
     </div></div>
   );
 
-  const QuotePrintTemplate = ({ quote }) => {
+  const QuotePrintTemplate = ({ quote, currentCurrency }) => {
     if (!quote) return null;
     const isRTL = language === 'ar';
-    const currency = quote.currency || quoteCurrency || 'SAR';
+    const currency = currentCurrency || quote.currency || quoteCurrency || 'SAR';
     const quoteRef = quote.createdAt?.seconds ? `Q-${new Date(quote.createdAt.seconds * 1000).getFullYear()}-${String(quote.createdAt.seconds).slice(-4)}` : 'N/A';
     const quoteDate = quote.createdAt?.seconds ? new Date(quote.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
     const items = quote.id === selectedQuote?.id ? quoteItems : (quote.items || []);
@@ -1740,7 +1740,7 @@ const AdminPanel = () => {
     <main id="main" className="py-5" dir={isRTL ? 'rtl' : 'ltr'}>
       <Helmet><title>{t('admin_panel_title')} | Qimmah</title></Helmet>
       <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
-        <QuotePrintTemplate quote={selectedQuote} />
+        <QuotePrintTemplate quote={selectedQuote} currentCurrency={quoteCurrency} />
       </div>
       <div className="container" data-aos="fade-up">
         <div className="row">
